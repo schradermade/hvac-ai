@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { colors, spacing, borderRadius, typography } from '@/components/ui';
 import type { Message } from '../types';
 
 /**
@@ -25,7 +26,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
         {message.isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#6b7280" />
+            <ActivityIndicator size="small" color={colors.textSecondary} />
             <Text style={styles.loadingText}>Thinking...</Text>
           </View>
         ) : (
@@ -56,8 +57,8 @@ function formatTimestamp(date: Date): string {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-    paddingHorizontal: 16,
+    marginBottom: spacing[4],
+    paddingHorizontal: spacing[4],
   },
   userContainer: {
     alignItems: 'flex-end',
@@ -67,42 +68,42 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '80%',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.xl,
   },
   userBubble: {
-    backgroundColor: '#2563eb',
-    borderBottomRightRadius: 4,
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: borderRadius.sm,
   },
   assistantBubble: {
-    backgroundColor: '#f3f4f6',
-    borderBottomLeftRadius: 4,
+    backgroundColor: colors.backgroundDark,
+    borderBottomLeftRadius: borderRadius.sm,
   },
   text: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: typography.fontSize.base,
+    lineHeight: typography.fontSize.base * typography.lineHeight.relaxed,
   },
   userText: {
-    color: '#ffffff',
+    color: colors.surface,
   },
   assistantText: {
-    color: '#1f2937',
+    color: colors.textPrimary,
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[2],
   },
   loadingText: {
-    fontSize: 15,
-    color: '#6b7280',
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
     fontStyle: 'italic',
   },
   timestamp: {
-    fontSize: 11,
-    color: '#9ca3af',
-    marginTop: 4,
+    fontSize: typography.fontSize.xs,
+    color: colors.textTertiary,
+    marginTop: spacing[1],
   },
   userTimestamp: {
     textAlign: 'right',

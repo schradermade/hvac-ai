@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { colors, spacing, borderRadius, typography, touchTarget } from '@/components/ui';
 
 /**
  * Props for ChatInput component
@@ -27,6 +28,7 @@ interface ChatInputProps {
  * - Disabled state when loading
  * - Keyboard handling
  * - Accessible controls
+ * - 44pt minimum touch targets
  */
 export function ChatInput({
   onSend,
@@ -55,7 +57,7 @@ export function ChatInput({
           value={text}
           onChangeText={setText}
           placeholder={placeholder}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.disabled}
           multiline
           maxLength={500}
           editable={!disabled}
@@ -85,45 +87,45 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: colors.border,
   },
   input: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 44,
     maxHeight: 100,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#f9fafb',
-    borderRadius: 20,
-    fontSize: 15,
-    color: '#1f2937',
-    marginRight: 8,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.full,
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    marginRight: spacing[2],
   },
   sendButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#2563eb',
-    borderRadius: 20,
+    minHeight: touchTarget.minHeight,
+    minWidth: 80,
+    paddingHorizontal: spacing[5],
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 70,
   },
   sendButtonPressed: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: colors.primaryPressed,
   },
   sendButtonDisabled: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border,
   },
   sendButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
+    color: colors.surface,
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
   },
   sendButtonTextDisabled: {
-    color: '#9ca3af',
+    color: colors.disabled,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
+import { colors, spacing, typography } from '@/components/ui';
 import { MessageBubble } from './MessageBubble';
 import type { Message } from '../types';
 
@@ -55,25 +56,25 @@ export function MessageList({ messages }: MessageListProps) {
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: spacing[4],
+    paddingBottom: spacing[2],
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing[8],
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[2],
   },
   emptyText: {
-    fontSize: 15,
-    color: '#6b7280',
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: typography.fontSize.base * typography.lineHeight.relaxed,
   },
 });
