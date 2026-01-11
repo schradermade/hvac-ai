@@ -42,8 +42,8 @@ describe('ExampleService', () => {
 
       expect(apiClient.get).toHaveBeenCalledWith('/examples?');
       expect(result.items).toHaveLength(2);
-      expect(result.items[0].title).toBe('Example 1');
-      expect(result.items[0].createdAt).toBeInstanceOf(Date);
+      expect(result.items[0]?.title).toBe('Example 1');
+      expect(result.items[0]?.createdAt).toBeInstanceOf(Date);
     });
 
     it('should fetch examples with status filter', async () => {

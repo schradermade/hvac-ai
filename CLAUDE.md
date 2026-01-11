@@ -12,8 +12,11 @@ Before making any changes, review these key documents:
 
 @docs/FEATURE_DEVELOPMENT.md
 
+@docs/DESIGN_PRINCIPLES.md
+
 ## Important Guidelines
 
+- **UI/UX Quality**: Every feature must meet billion-dollar app standards (see DESIGN_PRINCIPLES.md)
 - Follow the patterns demonstrated in `src/features/_example/`
 - Keep files under size limits: components < 150 lines, hooks < 100 lines, services < 300 lines
 - Use the feature module architecture for all new features

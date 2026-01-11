@@ -9,8 +9,9 @@ Copy and paste this message at the start of each new Claude Code session:
 - `docs/ARCHITECTURE.md`
 - `docs/CODING_STANDARDS.md`
 - `docs/FEATURE_DEVELOPMENT.md`
+- `docs/DESIGN_PRINCIPLES.md`
 
-This ensures you follow the established patterns and coding standards for this project.
+This ensures you follow the established patterns, coding standards, and UI/UX principles for this project.
 
 ---
 
