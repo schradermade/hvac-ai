@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useDiagnosticChat } from '../hooks/useDiagnostic';
 import { MessageList } from '../components/MessageList';
 import { ChatInput } from '../components/ChatInput';
+import { colors } from '@/components/ui';
 
 /**
  * DiagnosticChatScreen
@@ -20,25 +21,20 @@ export function DiagnosticChatScreen() {
   const { messages, sendMessage, isLoading } = useDiagnosticChat('expert');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <MessageList messages={messages} />
-        <ChatInput
-          onSend={sendMessage}
-          disabled={isLoading}
-          placeholder="Ask about diagnostics, troubleshooting, or calculations..."
-        />
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <MessageList messages={messages} />
+      <ChatInput
+        onSend={sendMessage}
+        disabled={isLoading}
+        placeholder="Ask about diagnostics, troubleshooting, or calculations..."
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  content: {
-    flex: 1,
+    backgroundColor: colors.surface,
   },
 });

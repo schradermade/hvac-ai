@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors, typography } from '@/components/ui';
 import { DiagnosticChatScreen } from '@/features/diagnostic';
@@ -98,5 +99,5 @@ export function TabNavigator() {
  */
 function TabIcon({ icon }: { icon: string; color: string }) {
   // eslint-disable-next-line react-native/no-inline-styles
-  return <span style={{ fontSize: 24 }}>{icon}</span>;
+  return <Text style={{ fontSize: 24 }}>{icon}</Text>;
 }

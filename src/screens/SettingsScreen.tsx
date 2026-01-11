@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heading, Body } from '@/components/ui';
 import { colors, spacing } from '@/components/ui';
 import type { TabScreenProps } from '@/navigation/types';
