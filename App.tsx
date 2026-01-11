@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DiagnosticChatScreen } from './src/features/diagnostic';
+import { TabNavigator } from './src/navigation';
 
 // Create QueryClient instance
 const queryClient = new QueryClient({
@@ -12,11 +13,21 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * App Root Component
+ *
+ * Sets up:
+ * - React Query for server state
+ * - React Navigation for routing
+ * - Tab-based navigation structure
+ */
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <DiagnosticChatScreen />
-      <StatusBar style="auto" />
+      <NavigationContainer>
+        <TabNavigator />
+        <StatusBar style="auto" />
+      </NavigationContainer>
     </QueryClientProvider>
   );
 }
