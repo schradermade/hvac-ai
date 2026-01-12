@@ -97,7 +97,7 @@ export function TodaysJobsScreen() {
           <>
             {/* Professional Header */}
             <View style={styles.fixedHeader}>
-              {/* Hero Section */}
+              {/* Hero Section with Brand */}
               <View style={styles.heroSection}>
                 <View style={styles.heroContent}>
                   <View style={styles.titleRow}>
@@ -115,6 +115,18 @@ export function TodaysJobsScreen() {
                     </Text>
                   </View>
                 </View>
+
+                {/* Brand Header - Top Right */}
+                <View style={styles.brandHeader}>
+                  <View style={styles.brandLogoContainer}>
+                    <Ionicons name="snow" size={20} color={colors.primary} />
+                  </View>
+                  <Text style={styles.brandText}>HVAC AI</Text>
+                </View>
+              </View>
+
+              {/* Job Count Badge Below */}
+              <View style={styles.countBadgeContainer}>
                 <View style={styles.countBadge}>
                   <Text style={styles.countBadgeText}>{allJobs.length}</Text>
                 </View>
@@ -303,16 +315,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    gap: spacing[4],
+    gap: spacing[3],
   },
   heroSection: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: spacing[3],
   },
   heroContent: {
     flex: 1,
     gap: spacing[2],
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  brandLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  countBadgeContainer: {
+    alignItems: 'flex-start',
   },
   titleRow: {
     flexDirection: 'row',
