@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { EmptyState, Spinner, Badge } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useAllSessions } from '@/features/diagnostic';
@@ -146,7 +147,7 @@ export function HistoryScreen() {
             onPress={() => setShowSearchModal(true)}
             activeOpacity={0.7}
           >
-            <Text style={styles.quickFindIcon}>🔍</Text>
+            <Ionicons name="search" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -250,9 +251,21 @@ export function HistoryScreen() {
                     <Text style={styles.chevron}>›</Text>
                   </View>
 
-                  {session.jobId && <Text style={styles.sessionMeta}>📋 Linked to job</Text>}
+                  {session.jobId && (
+                    <View style={styles.sessionMetaRow}>
+                      <Ionicons
+                        name="document-text-outline"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
+                      <Text style={styles.sessionMeta}>Linked to job</Text>
+                    </View>
+                  )}
                   {session.equipmentId && (
-                    <Text style={styles.sessionMeta}>⚙️ Equipment diagnostic</Text>
+                    <View style={styles.sessionMetaRow}>
+                      <Ionicons name="construct-outline" size={16} color={colors.textSecondary} />
+                      <Text style={styles.sessionMeta}>Equipment diagnostic</Text>
+                    </View>
                   )}
 
                   <View style={styles.sessionFooter}>
@@ -456,9 +469,6 @@ const styles = StyleSheet.create({
     minWidth: 56,
     ...shadows.sm,
   },
-  quickFindIcon: {
-    fontSize: 24,
-  },
   filterChips: {
     flexDirection: 'row',
     gap: spacing[2],
@@ -569,10 +579,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.textTertiary,
   },
+  sessionMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    marginBottom: spacing[1],
+  },
   sessionMeta: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
-    marginBottom: spacing[1],
   },
   sessionFooter: {
     marginTop: spacing[2],

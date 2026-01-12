@@ -12,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { Input, Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClientList } from '@/features/clients';
@@ -28,12 +29,16 @@ interface JobFormProps {
   isLoading?: boolean;
 }
 
-const JOB_TYPES: Array<{ label: string; value: JobType; icon: string }> = [
-  { label: 'Maintenance', value: 'maintenance', icon: '🔧' },
-  { label: 'Repair', value: 'repair', icon: '🛠️' },
-  { label: 'Installation', value: 'installation', icon: '📦' },
-  { label: 'Inspection', value: 'inspection', icon: '🔍' },
-  { label: 'Emergency', value: 'emergency', icon: '🚨' },
+const JOB_TYPES: Array<{
+  label: string;
+  value: JobType;
+  iconName: keyof typeof Ionicons.glyphMap;
+}> = [
+  { label: 'Maintenance', value: 'maintenance', iconName: 'construct-outline' },
+  { label: 'Repair', value: 'repair', iconName: 'hammer-outline' },
+  { label: 'Installation', value: 'installation', iconName: 'cube-outline' },
+  { label: 'Inspection', value: 'inspection', iconName: 'eye-outline' },
+  { label: 'Emergency', value: 'emergency', iconName: 'alert-circle-outline' },
 ];
 
 /**
@@ -195,7 +200,13 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
                   onPress={() => setShowTypePicker(true)}
                 >
                   <View style={styles.selectButtonContent}>
-                    <Text style={styles.selectButtonIcon}>{selectedType?.icon}</Text>
+                    <View style={styles.jobTypeIconContainer}>
+                      <Ionicons
+                        name={selectedType?.iconName || 'construct-outline'}
+                        size={20}
+                        color={colors.primary}
+                      />
+                    </View>
                     <Text style={styles.selectButtonText}>{selectedType?.label}</Text>
                   </View>
                   <Text style={styles.selectButtonIcon}>›</Text>
@@ -218,9 +229,12 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.helperText}>
-                  📅 Defaults to 2 hours from now • Date/time editing coming soon
-                </Text>
+                <View style={styles.helperTextRow}>
+                  <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+                  <Text style={styles.helperText}>
+                    Defaults to 2 hours from now • Date/time editing coming soon
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -321,7 +335,9 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
                       {item.address}, {item.city}
                     </Text>
                   </View>
-                  {formData.clientId === item.id && <Text style={styles.checkmark}>✓</Text>}
+                  {formData.clientId === item.id && (
+                    <Ionicons name="checkmark" size={24} color={colors.primary} />
+                  )}
                 </View>
               </TouchableOpacity>
             )}
@@ -362,10 +378,14 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
               >
                 <View style={styles.listItemContent}>
                   <View style={styles.jobTypeContent}>
-                    <Text style={styles.jobTypeIcon}>{item.icon}</Text>
+                    <View style={styles.jobTypeIconContainerLarge}>
+                      <Ionicons name={item.iconName} size={24} color={colors.primary} />
+                    </View>
                     <Text style={styles.listItemTitle}>{item.label}</Text>
                   </View>
-                  {formData.type === item.value && <Text style={styles.checkmark}>✓</Text>}
+                  {formData.type === item.value && (
+                    <Ionicons name="checkmark" size={24} color={colors.primary} />
+                  )}
                 </View>
               </TouchableOpacity>
             )}
@@ -491,15 +511,37 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
     color: colors.textPrimary,
   },
+  helperTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    marginTop: spacing[2],
+  },
   helperText: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
-    marginTop: spacing[2],
+    flex: 1,
   },
   errorText: {
     fontSize: typography.fontSize.sm,
     color: colors.error,
     marginTop: spacing[2],
+  },
+  jobTypeIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  jobTypeIconContainerLarge: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionBar: {
     flexDirection: 'row',
@@ -592,17 +634,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginHorizontal: spacing[4],
   },
-  checkmark: {
-    fontSize: 24,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary,
-  },
   jobTypeContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-  },
-  jobTypeIcon: {
-    fontSize: 32,
   },
 });
