@@ -19,3 +19,4 @@ export { ClientForm } from './components/ClientForm';
 
 // Export screens
 export { ClientListScreen } from './screens/ClientListScreen';
+export { ClientDetailScreen } from './screens/ClientDetailScreen';

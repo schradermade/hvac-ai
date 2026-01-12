@@ -1,12 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, Modal, TextInput, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { EmptyState, Button, Spinner } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
 import { ClientCard } from '../components/ClientCard';
 import { ClientForm } from '../components/ClientForm';
-import type { ClientFormData } from '../types';
+import type { ClientFormData, Client } from '../types';
+import type { RootStackParamList } from '@/navigation/types';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 /**
  * ClientListScreen
@@ -15,6 +20,7 @@ import type { ClientFormData } from '../types';
  * TODO: Add search, filters, edit functionality
  */
 export function ClientListScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +34,10 @@ export function ClientListScreen() {
   const handleSubmit = async (formData: ClientFormData) => {
     await createMutation.mutateAsync(formData);
     setShowForm(false);
+  };
+
+  const handleClientPress = (client: Client) => {
+    navigation.navigate('ClientDetail', { clientId: client.id });
   };
 
   // Filter clients based on search query
@@ -121,7 +131,7 @@ export function ClientListScreen() {
             <FlatList
               data={clients}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ClientCard client={item} />}
+              renderItem={({ item }) => <ClientCard client={item} onPress={handleClientPress} />}
               contentContainerStyle={styles.list}
               ListEmptyComponent={
                 <View style={styles.emptyResults}>
@@ -194,7 +204,7 @@ export function ClientListScreen() {
                 onPress={() => {
                   setShowSearchModal(false);
                   setSearchQuery('');
-                  // TODO: Navigate to client detail when implemented
+                  handleClientPress(item);
                 }}
                 activeOpacity={0.7}
               >

@@ -8,9 +8,11 @@ export type { Equipment, EquipmentFormData, SystemType } from './types';
 export {
   useEquipmentList,
   useEquipment,
+  useEquipmentByClient,
   useCreateEquipment,
   useUpdateEquipment,
   useDeleteEquipment,
+  useAssignEquipment,
 } from './hooks/useEquipment';
 
 // Export components

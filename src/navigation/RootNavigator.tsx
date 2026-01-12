@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TabNavigator } from './TabNavigator';
 import { DiagnosticChatScreen } from '@/features/diagnostic';
+import { ClientDetailScreen } from '@/features/clients';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -16,6 +17,14 @@ export function RootNavigator() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="ClientDetail"
+        component={ClientDetailScreen}
+        options={{
+          title: 'Client Details',
+          headerBackTitle: 'Back',
+        }}
+      />
       <Stack.Screen
         name="DiagnosticChat"
         component={DiagnosticChatScreen}

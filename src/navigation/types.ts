@@ -25,6 +25,8 @@ export type RootTabParamList = {
  */
 export type RootStackParamList = {
   Main: undefined;
+  // Client flows
+  ClientDetail: { clientId: string };
   // Diagnostic flows
   DiagnosticChat: {
     clientId: string;
@@ -33,7 +35,6 @@ export type RootStackParamList = {
     sessionId?: string; // If resuming an existing session
   };
   // TODO: Add other detail screens when implementing
-  // ClientDetail: { clientId: string };
   // JobDetail: { jobId: string };
 };
 
