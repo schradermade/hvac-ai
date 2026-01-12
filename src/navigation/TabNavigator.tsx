@@ -60,6 +60,7 @@ export function TabNavigator() {
         name="Jobs"
         component={TodaysJobsScreen}
         options={{
+          title: 'Jobs',
           tabBarLabel: 'Jobs',
           tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={20} color={color} />,
         }}
@@ -68,6 +69,7 @@ export function TabNavigator() {
         name="Clients"
         component={ClientListScreen}
         options={{
+          title: 'Clients',
           tabBarLabel: 'Clients',
           tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />,
         }}
@@ -76,6 +78,7 @@ export function TabNavigator() {
         name="History"
         component={HistoryScreen}
         options={{
+          title: 'Sessions',
           tabBarLabel: 'Sessions',
           tabBarIcon: ({ color }) => (
             <Ionicons name="chatbubbles-outline" size={22} color={color} />
@@ -86,6 +89,7 @@ export function TabNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{
+          title: 'Settings',
           tabBarLabel: 'Settings',
           tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} />,
           tabBarItemStyle: {
