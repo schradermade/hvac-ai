@@ -10,6 +10,268 @@ class JobService {
   private jobs: Map<string, Job> = new Map();
   private idCounter = 0;
 
+  constructor() {
+    // Initialize with test jobs for development
+    this.createTestJobs();
+  }
+
+  /**
+   * Create test jobs for development/testing
+   */
+  private createTestJobs(): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const testJobs: Job[] = [
+      {
+        id: 'job_test_1',
+        clientId: 'client_test_1',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 8 * 60 * 60 * 1000), // 8:00 AM
+        scheduledEnd: new Date(today.getTime() + 10 * 60 * 60 * 1000), // 10:00 AM
+        description: 'Annual HVAC maintenance check',
+        notes: 'Check filters, coils, and refrigerant levels',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_2',
+        clientId: 'client_test_2',
+        type: 'repair',
+        status: 'in_progress',
+        scheduledStart: new Date(today.getTime() + 9 * 60 * 60 * 1000), // 9:00 AM
+        scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000),
+        description: 'AC not cooling properly',
+        notes: 'Customer reports warm air from vents',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_3',
+        clientId: 'client_test_3',
+        type: 'installation',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 10 * 60 * 60 * 1000), // 10:00 AM
+        scheduledEnd: new Date(today.getTime() + 14 * 60 * 60 * 1000),
+        description: 'Install new 3-ton split system',
+        notes: 'New construction, all materials on site',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_4',
+        clientId: 'client_test_4',
+        type: 'inspection',
+        status: 'completed',
+        scheduledStart: new Date(today.getTime() + 7 * 60 * 60 * 1000), // 7:00 AM
+        scheduledEnd: new Date(today.getTime() + 8 * 60 * 60 * 1000),
+        description: 'Pre-season inspection',
+        notes: 'All systems operational, minor filter replacement needed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_5',
+        clientId: 'client_test_5',
+        type: 'emergency',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 11 * 60 * 60 * 1000), // 11:00 AM
+        scheduledEnd: new Date(today.getTime() + 13 * 60 * 60 * 1000),
+        description: 'No heat - emergency service',
+        notes: 'Customer has elderly occupant, priority service',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_6',
+        clientId: 'client_test_6',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 12 * 60 * 60 * 1000), // 12:00 PM
+        scheduledEnd: new Date(today.getTime() + 13 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Quarterly maintenance visit',
+        notes: 'Commercial property, coordinate with property manager',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_7',
+        clientId: 'client_test_7',
+        type: 'repair',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 13 * 60 * 60 * 1000), // 1:00 PM
+        scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000),
+        description: 'Strange noise from outdoor unit',
+        notes: 'Possible compressor or fan issue',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_8',
+        clientId: 'client_test_8',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 14 * 60 * 60 * 1000), // 2:00 PM
+        scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Spring tune-up service',
+        notes: 'Historic home, special care required',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_9',
+        clientId: 'client_test_9',
+        type: 'inspection',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 15 * 60 * 60 * 1000), // 3:00 PM
+        scheduledEnd: new Date(today.getTime() + 16 * 60 * 60 * 1000),
+        description: 'Home sale inspection',
+        notes: 'Buyer requested inspection before closing',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_10',
+        clientId: 'client_test_10',
+        type: 'repair',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 16 * 60 * 60 * 1000), // 4:00 PM
+        scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Water leak from indoor unit',
+        notes: 'Possible condensate drain clog',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_11',
+        clientId: 'client_test_11',
+        type: 'installation',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 8 * 60 * 60 * 1000 + 30 * 60 * 1000), // 8:30 AM
+        scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Replace old furnace with high-efficiency model',
+        notes: 'Large property, may need additional time',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_12',
+        clientId: 'client_test_12',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 9 * 60 * 60 * 1000 + 30 * 60 * 1000), // 9:30 AM
+        scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000),
+        description: 'Fall maintenance service',
+        notes: 'Customer prefers afternoon appointments',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_13',
+        clientId: 'client_test_13',
+        type: 'repair',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 10 * 60 * 60 * 1000 + 30 * 60 * 1000), // 10:30 AM
+        scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000),
+        description: 'Thermostat not responding',
+        notes: 'May need replacement',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_14',
+        clientId: 'client_test_14',
+        type: 'inspection',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 11 * 60 * 60 * 1000 + 30 * 60 * 1000), // 11:30 AM
+        scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Building code compliance inspection',
+        notes: 'Condo building, coordinate with property manager',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_15',
+        clientId: 'client_test_15',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 13 * 60 * 60 * 1000 + 30 * 60 * 1000), // 1:30 PM
+        scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000),
+        description: 'End of warranty maintenance',
+        notes: 'Maintenance contract expires next month',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_16',
+        clientId: 'client_test_16',
+        type: 'repair',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 14 * 60 * 60 * 1000 + 30 * 60 * 1000), // 2:30 PM
+        scheduledEnd: new Date(today.getTime() + 16 * 60 * 60 * 1000),
+        description: 'System short cycling',
+        notes: 'Recently purchased home, full inspection needed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_17',
+        clientId: 'client_test_17',
+        type: 'emergency',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 15 * 60 * 60 * 1000 + 30 * 60 * 1000), // 3:30 PM
+        scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000),
+        description: 'Complete system failure',
+        notes: 'VIP client, priority service',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_18',
+        clientId: 'client_test_18',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 16 * 60 * 60 * 1000 + 30 * 60 * 1000), // 4:30 PM
+        scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Rental property inspection',
+        notes: 'Contact owner for major repairs',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_19',
+        clientId: 'client_test_19',
+        type: 'installation',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 7 * 60 * 60 * 1000 + 30 * 60 * 1000), // 7:30 AM
+        scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        description: 'Install mini-split system',
+        notes: 'Office building, service during business hours only',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'job_test_20',
+        clientId: 'client_test_20',
+        type: 'repair',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 17 * 60 * 60 * 1000), // 5:00 PM
+        scheduledEnd: new Date(today.getTime() + 18 * 60 * 60 * 1000),
+        description: 'Smart thermostat integration issue',
+        notes: 'App access available for remote diagnostics',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    testJobs.forEach((job) => {
+      this.jobs.set(job.id, job);
+    });
+
+    this.idCounter = 20; // Set counter since we used job_test_1 through job_test_20
+  }
+
   /**
    * Get today's scheduled jobs
    */
