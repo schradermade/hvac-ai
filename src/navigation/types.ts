@@ -25,10 +25,16 @@ export type RootTabParamList = {
  */
 export type RootStackParamList = {
   Main: undefined;
-  // TODO: Add detail screens when implementing full features
+  // Diagnostic flows
+  DiagnosticChat: {
+    clientId: string;
+    jobId?: string;
+    equipmentId?: string;
+    sessionId?: string; // If resuming an existing session
+  };
+  // TODO: Add other detail screens when implementing
   // ClientDetail: { clientId: string };
   // JobDetail: { jobId: string };
-  // DiagnosticChat: { clientId: string; jobId?: string; equipmentId?: string };
 };
 
 /**

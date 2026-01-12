@@ -1,57 +1,101 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useDiagnosticChat } from '../hooks/useDiagnostic';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useCreateSession, useSession, useAddMessageToSession } from '../hooks/useDiagnostic';
 import { MessageList } from '../components/MessageList';
 import { ChatInput } from '../components/ChatInput';
-import { EquipmentSelector } from '../components/EquipmentSelector';
-import { colors } from '@/components/ui';
-import type { Equipment } from '@/features/equipment';
-import type { EquipmentContext } from '../types';
+import { colors, spacing, typography } from '@/components/ui';
+import { useClient } from '@/features/clients';
+import { useJob } from '@/features/jobs';
+import { useEquipment } from '@/features/equipment';
+import type { RootStackParamList } from '@/navigation/types';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'DiagnosticChat'>;
 
 /**
  * DiagnosticChatScreen
  *
- * Main screen for the diagnostic chat feature.
- * Provides an AI-powered assistant for HVAC diagnostics and troubleshooting.
+ * Session-based diagnostic chat with full job-client-equipment context.
+ * Creates or resumes diagnostic sessions tied to specific clients and optionally jobs/equipment.
  *
  * Features:
- * - Real-time chat with AI assistant
- * - Equipment context awareness
- * - Multiple diagnostic modes (expert/guided/quick)
- * - Offline-capable with mock responses
+ * - Context-aware AI assistant with client/job/equipment info
+ * - Persistent sessions with message history
+ * - Session completion and summary generation
+ * - Seamless integration with job workflow
  */
-export function DiagnosticChatScreen() {
-  const { messages, sendMessage, isLoading, setEquipmentContext } = useDiagnosticChat('expert');
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | undefined>();
+export function DiagnosticChatScreen({ route }: Props) {
+  const { clientId, jobId, equipmentId, sessionId: existingSessionId } = route.params;
 
-  const handleEquipmentChange = (equipment: Equipment | undefined) => {
-    if (equipment) {
-      setSelectedEquipmentId(equipment.id);
-      // Convert Equipment to EquipmentContext
-      const context: EquipmentContext = {
-        manufacturer: equipment.manufacturer,
-        modelNumber: equipment.modelNumber,
-        systemType: equipment.systemType,
-        refrigerant: equipment.refrigerant,
-        installDate: equipment.installDate,
-      };
-      setEquipmentContext(context);
-    } else {
-      setSelectedEquipmentId(undefined);
-      setEquipmentContext(undefined);
+  const [activeSessionId, setActiveSessionId] = useState<string | undefined>(existingSessionId);
+
+  // Fetch context data
+  const { data: client } = useClient(clientId);
+  const { data: job } = useJob(jobId || '');
+  const { data: equipment } = useEquipment(equipmentId || '');
+
+  // Session management
+  const createSessionMutation = useCreateSession();
+  const { data: session, isLoading: sessionLoading } = useSession(
+    activeSessionId || '',
+    !!activeSessionId
+  );
+  const addMessageMutation = useAddMessageToSession();
+
+  // Create session if needed
+  useEffect(() => {
+    if (!activeSessionId && !createSessionMutation.isPending && !createSessionMutation.isSuccess) {
+      createSessionMutation.mutate(
+        { clientId, jobId, equipmentId, mode: 'expert' },
+        {
+          onSuccess: (newSession) => {
+            setActiveSessionId(newSession.id);
+          },
+        }
+      );
     }
+  }, [activeSessionId, clientId, jobId, equipmentId, createSessionMutation]);
+
+  const handleSendMessage = (content: string) => {
+    if (!activeSessionId || !content.trim()) return;
+
+    addMessageMutation.mutate({
+      sessionId: activeSessionId,
+      request: { content, mode: 'expert' },
+    });
   };
+
+  // Loading state
+  if (sessionLoading || !session) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Starting diagnostic session...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <EquipmentSelector
-        selectedEquipmentId={selectedEquipmentId}
-        onEquipmentChange={handleEquipmentChange}
-      />
-      <MessageList messages={messages} />
+      {/* Context Header */}
+      <View style={styles.contextHeader}>
+        <Text style={styles.contextTitle}>{client?.name || 'Loading client...'}</Text>
+        {job && (
+          <Text style={styles.contextSubtitle}>
+            Job: {job.type} - {new Date(job.scheduledStart).toLocaleDateString()}
+          </Text>
+        )}
+        {equipment && (
+          <Text style={styles.contextSubtitle}>
+            Equipment: {equipment.name} ({equipment.manufacturer})
+          </Text>
+        )}
+      </View>
+
+      <MessageList messages={session.messages} />
       <ChatInput
-        onSend={sendMessage}
-        disabled={isLoading}
+        onSend={handleSendMessage}
+        disabled={addMessageMutation.isPending}
         placeholder="Ask about diagnostics, troubleshooting, or calculations..."
       />
     </View>
@@ -61,6 +105,34 @@ export function DiagnosticChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  loadingText: {
+    marginTop: spacing[4],
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+  },
+  contextHeader: {
     backgroundColor: colors.surface,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  contextTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[1],
+  },
+  contextSubtitle: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
 });
