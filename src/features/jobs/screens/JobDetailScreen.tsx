@@ -192,54 +192,58 @@ export function JobDetailScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* Job Status Actions */}
         <View style={styles.quickActionsSection}>
-          <TouchableOpacity
-            style={styles.primaryAction}
-            onPress={handleStartDiagnostic}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="chatbubbles" size={20} color={colors.surface} />
-            <Text style={styles.primaryActionText}>Start Diagnostic Session</Text>
-          </TouchableOpacity>
+          {canStartJob && (
+            <TouchableOpacity
+              style={[styles.primaryAction, updatingStatus && styles.primaryActionDisabled]}
+              onPress={() => handleStatusUpdate('in_progress')}
+              disabled={updatingStatus}
+              activeOpacity={0.8}
+            >
+              {updatingStatus ? (
+                <ActivityIndicator size="small" color={colors.surface} />
+              ) : (
+                <>
+                  <Ionicons name="play-circle" size={20} color={colors.surface} />
+                  <Text style={styles.primaryActionText}>Start Job</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+          {canCompleteJob && (
+            <TouchableOpacity
+              style={[styles.primaryAction, updatingStatus && styles.primaryActionDisabled]}
+              onPress={() => handleStatusUpdate('completed')}
+              disabled={updatingStatus}
+              activeOpacity={0.8}
+            >
+              {updatingStatus ? (
+                <ActivityIndicator size="small" color={colors.surface} />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.surface} />
+                  <Text style={styles.primaryActionText}>Complete Job</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
-          {/* Status Update Actions */}
-          <View style={styles.statusActions}>
-            {canStartJob && (
-              <TouchableOpacity
-                style={[styles.statusButton, updatingStatus && styles.statusButtonDisabled]}
-                onPress={() => handleStatusUpdate('in_progress')}
-                disabled={updatingStatus}
-                activeOpacity={0.8}
-              >
-                {updatingStatus ? (
-                  <ActivityIndicator size="small" color={colors.textPrimary} />
-                ) : (
-                  <>
-                    <Ionicons name="play-circle" size={20} color={colors.textPrimary} />
-                    <Text style={styles.statusButtonText}>Start Job</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-            {canCompleteJob && (
-              <TouchableOpacity
-                style={[styles.statusButton, updatingStatus && styles.statusButtonDisabled]}
-                onPress={() => handleStatusUpdate('completed')}
-                disabled={updatingStatus}
-                activeOpacity={0.8}
-              >
-                {updatingStatus ? (
-                  <ActivityIndicator size="small" color={colors.textPrimary} />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.textPrimary} />
-                    <Text style={styles.statusButtonText}>Complete Job</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
+          {/* AI Help - Premium feature showcase */}
+          <TouchableOpacity
+            style={styles.aiHelpButton}
+            onPress={handleStartDiagnostic}
+            activeOpacity={0.85}
+          >
+            <View style={styles.aiHelpIconContainer}>
+              <Ionicons name="sparkles" size={24} color="#FFFFFF" />
+            </View>
+            <View style={styles.aiHelpTextContainer}>
+              <Text style={styles.aiHelpButtonText}>Get AI Help</Text>
+              <Text style={styles.aiHelpSubtext}>Powered by HVAC.ai</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
         {/* Schedule Section */}
@@ -564,30 +568,53 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     color: '#FFFFFF',
   },
-  statusActions: {
-    flexDirection: 'row',
-    gap: spacing[3],
+  primaryActionDisabled: {
+    opacity: 0.6,
   },
-  statusButton: {
-    flex: 1,
+  aiHelpButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.backgroundDark,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+    justifyContent: 'space-between',
+    gap: spacing[3],
+    backgroundColor: '#6366F1', // Vibrant indigo
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[5],
     borderRadius: borderRadius.lg,
-    minHeight: 56,
-    ...shadows.sm,
+    minHeight: 72,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    ...shadows.lg,
+    shadowColor: '#6366F1',
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 12,
   },
-  statusButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+  aiHelpIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statusButtonDisabled: {
-    opacity: 0.5,
+  aiHelpTextContainer: {
+    flex: 1,
+    gap: spacing[1],
+  },
+  aiHelpButtonText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  aiHelpSubtext: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   section: {
     marginTop: spacing[6],
