@@ -114,7 +114,7 @@ export function HistoryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.header}>
         {/* Search Bar */}
         <View style={styles.searchRow}>
@@ -494,11 +494,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   listContent: {
-    padding: spacing[4],
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
   },
   emptyListContent: {
     flex: 1,
-    padding: spacing[4],
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
   },
   emptyResults: {
     flex: 1,

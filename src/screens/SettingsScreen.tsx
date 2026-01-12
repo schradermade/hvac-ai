@@ -18,7 +18,7 @@ import type { TabScreenProps } from '@/navigation/types';
 // eslint-disable-next-line no-unused-vars
 export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.content}>
         <View style={styles.header}>
           <Heading level={1}>Settings</Heading>

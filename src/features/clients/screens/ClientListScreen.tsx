@@ -69,7 +69,7 @@ export function ClientListScreen() {
   const hasAnyClients = allClients.length > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.content}>
         {!hasAnyClients ? (
           <EmptyState
@@ -305,7 +305,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   list: {
-    padding: spacing[4],
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
   },
   modalContainer: {
     flex: 1,
