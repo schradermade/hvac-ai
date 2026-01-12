@@ -263,13 +263,25 @@ class JobService {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        id: 'job_test_21',
+        clientId: 'client_test_22',
+        type: 'maintenance',
+        status: 'scheduled',
+        scheduledStart: new Date(today.getTime() + 10 * 60 * 60 * 1000), // 10:00 AM
+        scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000), // 12:00 PM
+        description: 'Annual HVAC system inspection',
+        notes: 'Text client before arrival. Large dog on property - see client pet info.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ];
 
     testJobs.forEach((job) => {
       this.jobs.set(job.id, job);
     });
 
-    this.idCounter = 20; // Set counter since we used job_test_1 through job_test_20
+    this.idCounter = 21; // Set counter since we used job_test_1 through job_test_21
   }
 
   /**

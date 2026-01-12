@@ -334,6 +334,21 @@ export function JobDetailScreen({ route, navigation }: Props) {
               <Text style={styles.emptyText}>Client information unavailable</Text>
             </Card>
           )}
+
+          {/* Pet Warning */}
+          {client?.petInfo && (
+            <Card style={styles.petWarningCard}>
+              <View style={styles.petWarningContent}>
+                <View style={styles.petWarningIconContainer}>
+                  <Ionicons name="paw" size={24} color={colors.warning} />
+                </View>
+                <View style={styles.petWarningTextContainer}>
+                  <Text style={styles.petWarningTitle}>Pets on Site</Text>
+                  <Text style={styles.petWarningText}>{client.petInfo}</Text>
+                </View>
+              </View>
+            </Card>
+          )}
         </View>
 
         {/* Equipment Section */}
@@ -700,5 +715,40 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
     lineHeight: 22,
+  },
+  petWarningCard: {
+    marginHorizontal: spacing[4],
+    marginTop: spacing[3],
+    padding: spacing[4],
+    backgroundColor: colors.warningLight,
+    borderWidth: 1,
+    borderColor: colors.warning + '40',
+  },
+  petWarningContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[3],
+  },
+  petWarningIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.warning + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  petWarningTextContainer: {
+    flex: 1,
+    gap: spacing[1],
+  },
+  petWarningTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.warning,
+  },
+  petWarningText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textPrimary,
+    lineHeight: 20,
   },
 });

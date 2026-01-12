@@ -331,13 +331,28 @@ class ClientService {
         createdAt: new Date('2024-03-25'),
         updatedAt: new Date('2024-03-25'),
       },
+      {
+        id: 'client_test_22',
+        name: 'Margaret Wilson',
+        phone: '555-234-5678',
+        address: '892 Forest Glen Road',
+        city: 'Springfield',
+        state: 'IL',
+        zipCode: '62703',
+        email: 'mwilson@email.com',
+        petInfo:
+          '1 large German Shepherd (Max) - very protective, barks at strangers. Keep gates closed.',
+        serviceNotes: 'Please text before arrival. Equipment in backyard.',
+        createdAt: new Date('2024-03-28'),
+        updatedAt: new Date('2024-03-28'),
+      },
     ];
 
     testClients.forEach((client) => {
       this.clients.set(client.id, client);
     });
 
-    this.idCounter = 21; // Set counter to 21 since we used client_test_1 through client_test_21
+    this.idCounter = 22; // Set counter to 22 since we used client_test_1 through client_test_22
   }
 
   /**
