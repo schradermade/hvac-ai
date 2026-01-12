@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Spinner, Badge } from '@/components/ui';
+import { Spinner, Badge } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useAllSessions } from '@/features/diagnostic';
 import { useClientList } from '@/features/clients';
@@ -101,19 +101,6 @@ export function HistoryScreen() {
 
   const hasAnySessions =
     (sessionsData?.items || []).filter((s) => s.messages.length > 0).length > 0;
-
-  if (sessions.length === 0 && !hasAnySessions) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <EmptyState
-            title="No diagnostic history"
-            description="Your past diagnostics and conversations will appear here for easy reference"
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -334,11 +321,15 @@ export function HistoryScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyResults}>
-            <Text style={styles.emptyResultsTitle}>No AI history found</Text>
+            <Text style={styles.emptyResultsTitle}>
+              {!hasAnySessions ? 'No diagnostic history' : 'No AI history found'}
+            </Text>
             <Text style={styles.emptyResultsText}>
-              {searchQuery
-                ? `No AI history matches "${searchQuery}"`
-                : 'Try adjusting your filters'}
+              {!hasAnySessions
+                ? 'Your past diagnostics and conversations will appear here for easy reference'
+                : searchQuery
+                  ? `No AI history matches "${searchQuery}"`
+                  : 'Try adjusting your filters'}
             </Text>
           </View>
         }
@@ -450,9 +441,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#6366F1',
-  },
-  content: {
-    flex: 1,
   },
   header: {
     paddingTop: spacing[3],
