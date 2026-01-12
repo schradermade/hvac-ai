@@ -118,17 +118,7 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
             </Text>
           )}
 
-          {/* Status badge at bottom */}
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {job.status.replace('_', ' ')}
-            </Text>
-          </View>
-        </View>
-
-        {/* Right column with button at bottom */}
-        <View style={styles.rightColumn}>
+          {/* Quick action button directly under details */}
           {onStartDiagnostic && (
             <TouchableOpacity
               style={styles.quickAction}
@@ -144,12 +134,23 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
           )}
         </View>
 
-        {/* Chevron */}
-        {onPress && (
-          <View style={styles.chevronContainer}>
-            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+        {/* Right side: status badge and chevron aligned vertically */}
+        <View style={styles.rightSide}>
+          {/* Status badge at top */}
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {job.status.replace('_', ' ')}
+            </Text>
           </View>
-        )}
+
+          {/* Chevron at bottom */}
+          {onPress && (
+            <View style={styles.chevronContainer}>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </View>
+          )}
+        </View>
       </View>
     </Card>
   );
@@ -192,14 +193,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],
     borderRadius: borderRadius.base,
-    alignSelf: 'flex-start',
-    marginTop: spacing[2],
   },
-  rightColumn: {
+  rightSide: {
     flex: 0,
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
     alignSelf: 'stretch',
+    gap: spacing[2],
   },
   statusDot: {
     width: 6,
@@ -240,6 +240,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     backgroundColor: colors.primary,
     borderRadius: borderRadius.base,
+    marginTop: spacing[2],
+    alignSelf: 'flex-start',
     ...shadows.sm,
   },
   quickActionText: {
@@ -248,8 +250,8 @@ const styles = StyleSheet.create({
     color: colors.surface,
   },
   chevronContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'stretch',
   },
 });
