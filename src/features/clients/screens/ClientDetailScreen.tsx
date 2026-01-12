@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Spinner, Button, Card, Badge } from '@/components/ui';
+import { Spinner, Card, Badge } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClient } from '../hooks/useClients';
 import { useEquipmentByClient, type Equipment } from '@/features/equipment';
@@ -96,7 +96,14 @@ export function ClientDetailScreen({ route, navigation }: Props) {
         {/* Quick Actions - Prominent placement */}
         {!isUnassigned && (
           <View style={styles.quickActionsSection}>
-            <Button onPress={handleStartDiagnostic}>Start Diagnostic Session</Button>
+            <TouchableOpacity
+              style={styles.primaryAction}
+              onPress={handleStartDiagnostic}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="chatbubbles" size={20} color={colors.surface} />
+              <Text style={styles.primaryActionText}>Start Diagnostic Session</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -399,6 +406,24 @@ const styles = StyleSheet.create({
   quickActionsSection: {
     paddingHorizontal: spacing[4],
     marginBottom: spacing[5],
+  },
+  primaryAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    minHeight: 56,
+    width: '100%',
+    ...shadows.lg,
+  },
+  primaryActionText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
   },
   section: {
     marginBottom: spacing[6],
