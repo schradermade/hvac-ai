@@ -165,9 +165,6 @@ export function TodaysJobsScreen() {
                   <Ionicons name="filter" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
-
-              {/* Action Button */}
-              <Button onPress={handleAdd}>Create Job</Button>
             </View>
 
             {/* Scrollable Job List */}
@@ -192,6 +189,14 @@ export function TodaysJobsScreen() {
           </>
         )}
       </View>
+
+      {/* Floating Create Button */}
+      {hasAnyJobs && (
+        <TouchableOpacity style={styles.floatingButton} onPress={handleAdd} activeOpacity={0.8}>
+          <Ionicons name="add" size={20} color={colors.surface} />
+          <Text style={styles.floatingButtonText}>Create Job</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Create Job Modal */}
       <Modal
@@ -425,6 +430,28 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
+    paddingBottom: spacing[20],
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: spacing[4],
+    left: '30%',
+    right: '30%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    minHeight: 56,
+    ...shadows.lg,
+  },
+  floatingButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.surface,
   },
   modalContainer: {
     flex: 1,
