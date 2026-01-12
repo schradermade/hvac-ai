@@ -115,11 +115,34 @@ export function HistoryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroContent}>
+            <View style={styles.titleRow}>
+              <Ionicons name="time" size={28} color={colors.primary} />
+              <Text style={styles.heroTitle}>Sessions</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{sessions.length}</Text>
+              </View>
+            </View>
+            <Text style={styles.subtitleText}>Diagnostic history and conversations</Text>
+          </View>
+
+          {/* Brand Header - Top Right */}
+          <View style={styles.brandHeader}>
+            <View style={styles.brandLogoContainer}>
+              <Ionicons name="snow" size={20} color={colors.primary} />
+            </View>
+            <Text style={styles.brandText}>HVAC AI</Text>
+          </View>
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchRow}>
           <View style={styles.searchInputContainer}>
+            <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
             <TextInput
               style={styles.inlineSearchInput}
               placeholder="Search sessions..."
@@ -136,18 +159,16 @@ export function HistoryScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
               >
-                <View style={styles.clearButtonInner}>
-                  <Text style={styles.clearButtonIcon}>✕</Text>
-                </View>
+                <Ionicons name="close-circle" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity
-            style={styles.quickFindButtonCompact}
+            style={styles.quickFindButton}
             onPress={() => setShowSearchModal(true)}
             activeOpacity={0.7}
           >
-            <Ionicons name="search" size={24} color={colors.primary} />
+            <Ionicons name="filter" size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -199,13 +220,6 @@ export function HistoryScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-
-        {/* Session Count */}
-        <View style={styles.sessionCountContainer}>
-          <Text style={styles.sessionCount}>
-            {sessions.length} session{sessions.length === 1 ? '' : 's'}
-          </Text>
-        </View>
       </View>
 
       <FlatList
@@ -228,55 +242,73 @@ export function HistoryScreen() {
                   onPress={() => handleSessionPress(session)}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.sessionHeader}>
-                    <View style={styles.sessionInfo}>
-                      <View>
+                  <View style={styles.sessionCardContent}>
+                    {/* Icon Container */}
+                    <View style={styles.sessionIconContainer}>
+                      <Ionicons name="chatbubbles" size={24} color={colors.primary} />
+                    </View>
+
+                    {/* Session Content */}
+                    <View style={styles.sessionContent}>
+                      <View style={styles.sessionHeader}>
                         <Text style={styles.sessionDate}>
                           {new Date(session.createdAt).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
-                          })}
-                        </Text>
-                        <Text style={styles.sessionTime}>
+                          })}{' '}
+                          •{' '}
                           {new Date(session.createdAt).toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
                           })}
                         </Text>
+                        {session.completedAt ? (
+                          <Badge variant="success">Completed</Badge>
+                        ) : (
+                          <Badge variant="info">In Progress</Badge>
+                        )}
                       </View>
-                      {session.completedAt && <Badge variant="success">Completed</Badge>}
-                      {!session.completedAt && <Badge variant="info">In Progress</Badge>}
-                    </View>
-                    <Text style={styles.chevron}>›</Text>
-                  </View>
 
-                  {session.jobId && (
-                    <View style={styles.sessionMetaRow}>
-                      <Ionicons
-                        name="document-text-outline"
-                        size={16}
-                        color={colors.textSecondary}
-                      />
-                      <Text style={styles.sessionMeta}>Linked to job</Text>
-                    </View>
-                  )}
-                  {session.equipmentId && (
-                    <View style={styles.sessionMetaRow}>
-                      <Ionicons name="construct-outline" size={16} color={colors.textSecondary} />
-                      <Text style={styles.sessionMeta}>Equipment diagnostic</Text>
-                    </View>
-                  )}
+                      <View style={styles.sessionMetaContainer}>
+                        {session.jobId && (
+                          <View style={styles.sessionMetaRow}>
+                            <Ionicons
+                              name="document-text-outline"
+                              size={14}
+                              color={colors.textSecondary}
+                            />
+                            <Text style={styles.sessionMeta}>Linked to job</Text>
+                          </View>
+                        )}
+                        {session.equipmentId && (
+                          <View style={styles.sessionMetaRow}>
+                            <Ionicons
+                              name="construct-outline"
+                              size={14}
+                              color={colors.textSecondary}
+                            />
+                            <Text style={styles.sessionMeta}>Equipment diagnostic</Text>
+                          </View>
+                        )}
+                      </View>
 
-                  <View style={styles.sessionFooter}>
-                    <Text style={styles.messageCount}>
-                      {session.messages.length} message{session.messages.length === 1 ? '' : 's'}
-                    </Text>
-                    {session.summary && (
-                      <Text style={styles.summary} numberOfLines={1}>
-                        {session.summary}
-                      </Text>
-                    )}
+                      <View style={styles.sessionFooter}>
+                        <Text style={styles.messageCount}>
+                          {session.messages.length} message
+                          {session.messages.length === 1 ? '' : 's'}
+                        </Text>
+                      </View>
+
+                      {session.summary && (
+                        <Text style={styles.summary} numberOfLines={2}>
+                          {session.summary}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Chevron */}
+                    <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
                   </View>
                 </TouchableOpacity>
               ))}
@@ -373,7 +405,7 @@ export function HistoryScreen() {
                       <Badge variant="info">In Progress</Badge>
                     )}
                   </View>
-                  <Text style={styles.chevron}>›</Text>
+                  <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
                 </TouchableOpacity>
               );
             }}
@@ -402,12 +434,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
-    paddingBottom: 0,
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[3],
     backgroundColor: colors.primaryLight,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    gap: spacing[3],
+  },
+  heroSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing[3],
+  },
+  heroContent: {
+    flex: 1,
+    gap: spacing[2],
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  brandLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  heroTitle: {
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+  },
+  subtitleText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  countBadge: {
+    backgroundColor: colors.primary + '20',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countBadgeText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.primary,
   },
   searchRow: {
     flexDirection: 'row',
@@ -418,10 +505,17 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
+  searchIcon: {
+    position: 'absolute',
+    left: spacing[4],
+    top: '50%',
+    transform: [{ translateY: -10 }],
+    zIndex: 1,
+  },
   inlineSearchInput: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
+    paddingLeft: spacing[12],
     paddingRight: spacing[12],
     paddingVertical: spacing[3],
     fontSize: typography.fontSize.base,
@@ -429,44 +523,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minHeight: 56,
+    ...shadows.sm,
   },
   clearButton: {
     position: 'absolute',
     right: spacing[3],
     top: '50%',
-    transform: [{ translateY: -16 }],
+    transform: [{ translateY: -10 }],
     width: 32,
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  clearButtonInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  clearButtonIcon: {
-    fontSize: 18,
-    color: colors.surface,
-    fontWeight: typography.fontWeight.bold,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
-  quickFindButtonCompact: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+  quickFindButton: {
+    width: 56,
+    height: 56,
     borderRadius: borderRadius.base,
-    borderWidth: 2,
-    borderColor: colors.primary + '40',
-    minHeight: 56,
-    minWidth: 56,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...shadows.sm,
   },
   filterChips: {
@@ -493,15 +570,6 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: colors.surface,
-  },
-  sessionCountContainer: {
-    alignItems: 'flex-end',
-    paddingTop: spacing[3],
-  },
-  sessionCount: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.textSecondary,
   },
   listContent: {
     paddingHorizontal: spacing[4],
@@ -547,64 +615,70 @@ const styles = StyleSheet.create({
   sessionCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing[4],
     marginBottom: spacing[3],
     borderWidth: 1,
     borderColor: colors.border,
     ...shadows.sm,
   },
+  sessionCardContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[3],
+    padding: spacing[4],
+  },
+  sessionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionContent: {
+    flex: 1,
+    gap: spacing[2],
+  },
   sessionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing[2],
-  },
-  sessionInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: spacing[2],
-    flex: 1,
   },
   sessionDate: {
-    fontSize: typography.fontSize.base,
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
     color: colors.textPrimary,
+    flex: 1,
   },
-  sessionTime: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 24,
-    color: colors.textTertiary,
+  sessionMetaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
   },
   sessionMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
-    marginBottom: spacing[1],
   },
   sessionMeta: {
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
   },
   sessionFooter: {
-    marginTop: spacing[2],
     paddingTop: spacing[2],
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   messageCount: {
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
     color: colors.textSecondary,
-    marginBottom: spacing[1],
   },
   summary: {
     fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
+    color: colors.textPrimary,
+    lineHeight: 20,
+    marginTop: spacing[1],
   },
   modalContainer: {
     flex: 1,
