@@ -171,6 +171,206 @@ If the answer is no, refine it.
 
 ---
 
+## Detail Screen Patterns
+
+**Reference Implementation:** `ClientDetailScreen.tsx` (src/features/clients/screens/)
+
+Detail screens should follow this professional, FAANG-level structure. Every detail screen in the app MUST maintain this quality standard.
+
+### Hero Section
+
+**Large, bold entity name at the top for immediate context.**
+
+- **Font size**: 2xl (24pt), bold weight
+- **Placement**: Top of screen with generous padding (spacing[5] top)
+- **Badges**: Status or special badges aligned right
+- **Purpose**: User immediately knows what they're viewing
+
+```tsx
+<View style={styles.heroSection}>
+  <Text style={styles.clientName}>{entity.name}</Text>
+  {hasSpecialStatus && <Badge variant="warning">Special</Badge>}
+</View>
+```
+
+### Quick Actions Section
+
+**Primary actions prominently placed below hero.**
+
+- **Placement**: Immediately after hero section
+- **Spacing**: spacing[5] bottom margin for separation
+- **Button**: Full-width primary button for main action
+- **Purpose**: Most common action is one tap away
+
+### Section Headers with Icons
+
+**Every major section needs icon + title + count badge.**
+
+- **Structure**: Icon (24px) + Title (xl, bold) + Count badge (right-aligned)
+- **Icon color**: Primary color for visual interest
+- **Count badge**: Primary color with 20% opacity background, rounded full
+- **Spacing**: spacing[4] horizontal padding, spacing[3] bottom margin
+
+```tsx
+<View style={styles.sectionHeaderContainer}>
+  <Ionicons name="construct-outline" size={24} color={colors.primary} />
+  <Text style={styles.sectionTitle}>Equipment</Text>
+  <View style={styles.countBadge}>
+    <Text style={styles.countBadgeText}>{items.length}</Text>
+  </View>
+</View>
+```
+
+### Information Cards with Icon Rows
+
+**Contact info and similar data displayed with icons.**
+
+- **Icon containers**: 40x40pt, circular, primary color with 10% opacity
+- **Icon size**: 20px within container
+- **Layout**: Horizontal with icon on left, content on right
+- **Labels**: Uppercase, xs font, letter-spacing 0.5, medium weight
+- **Values**: Base font, medium weight, line height 22
+- **Spacing**: spacing[4] gap between items
+
+```tsx
+<View style={styles.infoItem}>
+  <View style={styles.infoIconContainer}>
+    <Ionicons name="call-outline" size={20} color={colors.primary} />
+  </View>
+  <View style={styles.infoContent}>
+    <Text style={styles.infoLabel}>PRIMARY PHONE</Text>
+    <Text style={styles.infoValue}>{client.phone}</Text>
+  </View>
+</View>
+```
+
+### List Item Cards
+
+**Equipment, jobs, and similar lists need consistent card design.**
+
+- **Card structure**: Horizontal layout with icon container + content + chevron
+- **Icon container**: 48x48pt square, rounded (borderRadius.base), primary 10% background
+- **Icon**: 24px, primary color
+- **Content**: Flex 1, contains header + details + metadata
+- **Chevron**: 24px, textMuted color, indicates tappability
+- **Spacing**: spacing[4] padding, spacing[3] gap between cards
+- **Shadow**: Subtle shadow (shadows.sm) on each card
+
+```tsx
+<Card style={styles.equipmentCard}>
+  <View style={styles.equipmentContainer}>
+    <View style={styles.equipmentIconContainer}>
+      <Ionicons name="cube" size={24} color={colors.primary} />
+    </View>
+    <View style={styles.equipmentContent}>
+      <Text style={styles.equipmentName}>{item.name}</Text>
+      <Badge variant="neutral">{item.type}</Badge>
+      <Text style={styles.equipmentDetail}>{item.details}</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+  </View>
+</Card>
+```
+
+### Status Badges with Dots
+
+**Job status and similar state indicators need visual cues.**
+
+- **Background**: Status color with 20% opacity
+- **Layout**: Horizontal with dot + text
+- **Dot**: 6x6pt circle, full status color
+- **Text**: xs font, semibold, status color, capitalized
+- **Padding**: spacing[2] horizontal, spacing[1] vertical
+- **Border radius**: borderRadius.base
+
+```tsx
+<View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+  <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+  <Text style={[styles.statusText, { color: statusColor }]}>{status.replace('_', ' ')}</Text>
+</View>
+```
+
+### Empty States
+
+**Professional, helpful empty states with icons.**
+
+- **Icon**: Large (48px), muted color
+- **Title**: lg font, semibold, primary text color
+- **Hint**: sm font, secondary text color, centered
+- **Spacing**: spacing[8] padding, spacing[3] between elements
+- **Purpose**: Tell user why it's empty AND what to do about it
+
+```tsx
+<Card style={styles.emptyCard}>
+  <Ionicons name="cube-outline" size={48} color={colors.textMuted} />
+  <Text style={styles.emptyTitle}>No Equipment Registered</Text>
+  <Text style={styles.emptyHint}>Add equipment to track service history</Text>
+</Card>
+```
+
+### Metadata Display
+
+**Dates, times, and secondary info with icons.**
+
+- **Icon + text layout**: Horizontal with icon (16px) + text
+- **Icon**: time-outline, calendar-outline, etc. in textSecondary
+- **Text**: sm font, textSecondary color
+- **Gap**: spacing[1] between icon and text
+- **Purpose**: Quick visual scanning
+
+### Dividers
+
+**Separate distinct sections within cards.**
+
+- **Height**: 1px
+- **Color**: colors.border
+- **Margin**: spacing[4] vertical
+- **Usage**: Between primary info and notes sections
+
+### View All Pattern
+
+**When showing partial lists (top 5 items).**
+
+- **Button**: Text button with arrow
+- **Layout**: Centered horizontally, spacing[3] padding vertical
+- **Text**: Base font, semibold, primary color
+- **Icon**: arrow-forward, 16px, primary color
+- **Purpose**: Clear indication there's more to see
+
+### Mandatory Elements
+
+Every detail screen MUST include:
+
+1. ✅ Hero section with entity name
+2. ✅ Quick action button (when applicable)
+3. ✅ Section headers with icons and counts
+4. ✅ Icon containers on list items (48x48pt)
+5. ✅ Chevrons on tappable items
+6. ✅ Professional empty states
+7. ✅ Status indicators with color and icons
+8. ✅ Consistent spacing (spacing tokens)
+9. ✅ No vertical scroll indicator
+10. ✅ Bottom spacer (spacing[8]) for comfortable scrolling
+
+### Quality Bar
+
+**Before shipping any detail screen, verify:**
+
+- Large, bold entity name in hero section
+- Icon + title + count on all section headers
+- 48x48pt icon containers with 10% primary background
+- Status badges with colored dots
+- Chevrons on all tappable items
+- Professional empty states with large icons
+- Uppercase labels with letter spacing
+- Consistent card shadows and padding
+- No emoji icons (use Ionicons only)
+- Feels like a $50k/year professional app
+
+**Reference:** Compare your implementation to ClientDetailScreen.tsx line-by-line to ensure quality parity.
+
+---
+
 ## Component Patterns
 
 ### Buttons
