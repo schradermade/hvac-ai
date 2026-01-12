@@ -104,13 +104,21 @@ export function HistoryScreen() {
                 >
                   <View style={styles.sessionHeader}>
                     <View style={styles.sessionInfo}>
-                      <Text style={styles.sessionDate}>
-                        {new Date(session.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </Text>
+                      <View>
+                        <Text style={styles.sessionDate}>
+                          {new Date(session.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </Text>
+                        <Text style={styles.sessionTime}>
+                          {new Date(session.createdAt).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      </View>
                       {session.completedAt && <Badge variant="success">Completed</Badge>}
                       {!session.completedAt && <Badge variant="info">In Progress</Badge>}
                     </View>
@@ -211,6 +219,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
     color: colors.textPrimary,
+  },
+  sessionTime: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing[0.5] || 2,
   },
   chevron: {
     fontSize: 24,
