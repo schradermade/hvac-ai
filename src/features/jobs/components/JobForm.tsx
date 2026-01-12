@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Input, Button } from '@/components/ui';
@@ -61,6 +62,29 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+
+  // Filter clients based on search query
+  const filteredClients = useMemo(() => {
+    if (!clientSearchQuery.trim()) {
+      return clients;
+    }
+
+    const query = clientSearchQuery.toLowerCase();
+    return clients.filter((client) => {
+      const name = client.name.toLowerCase();
+      const phone = client.phone.toLowerCase();
+      const address = client.address.toLowerCase();
+      const city = client.city.toLowerCase();
+
+      return (
+        name.includes(query) ||
+        phone.includes(query) ||
+        address.includes(query) ||
+        city.includes(query)
+      );
+    });
+  }, [clients, clientSearchQuery]);
 
   const selectedClient = clients.find((c) => c.id === formData.clientId);
   const selectedType = JOB_TYPES.find((t) => t.value === formData.type);
@@ -242,20 +266,44 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
         visible={showClientPicker}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setShowClientPicker(false)}
+        onRequestClose={() => {
+          setShowClientPicker(false);
+          setClientSearchQuery('');
+        }}
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowClientPicker(false)}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowClientPicker(false);
+                setClientSearchQuery('');
+              }}
+            >
               <Text style={styles.modalClose}>Cancel</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Select Client</Text>
-            <TouchableOpacity onPress={() => setShowClientPicker(false)}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowClientPicker(false);
+                setClientSearchQuery('');
+              }}
+            >
               <Text style={styles.modalClose}>Done</Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name, phone, or address..."
+              placeholderTextColor={colors.textMuted}
+              value={clientSearchQuery}
+              onChangeText={setClientSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
           <FlatList
-            data={clients}
+            data={filteredClients}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -480,6 +528,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.background,
+  },
+  searchContainer: {
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[3],
+    paddingBottom: spacing[2],
+    backgroundColor: colors.background,
+  },
+  searchInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.base,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalTitle: {
     fontSize: typography.fontSize.lg,
