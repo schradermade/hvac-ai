@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Card, Badge } from '@/components/ui';
-import { colors, spacing, typography } from '@/components/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Card } from '@/components/ui';
+import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClient } from '@/features/clients';
 import type { Job } from '../types';
 
@@ -19,13 +20,14 @@ interface JobCardProps {
 /**
  * JobCard Component
  *
- * Displays job summary in a card with:
- * - Job type badge
- * - Status badge
+ * Professional job card following FAANG-level design standards:
+ * - 48x48pt icon container with briefcase icon
+ * - Job type with status badge (colored dot)
+ * - Time with clock icon
  * - Client name
- * - Scheduled time
- * - Description
- * - Start Diagnostic button
+ * - Description (truncated)
+ * - Chevron indicator for tappability
+ * - Optional quick diagnostic action
  */
 export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
   const { data: client } = useClient(job.clientId);
@@ -36,43 +38,117 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
     minute: '2-digit',
   });
 
-  // Status badge variant
-  const statusVariant =
-    job.status === 'completed'
-      ? 'success'
-      : job.status === 'in_progress'
-        ? 'info'
-        : job.status === 'cancelled'
-          ? 'error'
-          : 'neutral';
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return colors.success;
+      case 'in_progress':
+        return colors.primary;
+      case 'scheduled':
+        return colors.primary;
+      case 'cancelled':
+        return colors.error;
+      default:
+        return colors.textSecondary;
+    }
+  };
+
+  const statusColor = getStatusColor(job.status);
+
+  // Get icon based on job type
+  const getJobIcon = (type: string): keyof typeof Ionicons.glyphMap => {
+    switch (type.toLowerCase()) {
+      case 'maintenance':
+        return 'construct';
+      case 'repair':
+        return 'build';
+      case 'installation':
+        return 'settings';
+      case 'inspection':
+        return 'search';
+      case 'emergency':
+        return 'alert-circle';
+      default:
+        return 'briefcase';
+    }
+  };
 
   return (
     <Card onPress={onPress ? () => onPress(job) : undefined} style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.badges}>
-          <Badge variant="info">{job.type.toUpperCase()}</Badge>
-          <Badge variant={statusVariant}>{job.status.replace('_', ' ').toUpperCase()}</Badge>
+      <View style={styles.container}>
+        {/* Icon Container */}
+        <View style={styles.iconContainer}>
+          <Ionicons name={getJobIcon(job.type)} size={24} color={colors.primary} />
         </View>
-        <Text style={styles.time}>{timeStr}</Text>
-      </View>
 
-      <View style={styles.details}>
-        <Text style={styles.client}>{client?.name || 'Loading...'}</Text>
-        <Text style={styles.description}>{job.description}</Text>
-      </View>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Header: Job type and status */}
+          <View style={styles.header}>
+            <Text style={styles.jobType}>{job.type.toUpperCase()}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <Text style={[styles.statusText, { color: statusColor }]}>
+                {job.status.replace('_', ' ')}
+              </Text>
+            </View>
+          </View>
 
-      {onStartDiagnostic && (
-        <TouchableOpacity
-          style={styles.diagnosticButton}
-          onPress={(e) => {
-            e.stopPropagation();
-            onStartDiagnostic(job);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.diagnosticButtonText}>🔧 Start Diagnostic</Text>
-        </TouchableOpacity>
-      )}
+          {/* Time with icon */}
+          <View style={styles.detailRow}>
+            <Ionicons
+              name="time"
+              size={14}
+              color={colors.textSecondary}
+              style={styles.detailIcon}
+            />
+            <Text style={styles.detailText}>{timeStr}</Text>
+          </View>
+
+          {/* Client with icon */}
+          <View style={styles.detailRow}>
+            <Ionicons
+              name="person"
+              size={14}
+              color={colors.textSecondary}
+              style={styles.detailIcon}
+            />
+            <Text style={styles.detailText} numberOfLines={1}>
+              {client?.name || 'Loading...'}
+            </Text>
+          </View>
+
+          {/* Description */}
+          {job.description && (
+            <Text style={styles.description} numberOfLines={2}>
+              {job.description}
+            </Text>
+          )}
+
+          {/* Optional quick action */}
+          {onStartDiagnostic && (
+            <TouchableOpacity
+              style={styles.quickAction}
+              onPress={(e) => {
+                e.stopPropagation();
+                onStartDiagnostic(job);
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="chatbubbles" size={18} color={colors.surface} />
+              <Text style={styles.quickActionText}>Start Diagnostic</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Chevron */}
+        {onPress && (
+          <View style={styles.chevronContainer}>
+            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+          </View>
+        )}
+      </View>
     </Card>
   );
 }
@@ -80,45 +156,96 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
+    padding: spacing[4],
+    ...shadows.sm,
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+    gap: spacing[1],
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing[3],
+    marginBottom: spacing[1],
   },
-  badges: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    flexWrap: 'wrap',
-  },
-  time: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  details: {
-    gap: spacing[2],
-  },
-  client: {
+  jobType: {
     fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
+    fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.base,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    textTransform: 'capitalize',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  detailIcon: {
+    width: 14,
+  },
+  detailText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    flex: 1,
   },
   description: {
     fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
+    lineHeight: 20,
+    marginTop: spacing[1],
   },
-  diagnosticButton: {
-    marginTop: spacing[3],
-    paddingTop: spacing[3],
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+  quickAction: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    marginTop: spacing[3],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.base,
+    ...shadows.sm,
   },
-  diagnosticButtonText: {
+  quickActionText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
+    color: colors.surface,
+  },
+  chevronContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
