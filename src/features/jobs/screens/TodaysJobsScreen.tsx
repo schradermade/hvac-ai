@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, Modal } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet, FlatList, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { EmptyState, Button, Spinner } from '@/components/ui';
-import { colors, spacing } from '@/components/ui';
+import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
 import { JobCard } from '../components/JobCard';
 import { JobForm } from '../components/JobForm';
 import type { JobFormData, Job } from '../types';
 import type { RootStackParamList } from '@/navigation/types';
+import { useClientList } from '@/features/clients';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -22,8 +23,12 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export function TodaysJobsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { data, isLoading } = useTodaysJobs();
+  const { data: clientsData } = useClientList();
   const createMutation = useCreateJob();
+
+  const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
 
   const handleAdd = () => {
     setShowForm(true);
@@ -42,6 +47,25 @@ export function TodaysJobsScreen() {
     });
   };
 
+  // Filter jobs based on search query
+  const filteredJobs = useMemo(() => {
+    const allJobs = data?.items || [];
+
+    if (!searchQuery.trim()) {
+      return allJobs;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return allJobs.filter((job) => {
+      const client = clients.find((c) => c.id === job.clientId);
+      const clientName = client?.name.toLowerCase() || '';
+      const jobType = job.type.toLowerCase();
+      const description = job.description.toLowerCase();
+
+      return clientName.includes(query) || jobType.includes(query) || description.includes(query);
+    });
+  }, [data?.items, searchQuery, clients]);
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -50,7 +74,7 @@ export function TodaysJobsScreen() {
     );
   }
 
-  const jobs = data?.items || [];
+  const jobs = filteredJobs;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,6 +95,17 @@ export function TodaysJobsScreen() {
             contentContainerStyle={styles.list}
             ListHeaderComponent={
               <View style={styles.header}>
+                <View style={styles.searchContainer}>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by client, job type, or description..."
+                    placeholderTextColor={colors.textMuted}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
                 <Button onPress={handleAdd}>Create Job</Button>
               </View>
             }
@@ -109,6 +144,19 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing[4],
+  },
+  searchContainer: {
+    marginBottom: spacing[3],
+  },
+  searchInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.base,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalContainer: {
     flex: 1,
