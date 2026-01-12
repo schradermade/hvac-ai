@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { EmptyState, Button, Spinner } from '@/components/ui';
 import { colors, spacing } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
 import { JobCard } from '../components/JobCard';
 import { JobForm } from '../components/JobForm';
-import type { JobFormData } from '../types';
+import type { JobFormData, Job } from '../types';
+import type { RootStackParamList } from '@/navigation/types';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 /**
  * TodaysJobsScreen
@@ -15,6 +20,7 @@ import type { JobFormData } from '../types';
  * TODO: Add quick actions, job detail navigation
  */
 export function TodaysJobsScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const [showForm, setShowForm] = useState(false);
   const { data, isLoading } = useTodaysJobs();
   const createMutation = useCreateJob();
@@ -26,6 +32,14 @@ export function TodaysJobsScreen() {
   const handleSubmit = async (formData: JobFormData) => {
     await createMutation.mutateAsync(formData);
     setShowForm(false);
+  };
+
+  const handleStartDiagnostic = (job: Job) => {
+    navigation.navigate('DiagnosticChat', {
+      clientId: job.clientId,
+      jobId: job.id,
+      equipmentId: job.equipmentId,
+    });
   };
 
   if (isLoading) {
@@ -51,7 +65,9 @@ export function TodaysJobsScreen() {
           <FlatList
             data={jobs}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <JobCard job={item} />}
+            renderItem={({ item }) => (
+              <JobCard job={item} onStartDiagnostic={handleStartDiagnostic} />
+            )}
             contentContainerStyle={styles.list}
             ListHeaderComponent={
               <View style={styles.header}>

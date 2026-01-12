@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card, Badge } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useClient } from '@/features/clients';
@@ -12,6 +12,8 @@ interface JobCardProps {
   job: Job;
   // eslint-disable-next-line no-unused-vars
   onPress?: (job: Job) => void;
+  // eslint-disable-next-line no-unused-vars
+  onStartDiagnostic?: (job: Job) => void;
 }
 
 /**
@@ -23,8 +25,9 @@ interface JobCardProps {
  * - Client name
  * - Scheduled time
  * - Description
+ * - Start Diagnostic button
  */
-export function JobCard({ job, onPress }: JobCardProps) {
+export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
   const { data: client } = useClient(job.clientId);
 
   // Format time
@@ -57,6 +60,19 @@ export function JobCard({ job, onPress }: JobCardProps) {
         <Text style={styles.client}>{client?.name || 'Loading...'}</Text>
         <Text style={styles.description}>{job.description}</Text>
       </View>
+
+      {onStartDiagnostic && (
+        <TouchableOpacity
+          style={styles.diagnosticButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            onStartDiagnostic(job);
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.diagnosticButtonText}>🔧 Start Diagnostic</Text>
+        </TouchableOpacity>
+      )}
     </Card>
   );
 }
@@ -92,5 +108,17 @@ const styles = StyleSheet.create({
   description: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
+  },
+  diagnosticButton: {
+    marginTop: spacing[3],
+    paddingTop: spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'center',
+  },
+  diagnosticButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
   },
 });
