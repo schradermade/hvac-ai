@@ -9,6 +9,7 @@ const equipmentKeys = {
   all: ['equipment'] as const,
   lists: () => [...equipmentKeys.all, 'list'] as const,
   list: (filters: string) => [...equipmentKeys.lists(), { filters }] as const,
+  byClient: (clientId: string) => [...equipmentKeys.lists(), 'client', clientId] as const,
   details: () => [...equipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...equipmentKeys.details(), id] as const,
 };
@@ -31,6 +32,17 @@ export function useEquipment(id: string) {
     queryKey: equipmentKeys.detail(id),
     queryFn: () => equipmentService.getById(id),
     enabled: !!id,
+  });
+}
+
+/**
+ * Hook for getting equipment by client
+ */
+export function useEquipmentByClient(clientId: string) {
+  return useQuery({
+    queryKey: equipmentKeys.byClient(clientId),
+    queryFn: () => equipmentService.getByClient(clientId),
+    enabled: !!clientId,
   });
 }
 
@@ -74,6 +86,23 @@ export function useDeleteEquipment() {
     mutationFn: (id: string) => equipmentService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
+    },
+  });
+}
+
+/**
+ * Hook for assigning equipment to a client
+ */
+export function useAssignEquipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ equipmentId, clientId }: { equipmentId: string; clientId: string }) =>
+      equipmentService.assignToClient(equipmentId, clientId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: equipmentKeys.detail(variables.equipmentId) });
+      queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: equipmentKeys.byClient(variables.clientId) });
     },
   });
 }

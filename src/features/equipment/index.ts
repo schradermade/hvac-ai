@@ -2,15 +2,22 @@
 // Only export what other features need to import
 
 // Export types (type-only exports)
-export type { Equipment, EquipmentFormData } from './types';
+export type { Equipment, EquipmentFormData, SystemType } from './types';
 
 // Export hooks
-// export { useEquipment } from './hooks/useEquipment';
+export {
+  useEquipmentList,
+  useEquipment,
+  useCreateEquipment,
+  useUpdateEquipment,
+  useDeleteEquipment,
+} from './hooks/useEquipment';
 
-// Export screens
-// export { EquipmentScreen } from './screens/EquipmentScreen';
+// Export components
+export { EquipmentCard } from './components/EquipmentCard';
+export { EquipmentForm } from './components/EquipmentForm';
 
 // DO NOT export:
 // - Services (other features should use hooks, not services directly)
-// - Internal components (only screens are public)
+// - Internal helper components
 // - Helper functions

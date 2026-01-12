@@ -3,74 +3,59 @@ import { View, StyleSheet, FlatList, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState, Button, Spinner } from '@/components/ui';
 import { colors, spacing } from '@/components/ui';
-import {
-  useEquipmentList,
-  useCreateEquipment,
-  useDeleteEquipment,
-  EquipmentCard,
-  EquipmentForm,
-} from '@/features/equipment';
-import type { EquipmentFormData } from '@/features/equipment';
+import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
+import { JobCard } from '../components/JobCard';
+import { JobForm } from '../components/JobForm';
+import type { JobFormData } from '../types';
 
 /**
- * EquipmentScreen
+ * TodaysJobsScreen
  *
- * Manages saved equipment profiles with:
- * - List of all equipment
- * - Add new equipment
- * - View equipment details
- * - Delete equipment
+ * Main entry screen showing today's scheduled jobs
+ * TODO: Add quick actions, job detail navigation
  */
-// NOTE: Equipment is no longer a tab - will be accessed via Clients screen
-// TODO: Remove this screen or refactor into ClientDetailScreen
-export function EquipmentScreen() {
+export function TodaysJobsScreen() {
   const [showForm, setShowForm] = useState(false);
-
-  const { data, isLoading } = useEquipmentList();
-  const createMutation = useCreateEquipment();
-  const deleteMutation = useDeleteEquipment();
+  const { data, isLoading } = useTodaysJobs();
+  const createMutation = useCreateJob();
 
   const handleAdd = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = async (formData: EquipmentFormData) => {
+  const handleSubmit = async (formData: JobFormData) => {
     await createMutation.mutateAsync(formData);
     setShowForm(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteMutation.mutateAsync(id);
   };
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Spinner message="Loading equipment..." />
+        <Spinner message="Loading today's jobs..." />
       </SafeAreaView>
     );
   }
 
-  const equipment = data?.items || [];
+  const jobs = data?.items || [];
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {equipment.length === 0 ? (
+        {jobs.length === 0 ? (
           <EmptyState
-            title="No equipment saved yet"
-            description="Add equipment profiles to quickly access specs and use in diagnostics"
-            action={<Button onPress={handleAdd}>Add Equipment</Button>}
+            title="No jobs scheduled for today"
+            description="Create a job to get started"
+            action={<Button onPress={handleAdd}>Create Job</Button>}
           />
         ) : (
           <FlatList
-            data={equipment}
+            data={jobs}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <EquipmentCard equipment={item} onDelete={handleDelete} />}
+            renderItem={({ item }) => <JobCard job={item} />}
             contentContainerStyle={styles.list}
             ListHeaderComponent={
               <View style={styles.header}>
-                <Button onPress={handleAdd}>Add Equipment</Button>
+                <Button onPress={handleAdd}>Create Job</Button>
               </View>
             }
           />
@@ -84,7 +69,7 @@ export function EquipmentScreen() {
         onRequestClose={() => setShowForm(false)}
       >
         <SafeAreaView style={styles.modalContainer}>
-          <EquipmentForm
+          <JobForm
             onSubmit={handleSubmit}
             onCancel={() => setShowForm(false)}
             isLoading={createMutation.isPending}
@@ -111,6 +96,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
   },
 });

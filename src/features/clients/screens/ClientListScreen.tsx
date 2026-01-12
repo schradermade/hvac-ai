@@ -3,74 +3,59 @@ import { View, StyleSheet, FlatList, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState, Button, Spinner } from '@/components/ui';
 import { colors, spacing } from '@/components/ui';
-import {
-  useEquipmentList,
-  useCreateEquipment,
-  useDeleteEquipment,
-  EquipmentCard,
-  EquipmentForm,
-} from '@/features/equipment';
-import type { EquipmentFormData } from '@/features/equipment';
+import { useClientList, useCreateClient } from '../hooks/useClients';
+import { ClientCard } from '../components/ClientCard';
+import { ClientForm } from '../components/ClientForm';
+import type { ClientFormData } from '../types';
 
 /**
- * EquipmentScreen
+ * ClientListScreen
  *
- * Manages saved equipment profiles with:
- * - List of all equipment
- * - Add new equipment
- * - View equipment details
- * - Delete equipment
+ * Shows all clients with create functionality
+ * TODO: Add search, filters, edit functionality
  */
-// NOTE: Equipment is no longer a tab - will be accessed via Clients screen
-// TODO: Remove this screen or refactor into ClientDetailScreen
-export function EquipmentScreen() {
+export function ClientListScreen() {
   const [showForm, setShowForm] = useState(false);
-
-  const { data, isLoading } = useEquipmentList();
-  const createMutation = useCreateEquipment();
-  const deleteMutation = useDeleteEquipment();
+  const { data, isLoading } = useClientList();
+  const createMutation = useCreateClient();
 
   const handleAdd = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = async (formData: EquipmentFormData) => {
+  const handleSubmit = async (formData: ClientFormData) => {
     await createMutation.mutateAsync(formData);
     setShowForm(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteMutation.mutateAsync(id);
   };
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Spinner message="Loading equipment..." />
+        <Spinner message="Loading clients..." />
       </SafeAreaView>
     );
   }
 
-  const equipment = data?.items || [];
+  const clients = data?.items || [];
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {equipment.length === 0 ? (
+        {clients.length === 0 ? (
           <EmptyState
-            title="No equipment saved yet"
-            description="Add equipment profiles to quickly access specs and use in diagnostics"
-            action={<Button onPress={handleAdd}>Add Equipment</Button>}
+            title="No clients yet"
+            description="Add your first client to get started"
+            action={<Button onPress={handleAdd}>Add Client</Button>}
           />
         ) : (
           <FlatList
-            data={equipment}
+            data={clients}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <EquipmentCard equipment={item} onDelete={handleDelete} />}
+            renderItem={({ item }) => <ClientCard client={item} />}
             contentContainerStyle={styles.list}
             ListHeaderComponent={
               <View style={styles.header}>
-                <Button onPress={handleAdd}>Add Equipment</Button>
+                <Button onPress={handleAdd}>Add Client</Button>
               </View>
             }
           />
@@ -84,7 +69,7 @@ export function EquipmentScreen() {
         onRequestClose={() => setShowForm(false)}
       >
         <SafeAreaView style={styles.modalContainer}>
-          <EquipmentForm
+          <ClientForm
             onSubmit={handleSubmit}
             onCancel={() => setShowForm(false)}
             isLoading={createMutation.isPending}

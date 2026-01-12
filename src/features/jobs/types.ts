@@ -1,0 +1,71 @@
+// Types for job/appointment management feature
+
+/**
+ * Job type categories
+ */
+export type JobType = 'maintenance' | 'repair' | 'installation' | 'inspection' | 'emergency';
+
+/**
+ * Appointment status
+ */
+export type AppointmentStatus =
+  | 'scheduled'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled'
+  | 'rescheduled';
+
+/**
+ * Job/Appointment entity
+ * Represents a scheduled service call
+ */
+export interface Job {
+  id: string;
+  clientId: string;
+  equipmentId?: string; // Optional - may be multi-equipment or new install
+  type: JobType;
+  status: AppointmentStatus;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  actualStart?: Date;
+  actualEnd?: Date;
+  description: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  // Future sync preparation
+  syncedAt?: Date;
+  externalId?: string;
+}
+
+/**
+ * Job form data (without system-generated fields)
+ */
+export interface JobFormData {
+  clientId: string;
+  equipmentId?: string;
+  type: JobType;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  description: string;
+  notes?: string;
+}
+
+/**
+ * Filters for job list queries
+ */
+export interface JobFilters {
+  clientId?: string;
+  status?: AppointmentStatus;
+  type?: JobType;
+  date?: Date;
+}
+
+/**
+ * Response for job list operations
+ */
+export interface JobListResponse {
+  items: Job[];
+  total: number;
+}

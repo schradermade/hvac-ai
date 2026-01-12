@@ -2,8 +2,9 @@ import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors, typography } from '@/components/ui';
-import { DiagnosticChatScreen } from '@/features/diagnostic';
-import { EquipmentScreen, HistoryScreen, SettingsScreen } from '@/screens';
+import { TodaysJobsScreen } from '@/features/jobs';
+import { ClientListScreen } from '@/features/clients';
+import { HistoryScreen, SettingsScreen } from '@/screens';
 import type { RootTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -12,9 +13,9 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  * TabNavigator
  *
  * Main navigation structure with 4 tabs:
- * - Diagnostics: AI chat assistant
- * - Equipment: Saved equipment profiles
- * - History: Past diagnostics
+ * - Jobs: Today's scheduled jobs (main entry point)
+ * - Clients: Customer management
+ * - History: Past diagnostic sessions
  * - Settings: App preferences
  *
  * Follows design principles:
@@ -26,6 +27,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 export function TabNavigator() {
   return (
     <Tab.Navigator
+      initialRouteName="Jobs"
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
@@ -54,21 +56,21 @@ export function TabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Diagnostics"
-        component={DiagnosticChatScreen}
+        name="Jobs"
+        component={TodaysJobsScreen}
         options={{
-          headerTitle: 'Diagnostic Assistant',
-          tabBarLabel: 'Diagnostics',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="💬" />,
+          headerTitle: "Today's Jobs",
+          tabBarLabel: 'Jobs',
+          tabBarIcon: ({ color }) => <TabIcon color={color} icon="📅" />,
         }}
       />
       <Tab.Screen
-        name="Equipment"
-        component={EquipmentScreen}
+        name="Clients"
+        component={ClientListScreen}
         options={{
-          headerTitle: 'Equipment',
-          tabBarLabel: 'Equipment',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="⚙️" />,
+          headerTitle: 'Clients',
+          tabBarLabel: 'Clients',
+          tabBarIcon: ({ color }) => <TabIcon color={color} icon="👥" />,
         }}
       />
       <Tab.Screen

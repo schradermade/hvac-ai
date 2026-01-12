@@ -1,4 +1,5 @@
 import type { Equipment, EquipmentFormData, EquipmentListResponse } from '../types';
+import { UNASSIGNED_CLIENT_ID } from '../types';
 
 /**
  * Equipment Service
@@ -40,6 +41,47 @@ class EquipmentService {
     }
 
     return equipment;
+  }
+
+  /**
+   * Get equipment by client ID
+   */
+  async getByClient(clientId: string): Promise<EquipmentListResponse> {
+    await this.delay(300);
+
+    const items = Array.from(this.equipment.values())
+      .filter((eq) => eq.clientId === clientId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+    return {
+      items,
+      total: items.length,
+    };
+  }
+
+  /**
+   * Assign equipment to a client
+   */
+  async assignToClient(equipmentId: string, clientId: string): Promise<Equipment> {
+    return this.update(equipmentId, { clientId });
+  }
+
+  /**
+   * Migrate equipment without clientId to UNASSIGNED client
+   * Used during app initialization
+   */
+  async migrateExistingEquipment(): Promise<number> {
+    const allEquipment = Array.from(this.equipment.values());
+    let migratedCount = 0;
+
+    for (const eq of allEquipment) {
+      if (!eq.clientId) {
+        await this.assignToClient(eq.id, UNASSIGNED_CLIENT_ID);
+        migratedCount++;
+      }
+    }
+
+    return migratedCount;
   }
 
   /**
