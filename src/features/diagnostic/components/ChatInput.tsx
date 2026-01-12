@@ -49,7 +49,7 @@ export function ChatInput({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <View style={styles.container}>
         <TextInput
@@ -63,7 +63,6 @@ export function ChatInput({
           editable={!disabled}
           returnKeyType="send"
           onSubmitEditing={handleSend}
-          blurOnSubmit={false}
         />
         <Pressable
           style={({ pressed }) => [
@@ -87,8 +86,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
-    paddingBottom: spacing[5],
-    backgroundColor: '#E0E7FF', // Slightly darker indigo for input area
+    paddingBottom: spacing[8],
+    backgroundColor: '#EEF2FF', // Match screen background
     borderTopWidth: 0,
   },
   input: {
