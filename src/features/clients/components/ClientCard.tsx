@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Card, Badge } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import type { Client } from '../types';
@@ -28,24 +29,34 @@ export function ClientCard({ client, onPress }: ClientCardProps) {
 
   return (
     <Card onPress={onPress ? () => onPress(client) : undefined} style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.name}>{client.name}</Text>
-          {isUnassigned && <Badge variant="warning">Special</Badge>}
-        </View>
-      </View>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.name}>{client.name}</Text>
+              {isUnassigned && <Badge variant="warning">Special</Badge>}
+            </View>
+          </View>
 
-      <View style={styles.details}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Phone:</Text>
-          <Text style={styles.detailValue}>{client.phone}</Text>
+          <View style={styles.details}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Phone:</Text>
+              <Text style={styles.detailValue}>{client.phone}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Address:</Text>
+              <Text style={styles.detailValue}>
+                {client.address}, {client.city}, {client.state} {client.zipCode}
+              </Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Address:</Text>
-          <Text style={styles.detailValue}>
-            {client.address}, {client.city}, {client.state} {client.zipCode}
-          </Text>
-        </View>
+
+        {onPress && (
+          <View style={styles.chevronContainer}>
+            <Ionicons name="chevron-forward" size={32} color={colors.textMuted} />
+          </View>
+        )}
       </View>
     </Card>
   );
@@ -54,6 +65,13 @@ export function ClientCard({ client, onPress }: ClientCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  content: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -89,5 +107,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: typography.fontWeight.medium,
     flex: 1,
+  },
+  chevronContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing[3],
   },
 });
