@@ -27,3 +27,4 @@ export { JobForm } from './components/JobForm';
 
 // Export screens
 export { TodaysJobsScreen } from './screens/TodaysJobsScreen';
+export { JobDetailScreen } from './screens/JobDetailScreen';

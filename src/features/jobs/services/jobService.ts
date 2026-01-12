@@ -370,7 +370,7 @@ class JobService {
   /**
    * Update an existing job
    */
-  async update(id: string, data: Partial<JobFormData>): Promise<Job> {
+  async update(id: string, data: Partial<Omit<Job, 'id' | 'createdAt'>>): Promise<Job> {
     await this.delay(400);
 
     const existing = await this.getById(id);

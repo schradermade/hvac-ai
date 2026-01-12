@@ -29,6 +29,8 @@ export type RootStackParamList = {
   ClientDetail: { clientId: string };
   // Equipment flows
   CreateEquipment: { clientId: string };
+  // Job flows
+  JobDetail: { jobId: string };
   // Diagnostic flows
   DiagnosticChat: {
     clientId: string;
@@ -36,8 +38,6 @@ export type RootStackParamList = {
     equipmentId?: string;
     sessionId?: string; // If resuming an existing session
   };
-  // TODO: Add other detail screens when implementing
-  // JobDetail: { jobId: string };
 };
 
 /**

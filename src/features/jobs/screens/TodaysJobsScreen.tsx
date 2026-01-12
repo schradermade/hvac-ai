@@ -41,6 +41,10 @@ export function TodaysJobsScreen() {
     setShowForm(false);
   };
 
+  const handleJobPress = (job: Job) => {
+    navigation.navigate('JobDetail', { jobId: job.id });
+  };
+
   const handleStartDiagnostic = (job: Job) => {
     navigation.navigate('DiagnosticChat', {
       clientId: job.clientId,
@@ -163,7 +167,11 @@ export function TodaysJobsScreen() {
               data={jobs}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <JobCard job={item} onStartDiagnostic={handleStartDiagnostic} />
+                <JobCard
+                  job={item}
+                  onPress={handleJobPress}
+                  onStartDiagnostic={handleStartDiagnostic}
+                />
               )}
               contentContainerStyle={styles.list}
               ListEmptyComponent={

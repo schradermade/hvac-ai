@@ -80,8 +80,13 @@ export function useUpdateJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<JobFormData> }) =>
-      jobService.update(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Omit<import('../types').Job, 'id' | 'createdAt'>>;
+    }) => jobService.update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: jobKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
