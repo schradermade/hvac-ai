@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   sessionTime: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
-    marginTop: spacing[0.5] || 2,
+    marginTop: 2,
   },
   chevron: {
     fontSize: 24,
