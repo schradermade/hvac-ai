@@ -84,16 +84,8 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Header: Job type and status */}
-          <View style={styles.header}>
-            <Text style={styles.jobType}>{job.type.toUpperCase()}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <Text style={[styles.statusText, { color: statusColor }]}>
-                {job.status.replace('_', ' ')}
-              </Text>
-            </View>
-          </View>
+          {/* Header: Job type */}
+          <Text style={styles.jobType}>{job.type.toUpperCase()}</Text>
 
           {/* Time with icon */}
           <View style={styles.detailRow}>
@@ -126,7 +118,17 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
             </Text>
           )}
 
-          {/* Optional quick action */}
+          {/* Status badge at bottom */}
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {job.status.replace('_', ' ')}
+            </Text>
+          </View>
+        </View>
+
+        {/* Right column with button at bottom */}
+        <View style={styles.rightColumn}>
           {onStartDiagnostic && (
             <TouchableOpacity
               style={styles.quickAction}
@@ -136,7 +138,7 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
               }}
               activeOpacity={0.8}
             >
-              <Ionicons name="chatbubbles" size={18} color={colors.surface} />
+              <Ionicons name="chatbubbles" size={16} color={colors.surface} />
               <Text style={styles.quickActionText}>Start Diagnostic</Text>
             </TouchableOpacity>
           )}
@@ -156,13 +158,13 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
-    padding: spacing[4],
+    padding: spacing[3],
     ...shadows.sm,
   },
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
+    alignItems: 'flex-start',
+    gap: spacing[2],
   },
   iconContainer: {
     width: 48,
@@ -176,18 +178,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing[1],
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing[1],
-  },
   jobType: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
     letterSpacing: 0.5,
-    flex: 1,
+    marginBottom: spacing[1],
   },
   statusBadge: {
     flexDirection: 'row',
@@ -196,6 +192,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],
     borderRadius: borderRadius.base,
+    alignSelf: 'flex-start',
+    marginTop: spacing[2],
+  },
+  rightColumn: {
+    flex: 0,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    alignSelf: 'stretch',
   },
   statusDot: {
     width: 6,
@@ -232,20 +236,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[2],
-    marginTop: spacing[3],
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
     backgroundColor: colors.primary,
     borderRadius: borderRadius.base,
     ...shadows.sm,
   },
   quickActionText: {
-    fontSize: typography.fontSize.base,
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
     color: colors.surface,
   },
   chevronContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'stretch',
   },
 });
