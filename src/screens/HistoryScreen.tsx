@@ -669,7 +669,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing[3],
     borderWidth: 1,
     borderColor: '#D4D7FB',
-    ...shadows.sm,
+    shadowColor: '#9B9EF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
   },
   sessionCardContent: {
     flexDirection: 'row',
