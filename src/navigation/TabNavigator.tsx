@@ -77,9 +77,9 @@ export function TabNavigator() {
         name="History"
         component={HistoryScreen}
         options={{
-          headerTitle: 'History',
-          tabBarLabel: 'History',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="📋" />,
+          headerTitle: 'Sessions',
+          tabBarLabel: 'Sessions',
+          tabBarIcon: ({ color }) => <TabIcon color={color} icon="🤖" />,
         }}
       />
       <Tab.Screen

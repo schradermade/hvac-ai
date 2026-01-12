@@ -116,8 +116,6 @@ export function HistoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Diagnostic History</Text>
-
         {/* Search Bar */}
         <View style={styles.searchRow}>
           <View style={styles.searchInputContainer}>
@@ -392,20 +390,16 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[2],
-    paddingBottom: spacing[3],
+    paddingTop: spacing[3],
+    paddingBottom: 0,
     backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    marginTop: spacing[4],
   },
   searchInputContainer: {
     flex: 1,
