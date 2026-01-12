@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Spinner, Button, Card } from '@/components/ui';
+import { Spinner, Card } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJob, useUpdateJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
@@ -186,33 +194,50 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
-          <Button onPress={handleStartDiagnostic} style={styles.primaryAction}>
-            Start Diagnostic Session
-          </Button>
+          <TouchableOpacity
+            style={styles.primaryAction}
+            onPress={handleStartDiagnostic}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="chatbubbles" size={20} color={colors.surface} />
+            <Text style={styles.primaryActionText}>Start Diagnostic Session</Text>
+          </TouchableOpacity>
 
           {/* Status Update Actions */}
           <View style={styles.statusActions}>
             {canStartJob && (
-              <Button
-                variant="secondary"
+              <TouchableOpacity
+                style={[styles.statusButton, updatingStatus && styles.statusButtonDisabled]}
                 onPress={() => handleStatusUpdate('in_progress')}
-                loading={updatingStatus}
                 disabled={updatingStatus}
-                style={styles.statusButton}
+                activeOpacity={0.8}
               >
-                Start Job
-              </Button>
+                {updatingStatus ? (
+                  <ActivityIndicator size="small" color={colors.textPrimary} />
+                ) : (
+                  <>
+                    <Ionicons name="play-circle" size={20} color={colors.textPrimary} />
+                    <Text style={styles.statusButtonText}>Start Job</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             )}
             {canCompleteJob && (
-              <Button
-                variant="secondary"
+              <TouchableOpacity
+                style={[styles.statusButton, updatingStatus && styles.statusButtonDisabled]}
                 onPress={() => handleStatusUpdate('completed')}
-                loading={updatingStatus}
                 disabled={updatingStatus}
-                style={styles.statusButton}
+                activeOpacity={0.8}
               >
-                Complete Job
-              </Button>
+                {updatingStatus ? (
+                  <ActivityIndicator size="small" color={colors.textPrimary} />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.textPrimary} />
+                    <Text style={styles.statusButtonText}>Complete Job</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             )}
           </View>
         </View>
@@ -507,7 +532,22 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   primaryAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    minHeight: 56,
     width: '100%',
+    ...shadows.lg,
+  },
+  primaryActionText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
   },
   statusActions: {
     flexDirection: 'row',
@@ -515,6 +555,24 @@ const styles = StyleSheet.create({
   },
   statusButton: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.backgroundDark,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    minHeight: 56,
+    ...shadows.sm,
+  },
+  statusButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  statusButtonDisabled: {
+    opacity: 0.5,
   },
   section: {
     marginTop: spacing[6],
