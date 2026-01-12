@@ -80,7 +80,16 @@ export function TabNavigator() {
         options={{
           title: 'AI',
           tabBarLabel: 'AI',
-          tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name="sparkles-outline" size={22} color={focused ? '#FFFFFF' : color} />
+          ),
+          tabBarActiveTintColor: '#FFFFFF',
+          tabBarItemStyle: {
+            borderRightWidth: 1,
+            borderRightColor: colors.border,
+            backgroundColor: colors.primaryLight + '30',
+          },
+          tabBarActiveBackgroundColor: '#9B9EF6',
         }}
       />
       <Tab.Screen
