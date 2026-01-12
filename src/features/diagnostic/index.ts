@@ -8,12 +8,22 @@ export type {
   DiagnosticMode,
   EquipmentContext,
   ChatSession,
+  DiagnosticSession,
+  DiagnosticSessionListResponse,
   SendMessageRequest,
   DiagnosticResponse,
 } from './types';
 
 // Export hooks
-export { useDiagnosticChat } from './hooks/useDiagnostic';
+export {
+  useDiagnosticChat,
+  useCreateSession,
+  useSession,
+  useSessionsByClient,
+  useAllSessions,
+  useAddMessageToSession,
+  useCompleteSession,
+} from './hooks/useDiagnostic';
 
 // Export screens
 export { DiagnosticChatScreen } from './screens/DiagnosticChatScreen';
