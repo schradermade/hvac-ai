@@ -233,7 +233,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fixedHeader: {
-    padding: spacing[4],
+    paddingTop: spacing[1],
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
