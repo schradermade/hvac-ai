@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, Modal, TextInput, Text, TouchableOpacity } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { EmptyState, Button, Spinner } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
@@ -80,7 +81,7 @@ export function TodaysJobsScreen() {
   const hasAnyJobs = allJobs.length > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.content}>
         {!hasAnyJobs ? (
           <EmptyState
@@ -90,11 +91,40 @@ export function TodaysJobsScreen() {
           />
         ) : (
           <>
-            {/* Fixed Header Buttons */}
+            {/* Professional Header */}
             <View style={styles.fixedHeader}>
+              {/* Hero Section */}
+              <View style={styles.heroSection}>
+                <View style={styles.heroContent}>
+                  <View style={styles.titleRow}>
+                    <Ionicons name="calendar" size={28} color={colors.primary} />
+                    <Text style={styles.heroTitle}>Today's Schedule</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                    <Text style={styles.dateText}>
+                      {new Date().toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.countBadge}>
+                  <Text style={styles.countBadgeText}>{allJobs.length}</Text>
+                </View>
+              </View>
+
               {/* Search Row */}
               <View style={styles.searchRow}>
                 <View style={styles.searchInputContainer}>
+                  <Ionicons
+                    name="search"
+                    size={20}
+                    color={colors.textMuted}
+                    style={styles.searchIcon}
+                  />
                   <TextInput
                     style={styles.inlineSearchInput}
                     placeholder="Search jobs..."
@@ -111,20 +141,20 @@ export function TodaysJobsScreen() {
                       activeOpacity={0.6}
                       hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
                     >
-                      <View style={styles.clearButtonInner}>
-                        <Text style={styles.clearButtonIcon}>✕</Text>
-                      </View>
+                      <Ionicons name="close-circle" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   )}
                 </View>
                 <TouchableOpacity
-                  style={styles.quickFindButtonCompact}
+                  style={styles.quickFindButton}
                   onPress={() => setShowSearchModal(true)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.quickFindIcon}>🔍</Text>
+                  <Ionicons name="filter" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
+
+              {/* Action Button */}
               <Button onPress={handleAdd}>Create Job</Button>
             </View>
 
@@ -259,27 +289,77 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fixedHeader: {
-    paddingTop: spacing[3],
+    paddingTop: spacing[4],
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[4],
     backgroundColor: colors.primaryLight,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    gap: spacing[4],
+  },
+  heroSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroContent: {
+    flex: 1,
+    gap: spacing[2],
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  heroTitle: {
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  dateText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  countBadge: {
+    backgroundColor: colors.primary + '20',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countBadgeText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.primary,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    marginBottom: spacing[2],
   },
   searchInputContainer: {
     flex: 1,
     position: 'relative',
   },
+  searchIcon: {
+    position: 'absolute',
+    left: spacing[4],
+    top: '50%',
+    transform: [{ translateY: -10 }],
+    zIndex: 1,
+  },
   inlineSearchInput: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
+    paddingLeft: spacing[12],
     paddingRight: spacing[12],
     paddingVertical: spacing[3],
     fontSize: typography.fontSize.base,
@@ -287,48 +367,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minHeight: 56,
+    ...shadows.sm,
   },
   clearButton: {
     position: 'absolute',
     right: spacing[3],
     top: '50%',
-    transform: [{ translateY: -16 }],
+    transform: [{ translateY: -10 }],
     width: 32,
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  clearButtonInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  clearButtonIcon: {
-    fontSize: 18,
-    color: colors.surface,
-    fontWeight: typography.fontWeight.bold,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
-  quickFindButtonCompact: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+  quickFindButton: {
+    width: 56,
+    height: 56,
     borderRadius: borderRadius.base,
-    borderWidth: 2,
-    borderColor: colors.primary + '40',
-    minHeight: 56,
-    minWidth: 56,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...shadows.sm,
-  },
-  quickFindIcon: {
-    fontSize: 24,
   },
   list: {
     paddingHorizontal: spacing[4],

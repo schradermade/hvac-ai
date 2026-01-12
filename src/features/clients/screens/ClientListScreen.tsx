@@ -80,7 +80,7 @@ export function ClientListScreen() {
   const hasAnyClients = allClients.length > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.content}>
         {!hasAnyClients ? (
           <EmptyState
