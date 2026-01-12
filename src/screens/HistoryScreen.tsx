@@ -41,6 +41,7 @@ export function HistoryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
 
@@ -145,15 +146,17 @@ export function HistoryScreen() {
             <Ionicons
               name="search"
               size={20}
-              color="rgba(255, 255, 255, 0.6)"
+              color={isSearchFocused ? colors.textPrimary : '#FFFFFF'}
               style={styles.searchIcon}
             />
             <TextInput
-              style={styles.inlineSearchInput}
+              style={[styles.inlineSearchInput, isSearchFocused && styles.inlineSearchInputFocused]}
               placeholder="Search AI history..."
-              placeholderTextColor="rgba(255, 255, 255, 0.5)"
+              placeholderTextColor={isSearchFocused ? colors.textMuted : '#FFFFFF'}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -164,7 +167,11 @@ export function HistoryScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
               >
-                <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.6)" />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={isSearchFocused ? colors.textMuted : '#FFFFFF'}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -228,6 +235,7 @@ export function HistoryScreen() {
       </View>
 
       <FlatList
+        style={styles.flatListContainer}
         data={Object.entries(groupedSessions)}
         keyExtractor={([clientId]) => clientId}
         renderItem={({ item: [clientId, clientSessions] }) => {
@@ -441,7 +449,7 @@ export function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#9B9EF6',
+    backgroundColor: '#6366F1',
   },
   content: {
     flex: 1,
@@ -491,7 +499,7 @@ const styles = StyleSheet.create({
   },
   subtitleText: {
     fontSize: typography.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#FFFFFF',
     fontWeight: typography.fontWeight.medium,
   },
   countBadge: {
@@ -536,6 +544,16 @@ const styles = StyleSheet.create({
     minHeight: 56,
     ...shadows.sm,
   },
+  inlineSearchInputFocused: {
+    backgroundColor: '#FFFFFF',
+    color: colors.textPrimary,
+    borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   clearButton: {
     position: 'absolute',
     right: spacing[3],
@@ -577,10 +595,13 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#FFFFFF',
   },
   filterChipTextActive: {
     color: '#6366F1',
+  },
+  flatListContainer: {
+    backgroundColor: '#9B9EF6',
   },
   listContent: {
     paddingHorizontal: spacing[4],
@@ -612,7 +633,7 @@ const styles = StyleSheet.create({
   },
   clientGroup: {
     marginBottom: spacing[6],
-    backgroundColor: '#E0E7FF',
+    backgroundColor: '#6366F1',
     borderRadius: borderRadius.lg,
     padding: spacing[4],
     ...shadows.sm,
@@ -626,10 +647,10 @@ const styles = StyleSheet.create({
   clientName: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   clientCountBadge: {
-    backgroundColor: '#6366F1' + '20',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],
     borderRadius: borderRadius.full,
@@ -640,14 +661,14 @@ const styles = StyleSheet.create({
   clientCountBadgeText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
-    color: '#6366F1',
+    color: '#FFFFFF',
   },
   sessionCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#F5F6FE',
     borderRadius: borderRadius.lg,
     marginBottom: spacing[3],
     borderWidth: 1,
-    borderColor: '#C7D2FE',
+    borderColor: '#D4D7FB',
     ...shadows.sm,
   },
   sessionCardContent: {
@@ -704,7 +725,7 @@ const styles = StyleSheet.create({
   sessionFooter: {
     paddingTop: spacing[2],
     borderTopWidth: 1,
-    borderTopColor: '#C7D2FE',
+    borderTopColor: '#D4D7FB',
     width: '75%',
   },
   messageCount: {
@@ -728,7 +749,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing[4],
     borderBottomWidth: 1,
-    borderBottomColor: '#C7D2FE',
+    borderBottomColor: '#D4D7FB',
     backgroundColor: '#EEF2FF',
   },
   modalClose: {
@@ -759,7 +780,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#C7D2FE',
+    borderColor: '#D4D7FB',
     minHeight: 56,
   },
   modalListContent: {
@@ -797,7 +818,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#C7D2FE',
+    backgroundColor: '#D4D7FB',
   },
   emptySearch: {
     padding: spacing[8],
