@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '@/components/ui';
 import { TodaysJobsScreen } from '@/features/jobs';
 import { ClientListScreen } from '@/features/clients';
@@ -29,14 +29,14 @@ export function TabNavigator() {
     <Tab.Navigator
       initialRouteName="Jobs"
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: '#000000',
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarActiveBackgroundColor: colors.primaryLight,
         tabBarStyle: {
           backgroundColor: colors.primaryLight + '30',
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 70,
+          height: 75,
           paddingBottom: 0,
           paddingTop: 0,
         },
@@ -46,8 +46,12 @@ export function TabNavigator() {
           backgroundColor: colors.primaryLight + '30',
         },
         tabBarLabelStyle: {
-          fontSize: typography.fontSize.xs,
-          fontWeight: typography.fontWeight.medium,
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
         },
         headerStyle: {
           backgroundColor: colors.surface,
@@ -67,7 +71,7 @@ export function TabNavigator() {
         options={{
           headerTitle: "Today's Jobs",
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="📅" />,
+          tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={20} color={color} />,
         }}
       />
       <Tab.Screen
@@ -76,7 +80,7 @@ export function TabNavigator() {
         options={{
           headerTitle: 'Clients',
           tabBarLabel: 'Clients',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="👥" />,
+          tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />,
         }}
       />
       <Tab.Screen
@@ -85,7 +89,9 @@ export function TabNavigator() {
         options={{
           headerTitle: 'Sessions',
           tabBarLabel: 'Sessions',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="🤖" />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="chatbubbles-outline" size={22} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -94,7 +100,7 @@ export function TabNavigator() {
         options={{
           headerTitle: 'Settings',
           tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => <TabIcon color={color} icon="⚙" />,
+          tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} />,
           tabBarItemStyle: {
             borderRightWidth: 0,
           },
@@ -102,13 +108,4 @@ export function TabNavigator() {
       />
     </Tab.Navigator>
   );
-}
-
-/**
- * Simple tab icon component
- * Using emojis as placeholders - will be replaced with proper icons later
- */
-function TabIcon({ icon }: { icon: string; color: string }) {
-  // eslint-disable-next-line react-native/no-inline-styles
-  return <Text style={{ fontSize: 24 }}>{icon}</Text>;
 }
