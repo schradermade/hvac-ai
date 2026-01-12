@@ -65,11 +65,13 @@ export function ClientListScreen() {
   }
 
   const clients = filteredClients;
+  const allClients = data?.items || [];
+  const hasAnyClients = allClients.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {clients.length === 0 ? (
+        {!hasAnyClients ? (
           <EmptyState
             title="No clients yet"
             description="Add your first client to get started"
@@ -95,9 +97,12 @@ export function ClientListScreen() {
                     <TouchableOpacity
                       style={styles.clearButton}
                       onPress={() => setSearchQuery('')}
-                      activeOpacity={0.7}
+                      activeOpacity={0.6}
+                      hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
                     >
-                      <Text style={styles.clearButtonText}>×</Text>
+                      <View style={styles.clearButtonInner}>
+                        <Text style={styles.clearButtonIcon}>✕</Text>
+                      </View>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -118,6 +123,12 @@ export function ClientListScreen() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => <ClientCard client={item} />}
               contentContainerStyle={styles.list}
+              ListEmptyComponent={
+                <View style={styles.emptyResults}>
+                  <Text style={styles.emptyResultsText}>No clients match "{searchQuery}"</Text>
+                  <Text style={styles.emptyResultsHint}>Try a different search term</Text>
+                </View>
+              }
             />
           </>
         )}
@@ -251,21 +262,29 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     position: 'absolute',
-    right: spacing[2],
+    right: spacing[3],
     top: '50%',
-    transform: [{ translateY: -20 }],
-    width: 40,
-    height: 40,
+    transform: [{ translateY: -16 }],
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.textMuted + '20',
   },
-  clearButtonText: {
-    fontSize: 28,
-    color: colors.textMuted,
+  clearButtonInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  clearButtonIcon: {
+    fontSize: 18,
+    color: colors.surface,
     fontWeight: typography.fontWeight.bold,
-    lineHeight: 28,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   quickFindButtonCompact: {
     alignItems: 'center',
@@ -375,6 +394,22 @@ const styles = StyleSheet.create({
   },
   emptySearchText: {
     fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  emptyResults: {
+    padding: spacing[8],
+    alignItems: 'center',
+  },
+  emptyResultsText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing[2],
+  },
+  emptyResultsHint: {
+    fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     textAlign: 'center',
   },
