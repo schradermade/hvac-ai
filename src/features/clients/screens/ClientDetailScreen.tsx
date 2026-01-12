@@ -169,6 +169,18 @@ export function ClientDetailScreen({ route, navigation }: Props) {
                   </View>
                 </View>
               )}
+
+              {client.petInfo && (
+                <View style={styles.infoItem}>
+                  <View style={[styles.infoIconContainer, styles.petIconContainer]}>
+                    <Ionicons name="paw" size={20} color={colors.warning} />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Pets</Text>
+                    <Text style={styles.infoValue}>{client.petInfo}</Text>
+                  </View>
+                </View>
+              )}
             </View>
 
             {client.serviceNotes && (
@@ -452,6 +464,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary + '10',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  petIconContainer: {
+    backgroundColor: colors.warning + '20',
   },
   infoContent: {
     flex: 1,

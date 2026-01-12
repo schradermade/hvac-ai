@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.lg,
     minHeight: touchTarget.minHeight,
     minWidth: 80,
     paddingHorizontal: spacing[5],

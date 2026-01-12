@@ -27,6 +27,7 @@ export interface Client {
   homePurchaseDate?: Date;
   warrantyInfo?: string;
   serviceNotes?: string;
+  petInfo?: string; // Information about pets (dogs, cats, etc.) for tech safety
 
   // Timestamps
   createdAt: Date;
@@ -52,6 +53,7 @@ export interface ClientFormData {
   homePurchaseDate?: Date;
   warrantyInfo?: string;
   serviceNotes?: string;
+  petInfo?: string;
 }
 
 /**

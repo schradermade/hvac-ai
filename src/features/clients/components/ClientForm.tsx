@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { Input, Button } from '@/components/ui';
-import { colors, spacing, typography } from '@/components/ui';
+import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import type { Client, ClientFormData } from '../types';
 
 /**
@@ -37,8 +37,10 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading = false }: Cl
     homePurchaseDate: client?.homePurchaseDate,
     warrantyInfo: client?.warrantyInfo || '',
     serviceNotes: client?.serviceNotes || '',
+    petInfo: client?.petInfo || '',
   });
 
+  const [hasPets, setHasPets] = useState<boolean>(!!client?.petInfo);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = () => {
@@ -69,7 +71,20 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading = false }: Cl
       return;
     }
 
-    onSubmit(formData);
+    // Clear petInfo if hasPets is false
+    const submitData = { ...formData };
+    if (!hasPets) {
+      submitData.petInfo = undefined;
+    }
+
+    onSubmit(submitData);
+  };
+
+  const handlePetsToggle = (value: boolean) => {
+    setHasPets(value);
+    if (!value) {
+      updateField('petInfo', '');
+    }
   };
 
   const updateField = <K extends keyof ClientFormData>(field: K, value: ClientFormData[K]) => {
@@ -166,6 +181,32 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading = false }: Cl
           autoCapitalize="none"
         />
 
+        {/* Pets Section */}
+        <View style={styles.switchContainer}>
+          <View style={styles.switchLabelContainer}>
+            <Text style={styles.switchLabel}>Has Pets?</Text>
+            <Text style={styles.switchHint}>For tech safety and courtesy</Text>
+          </View>
+          <Switch
+            value={hasPets}
+            onValueChange={handlePetsToggle}
+            trackColor={{ false: colors.border, true: colors.primary + '40' }}
+            thumbColor={hasPets ? colors.primary : colors.backgroundDark}
+          />
+        </View>
+
+        {hasPets && (
+          <Input
+            label="Pet Information"
+            placeholder="e.g., 2 dogs (1 large German Shepherd - barks), 1 cat - keep doors closed"
+            value={formData.petInfo}
+            onChangeText={(value) => updateField('petInfo', value)}
+            multiline
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{ minHeight: 80 }}
+          />
+        )}
+
         <Input
           label="Warranty Information"
           placeholder="Equipment warranties, expiration dates..."
@@ -219,6 +260,31 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginTop: spacing[4],
     marginBottom: spacing[3],
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    padding: spacing[4],
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing[4],
+  },
+  switchLabelContainer: {
+    flex: 1,
+    marginRight: spacing[3],
+  },
+  switchLabel: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[1],
+  },
+  switchHint: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
   actions: {
     flexDirection: 'row',
