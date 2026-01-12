@@ -1,30 +1,226 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heading, Body } from '@/components/ui';
-import { colors, spacing } from '@/components/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Card } from '@/components/ui';
+import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import type { TabScreenProps } from '@/navigation/types';
+import Constants from 'expo-constants';
 
 /**
  * SettingsScreen
  *
- * App settings and preferences:
- * - Account settings
- * - Notification preferences
- * - Units (Imperial/Metric)
- * - Default refrigerant type
- * - About & support
+ * Professional settings screen following FAANG-level design standards:
+ * - Hero section with app branding
+ * - Sectioned layout with icon headers
+ * - Tappable cards with icon containers and chevrons
+ * - App information and support options
  */
 // eslint-disable-next-line no-unused-vars
 export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
+  const appVersion = Constants.expoConfig?.version || '1.0.0';
+  const buildNumber = Constants.expoConfig?.extra?.buildNumber || '1';
+
+  const handleSupport = () => {
+    Alert.alert('Support', 'Contact support at support@hvacai.app or visit our help center.', [
+      { text: 'OK' },
+    ]);
+  };
+
+  const handlePrivacy = () => {
+    Alert.alert('Privacy Policy', 'Privacy policy coming soon.', [{ text: 'OK' }]);
+  };
+
+  const handleTerms = () => {
+    Alert.alert('Terms of Service', 'Terms of service coming soon.', [{ text: 'OK' }]);
+  };
+
+  const handleAbout = () => {
+    Alert.alert(
+      'About HVAC AI',
+      'HVAC AI is a professional diagnostic assistant for HVAC technicians, providing on-demand technical support and calculations in the field.',
+      [{ text: 'OK' }]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Heading level={1}>Settings</Heading>
-          <Body secondary>Configure your preferences</Body>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroIconContainer}>
+            <Ionicons name="snow" size={32} color={colors.primary} />
+          </View>
+          <View style={styles.heroContent}>
+            <Text style={styles.appName}>HVAC AI</Text>
+            <Text style={styles.appTagline}>Professional Diagnostic Assistant</Text>
+          </View>
         </View>
-      </View>
+
+        {/* Preferences Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="options-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Preferences</Text>
+          </View>
+
+          <Card style={styles.card}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => Alert.alert('Coming Soon', 'Unit preferences will be available soon.')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="thermometer-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Units</Text>
+                <Text style={styles.settingSubtitle}>Imperial (°F, PSI)</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() =>
+                Alert.alert(
+                  'Coming Soon',
+                  'Default refrigerant preferences will be available soon.'
+                )
+              }
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="flask-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Default Refrigerant</Text>
+                <Text style={styles.settingSubtitle}>R-410A</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+
+        {/* App Information Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>App Information</Text>
+          </View>
+
+          <Card style={styles.card}>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="code-slash-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>VERSION</Text>
+                <Text style={styles.infoValue}>{appVersion}</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="hammer-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>BUILD</Text>
+                <Text style={styles.infoValue}>{buildNumber}</Text>
+              </View>
+            </View>
+          </Card>
+        </View>
+
+        {/* Support & Help Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="help-circle-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Support & Help</Text>
+          </View>
+
+          <Card style={styles.card}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handleSupport}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Contact Support</Text>
+                <Text style={styles.settingSubtitle}>Get help from our team</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity style={styles.settingItem} onPress={handleAbout} activeOpacity={0.7}>
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="information-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>About</Text>
+                <Text style={styles.settingSubtitle}>Learn more about HVAC AI</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+
+        {/* Legal Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="document-text-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Legal</Text>
+          </View>
+
+          <Card style={styles.card}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handlePrivacy}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Privacy Policy</Text>
+                <Text style={styles.settingSubtitle}>How we handle your data</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity style={styles.settingItem} onPress={handleTerms} activeOpacity={0.7}>
+              <View style={styles.settingIconContainer}>
+                <Ionicons name="document-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Terms of Service</Text>
+                <Text style={styles.settingSubtitle}>Agreement and policies</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Made with precision for HVAC professionals</Text>
+          <Text style={styles.footerCopyright}>© 2024 HVAC AI. All rights reserved.</Text>
+        </View>
+
+        {/* Bottom spacer */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -34,10 +230,144 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryLight,
   },
-  content: {
+  scrollView: {
     flex: 1,
   },
-  header: {
-    padding: spacing[4],
+  heroSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[4],
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[5],
+    paddingBottom: spacing[4],
+  },
+  heroIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroContent: {
+    flex: 1,
+  },
+  appName: {
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+    marginBottom: spacing[1],
+  },
+  appTagline: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  section: {
+    marginBottom: spacing[6],
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[3],
+  },
+  sectionTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  card: {
+    marginHorizontal: spacing[4],
+    padding: 0,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[4],
+    minHeight: 72,
+  },
+  settingIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingContent: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[1],
+  },
+  settingSubtitle: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[4],
+  },
+  infoIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing[1],
+  },
+  infoValue: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textPrimary,
+    lineHeight: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing[4],
+  },
+  footer: {
+    alignItems: 'center',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[6],
+  },
+  footerText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing[2],
+  },
+  footerCopyright: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  bottomSpacer: {
+    height: spacing[8],
   },
 });
