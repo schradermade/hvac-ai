@@ -229,8 +229,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   contextHeader: {
-    backgroundColor: 'transparent',
-    paddingBottom: spacing[3],
+    backgroundColor: colors.background,
   },
   expandedDivider: {
     height: 1,
@@ -241,7 +240,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[5],
     minHeight: 70,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: 8,
     marginHorizontal: spacing[2],
     marginTop: spacing[2],
