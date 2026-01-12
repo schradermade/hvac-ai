@@ -1,5 +1,13 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,6 +17,8 @@ import { useAllSessions } from '@/features/diagnostic';
 import { useClientList } from '@/features/clients';
 import type { RootStackParamList } from '@/navigation/types';
 import type { DiagnosticSession } from '@/features/diagnostic/types';
+
+type FilterStatus = 'all' | 'in_progress' | 'completed';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -26,12 +36,33 @@ export function HistoryScreen() {
   const { data: sessionsData, isLoading: sessionsLoading } = useAllSessions();
   const { data: clientsData } = useClientList();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
+
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
-  // Only show sessions with at least 1 message
-  const sessions = useMemo(
-    () => (sessionsData?.items || []).filter((session) => session.messages.length > 0),
-    [sessionsData?.items]
-  );
+
+  // Only show sessions with at least 1 message, then apply filters
+  const sessions = useMemo(() => {
+    let filtered = (sessionsData?.items || []).filter((session) => session.messages.length > 0);
+
+    // Apply status filter
+    if (statusFilter === 'in_progress') {
+      filtered = filtered.filter((s) => !s.completedAt);
+    } else if (statusFilter === 'completed') {
+      filtered = filtered.filter((s) => s.completedAt);
+    }
+
+    // Apply search filter on client name
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((session) => {
+        const client = clients.find((c) => c.id === session.clientId);
+        return client?.name.toLowerCase().includes(query);
+      });
+    }
+
+    return filtered;
+  }, [sessionsData?.items, statusFilter, searchQuery, clients]);
 
   // Group sessions by client
   const groupedSessions = useMemo(() => {
@@ -64,7 +95,10 @@ export function HistoryScreen() {
     );
   }
 
-  if (sessions.length === 0) {
+  const hasAnySessions =
+    (sessionsData?.items || []).filter((s) => s.messages.length > 0).length > 0;
+
+  if (sessions.length === 0 && !hasAnySessions) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
@@ -84,6 +118,68 @@ export function HistoryScreen() {
         <Text style={styles.subtitle}>
           {sessions.length} session{sessions.length === 1 ? '' : 's'}
         </Text>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by client name..."
+            placeholderTextColor={colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+
+        {/* Filter Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterChips}
+        >
+          <TouchableOpacity
+            style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
+            onPress={() => setStatusFilter('all')}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[styles.filterChipText, statusFilter === 'all' && styles.filterChipTextActive]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, statusFilter === 'in_progress' && styles.filterChipActive]}
+            onPress={() => setStatusFilter('in_progress')}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                statusFilter === 'in_progress' && styles.filterChipTextActive,
+              ]}
+            >
+              In Progress
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, statusFilter === 'completed' && styles.filterChipActive]}
+            onPress={() => setStatusFilter('completed')}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                statusFilter === 'completed' && styles.filterChipTextActive,
+              ]}
+            >
+              Completed
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       <FlatList
@@ -149,7 +245,15 @@ export function HistoryScreen() {
             </View>
           );
         }}
-        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyResults}>
+            <Text style={styles.emptyResultsTitle}>No sessions found</Text>
+            <Text style={styles.emptyResultsText}>
+              {searchQuery ? `No sessions match "${searchQuery}"` : 'Try adjusting your filters'}
+            </Text>
+          </View>
+        }
+        contentContainerStyle={sessions.length === 0 ? styles.emptyListContent : styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -180,8 +284,67 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.textSecondary,
   },
+  searchContainer: {
+    marginTop: spacing[4],
+  },
+  searchInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.base,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChips: {
+    flexDirection: 'row',
+    gap: spacing[2],
+    paddingTop: spacing[3],
+  },
+  filterChip: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textSecondary,
+  },
+  filterChipTextActive: {
+    color: colors.surface,
+  },
   listContent: {
     padding: spacing[4],
+  },
+  emptyListContent: {
+    flex: 1,
+    padding: spacing[4],
+  },
+  emptyResults: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing[12],
+  },
+  emptyResultsTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[2],
+  },
+  emptyResultsText: {
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   clientGroup: {
     marginBottom: spacing[6],
