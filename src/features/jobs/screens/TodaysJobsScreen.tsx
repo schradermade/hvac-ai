@@ -103,6 +103,9 @@ export function TodaysJobsScreen() {
                   <View style={styles.titleRow}>
                     <Ionicons name="calendar" size={28} color={colors.primary} />
                     <Text style={styles.heroTitle}>Today's Schedule</Text>
+                    <View style={styles.countBadge}>
+                      <Text style={styles.countBadgeText}>{allJobs.length}</Text>
+                    </View>
                   </View>
                   <View style={styles.metaRow}>
                     <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
@@ -122,13 +125,6 @@ export function TodaysJobsScreen() {
                     <Ionicons name="snow" size={20} color={colors.primary} />
                   </View>
                   <Text style={styles.brandText}>HVAC AI</Text>
-                </View>
-              </View>
-
-              {/* Job Count Badge Below */}
-              <View style={styles.countBadgeContainer}>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{allJobs.length}</Text>
                 </View>
               </View>
 
@@ -309,9 +305,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fixedHeader: {
-    paddingTop: spacing[4],
+    paddingTop: spacing[3],
     paddingHorizontal: spacing[4],
-    paddingBottom: spacing[4],
+    paddingBottom: spacing[3],
     backgroundColor: colors.primaryLight,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -341,9 +337,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
     letterSpacing: 0.5,
-  },
-  countBadgeContainer: {
-    alignItems: 'flex-start',
   },
   titleRow: {
     flexDirection: 'row',
