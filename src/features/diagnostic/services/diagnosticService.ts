@@ -1,4 +1,12 @@
-import type { Message, DiagnosticResponse, SendMessageRequest, EquipmentContext } from '../types';
+import type {
+  Message,
+  DiagnosticResponse,
+  SendMessageRequest,
+  EquipmentContext,
+  DiagnosticSession,
+  DiagnosticSessionListResponse,
+  DiagnosticMode,
+} from '../types';
 
 /**
  * Service for diagnostic chat operations
@@ -7,7 +15,9 @@ import type { Message, DiagnosticResponse, SendMessageRequest, EquipmentContext 
  * Will be replaced with real Claude API integration later
  */
 class DiagnosticService {
+  private sessions: Map<string, DiagnosticSession> = new Map();
   private messageIdCounter = 0;
+  private sessionIdCounter = 0;
 
   /**
    * Send a message and get AI response
@@ -242,6 +252,134 @@ class DiagnosticService {
         'What pressures are you seeing?',
       suggestions: ['System is low on refrigerant', 'High pressure too high', 'Equal pressures'],
     };
+  }
+
+  /**
+   * Create a new diagnostic session
+   */
+  async createSession(
+    clientId: string,
+    mode: DiagnosticMode = 'expert',
+    jobId?: string,
+    equipmentId?: string
+  ): Promise<DiagnosticSession> {
+    await this.delay(200);
+
+    this.sessionIdCounter++;
+    const now = new Date();
+
+    const session: DiagnosticSession = {
+      id: `session_${this.sessionIdCounter}`,
+      clientId,
+      jobId,
+      equipmentId,
+      messages: [],
+      mode,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    this.sessions.set(session.id, session);
+    return session;
+  }
+
+  /**
+   * Get a diagnostic session by ID
+   */
+  async getSession(id: string): Promise<DiagnosticSession> {
+    await this.delay(100);
+
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Diagnostic session with id ${id} not found`);
+    }
+
+    return session;
+  }
+
+  /**
+   * Get all diagnostic sessions for a client
+   */
+  async getSessionsByClient(clientId: string): Promise<DiagnosticSessionListResponse> {
+    await this.delay(200);
+
+    const items = Array.from(this.sessions.values())
+      .filter((session) => session.clientId === clientId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return {
+      items,
+      total: items.length,
+    };
+  }
+
+  /**
+   * Get all diagnostic sessions (for history view)
+   */
+  async getAllSessions(): Promise<DiagnosticSessionListResponse> {
+    await this.delay(200);
+
+    const items = Array.from(this.sessions.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+
+    return {
+      items,
+      total: items.length,
+    };
+  }
+
+  /**
+   * Add a message to an existing session
+   */
+  async addMessageToSession(
+    sessionId: string,
+    request: SendMessageRequest
+  ): Promise<DiagnosticSession> {
+    const session = await this.getSession(sessionId);
+
+    // Add user message
+    const userMessage: Message = {
+      id: this.generateMessageId(),
+      role: 'user',
+      content: request.content,
+      timestamp: new Date(),
+    };
+
+    session.messages.push(userMessage);
+
+    // Get AI response
+    const aiMessage = await this.sendMessage(request);
+    session.messages.push(aiMessage);
+
+    // Update session timestamp
+    session.updatedAt = new Date();
+    this.sessions.set(sessionId, session);
+
+    return session;
+  }
+
+  /**
+   * Complete a diagnostic session
+   */
+  async completeSession(sessionId: string, summary?: string): Promise<DiagnosticSession> {
+    await this.delay(200);
+
+    const session = await this.getSession(sessionId);
+
+    session.completedAt = new Date();
+    session.updatedAt = new Date();
+
+    if (summary) {
+      session.summary = summary;
+    } else {
+      // Auto-generate a basic summary
+      const messageCount = session.messages.length;
+      session.summary = `Diagnostic session with ${messageCount} messages`;
+    }
+
+    this.sessions.set(sessionId, session);
+    return session;
   }
 
   /**

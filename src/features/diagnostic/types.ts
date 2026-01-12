@@ -36,7 +36,7 @@ export interface EquipmentContext {
 }
 
 /**
- * Chat session state
+ * Chat session state (legacy - used by current UI)
  */
 export interface ChatSession {
   id: string;
@@ -45,6 +45,31 @@ export interface ChatSession {
   equipmentContext?: EquipmentContext;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Diagnostic session with full job context
+ * Connected to the job-client-equipment hierarchy
+ */
+export interface DiagnosticSession {
+  id: string;
+  clientId: string; // REQUIRED - every diagnostic is for a client
+  jobId?: string; // Optional - may be standalone diagnostic
+  equipmentId?: string; // Optional - may be general consultation
+  messages: Message[];
+  mode: DiagnosticMode;
+  summary?: string; // Auto-generated or manual summary of the session
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date; // When the session was marked complete
+}
+
+/**
+ * Response containing list of sessions
+ */
+export interface DiagnosticSessionListResponse {
+  items: DiagnosticSession[];
+  total: number;
 }
 
 /**
