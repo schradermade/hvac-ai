@@ -45,14 +45,6 @@ export function TodaysJobsScreen() {
     navigation.navigate('JobDetail', { jobId: job.id });
   };
 
-  const handleStartDiagnostic = (job: Job) => {
-    navigation.navigate('DiagnosticChat', {
-      clientId: job.clientId,
-      jobId: job.id,
-      equipmentId: job.equipmentId,
-    });
-  };
-
   // Filter jobs based on search query
   const filteredJobs = useMemo(() => {
     const allJobs = data?.items || [];
@@ -171,13 +163,7 @@ export function TodaysJobsScreen() {
             <FlatList
               data={jobs}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <JobCard
-                  job={item}
-                  onPress={handleJobPress}
-                  onStartDiagnostic={handleStartDiagnostic}
-                />
-              )}
+              renderItem={({ item }) => <JobCard job={item} onPress={handleJobPress} />}
               contentContainerStyle={styles.list}
               ListEmptyComponent={
                 <View style={styles.emptyResults}>
@@ -260,7 +246,7 @@ export function TodaysJobsScreen() {
                   onPress={() => {
                     setShowSearchModal(false);
                     setSearchQuery('');
-                    handleStartDiagnostic(item);
+                    handleJobPress(item);
                   }}
                   activeOpacity={0.7}
                 >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
@@ -13,8 +13,6 @@ interface JobCardProps {
   job: Job;
   // eslint-disable-next-line no-unused-vars
   onPress?: (job: Job) => void;
-  // eslint-disable-next-line no-unused-vars
-  onStartDiagnostic?: (job: Job) => void;
 }
 
 /**
@@ -27,9 +25,8 @@ interface JobCardProps {
  * - Client name
  * - Description (truncated)
  * - Chevron indicator for tappability
- * - Optional quick diagnostic action
  */
-export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
+export function JobCard({ job, onPress }: JobCardProps) {
   const { data: client } = useClient(job.clientId);
 
   // Format time
@@ -116,21 +113,6 @@ export function JobCard({ job, onPress, onStartDiagnostic }: JobCardProps) {
             <Text style={styles.description} numberOfLines={2}>
               {job.description}
             </Text>
-          )}
-
-          {/* Quick action button directly under details */}
-          {onStartDiagnostic && (
-            <TouchableOpacity
-              style={styles.quickAction}
-              onPress={(e) => {
-                e.stopPropagation();
-                onStartDiagnostic(job);
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="chatbubbles" size={16} color={colors.surface} />
-              <Text style={styles.quickActionText}>Start Diagnostic</Text>
-            </TouchableOpacity>
           )}
         </View>
 
@@ -230,24 +212,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     lineHeight: 20,
     marginTop: spacing[1],
-  },
-  quickAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.base,
-    marginTop: spacing[2],
-    alignSelf: 'flex-start',
-    ...shadows.sm,
-  },
-  quickActionText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.surface,
   },
   chevronContainer: {
     flex: 1,
