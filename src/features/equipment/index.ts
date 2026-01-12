@@ -21,6 +21,7 @@ export { EquipmentForm } from './components/EquipmentForm';
 
 // Export screens
 export { CreateEquipmentScreen } from './screens/CreateEquipmentScreen';
+export { EquipmentDetailScreen } from './screens/EquipmentDetailScreen';
 
 // DO NOT export:
 // - Services (other features should use hooks, not services directly)

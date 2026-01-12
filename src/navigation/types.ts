@@ -29,6 +29,7 @@ export type RootStackParamList = {
   ClientDetail: { clientId: string };
   // Equipment flows
   CreateEquipment: { clientId: string };
+  EquipmentDetail: { equipmentId: string };
   // Job flows
   JobDetail: { jobId: string };
   // Diagnostic flows

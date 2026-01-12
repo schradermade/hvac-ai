@@ -60,8 +60,7 @@ export function ClientDetailScreen({ route, navigation }: Props) {
   };
 
   const handleEquipmentPress = (equipmentId: string) => {
-    // TODO: Navigate to equipment detail when implemented
-    console.log('Navigate to equipment:', equipmentId);
+    navigation.navigate('EquipmentDetail', { equipmentId });
   };
 
   const getJobStatusColor = (status: string) => {

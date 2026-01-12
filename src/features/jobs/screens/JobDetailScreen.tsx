@@ -107,8 +107,9 @@ export function JobDetailScreen({ route, navigation }: Props) {
   };
 
   const handleEquipmentPress = () => {
-    // TODO: Navigate to equipment detail when implemented
-    console.log('Navigate to equipment:', job.equipmentId);
+    if (job.equipmentId) {
+      navigation.navigate('EquipmentDetail', { equipmentId: job.equipmentId });
+    }
   };
 
   const handleStatusUpdate = async (newStatus: AppointmentStatus) => {
