@@ -19,6 +19,9 @@ export {
 export { EquipmentCard } from './components/EquipmentCard';
 export { EquipmentForm } from './components/EquipmentForm';
 
+// Export screens
+export { CreateEquipmentScreen } from './screens/CreateEquipmentScreen';
+
 // DO NOT export:
 // - Services (other features should use hooks, not services directly)
 // - Internal helper components

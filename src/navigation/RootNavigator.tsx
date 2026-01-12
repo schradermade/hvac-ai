@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TabNavigator } from './TabNavigator';
 import { DiagnosticChatScreen } from '@/features/diagnostic';
 import { ClientDetailScreen } from '@/features/clients';
+import { CreateEquipmentScreen } from '@/features/equipment';
 import { colors, typography } from '@/components/ui';
 import type { RootStackParamList } from './types';
 
@@ -37,6 +38,14 @@ export function RootNavigator() {
         component={ClientDetailScreen}
         options={{
           title: 'Client Details',
+        }}
+      />
+      <Stack.Screen
+        name="CreateEquipment"
+        component={CreateEquipmentScreen}
+        options={{
+          title: 'Add Equipment',
+          presentation: 'modal',
         }}
       />
       <Stack.Screen

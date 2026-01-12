@@ -27,6 +27,8 @@ export type RootStackParamList = {
   Main: undefined;
   // Client flows
   ClientDetail: { clientId: string };
+  // Equipment flows
+  CreateEquipment: { clientId: string };
   // Diagnostic flows
   DiagnosticChat: {
     clientId: string;

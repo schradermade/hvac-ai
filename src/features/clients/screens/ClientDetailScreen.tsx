@@ -203,11 +203,25 @@ export function ClientDetailScreen({ route, navigation }: Props) {
         {/* Equipment Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderContainer}>
-            <Ionicons name="construct-outline" size={24} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Equipment</Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{equipment.length}</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="construct-outline" size={24} color={colors.primary} />
+              <Text style={styles.sectionTitle}>Equipment</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{equipment.length}</Text>
+              </View>
             </View>
+            {!isUnassigned && (
+              <TouchableOpacity
+                style={styles.addEquipmentButton}
+                onPress={() => {
+                  navigation.navigate('CreateEquipment', { clientId: client.id });
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={20} color={colors.primary} />
+                <Text style={styles.addEquipmentButtonText}>Add</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {loadingEquipment ? (
@@ -391,17 +405,39 @@ const styles = StyleSheet.create({
     marginBottom: spacing[6],
   },
   sectionHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: spacing[4],
     marginBottom: spacing[3],
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing[2],
+    flex: 1,
   },
   sectionTitle: {
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
     flex: 1,
+  },
+  addEquipmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.primary + '10',
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+  },
+  addEquipmentButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
   },
   countBadge: {
     backgroundColor: colors.primary + '20',
