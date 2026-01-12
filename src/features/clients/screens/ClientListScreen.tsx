@@ -76,25 +76,28 @@ export function ClientListScreen() {
             action={<Button onPress={handleAdd}>Add Client</Button>}
           />
         ) : (
-          <FlatList
-            data={clients}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ClientCard client={item} />}
-            contentContainerStyle={styles.list}
-            ListHeaderComponent={
-              <View style={styles.header}>
-                <TouchableOpacity
-                  style={styles.quickFindButton}
-                  onPress={() => setShowSearchModal(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.quickFindIcon}>🔍</Text>
-                  <Text style={styles.quickFindText}>Quick Find Client</Text>
-                </TouchableOpacity>
-                <Button onPress={handleAdd}>Add Client</Button>
-              </View>
-            }
-          />
+          <>
+            {/* Fixed Header Buttons */}
+            <View style={styles.fixedHeader}>
+              <TouchableOpacity
+                style={styles.quickFindButton}
+                onPress={() => setShowSearchModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.quickFindIcon}>🔍</Text>
+                <Text style={styles.quickFindText}>Quick Find Client</Text>
+              </TouchableOpacity>
+              <Button onPress={handleAdd}>Add Client</Button>
+            </View>
+
+            {/* Scrollable Client List */}
+            <FlatList
+              data={clients}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <ClientCard client={item} />}
+              contentContainerStyle={styles.list}
+            />
+          </>
         )}
       </View>
 
@@ -196,11 +199,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  fixedHeader: {
+    padding: spacing[4],
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   list: {
     padding: spacing[4],
-  },
-  header: {
-    marginBottom: spacing[4],
   },
   quickFindButton: {
     flexDirection: 'row',
@@ -212,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.base,
     borderWidth: 2,
     borderColor: colors.primary + '40',
-    marginBottom: spacing[3],
+    marginBottom: spacing[2],
     minHeight: 60,
     ...shadows.sm,
   },
