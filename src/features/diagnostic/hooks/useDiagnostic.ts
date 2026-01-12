@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { diagnosticService } from '../services/diagnosticService';
 import type { Message, SendMessageRequest, DiagnosticMode, EquipmentContext } from '../types';
 
@@ -95,4 +95,113 @@ export function useDiagnosticChat(initialMode: DiagnosticMode = 'expert') {
     equipmentContext,
     setEquipmentContext,
   };
+}
+
+// ============================================================================
+// Session Management Hooks
+// ============================================================================
+
+const QUERY_KEYS = {
+  sessions: ['diagnostic', 'sessions'] as const,
+  session: (id: string) => ['diagnostic', 'sessions', id] as const,
+  clientSessions: (clientId: string) => ['diagnostic', 'sessions', 'client', clientId] as const,
+};
+
+/**
+ * Create a new diagnostic session
+ */
+export function useCreateSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      mode = 'expert',
+      jobId,
+      equipmentId,
+    }: {
+      clientId: string;
+      mode?: DiagnosticMode;
+      jobId?: string;
+      equipmentId?: string;
+    }) => diagnosticService.createSession(clientId, mode, jobId, equipmentId),
+    onSuccess: (session) => {
+      // Invalidate sessions list
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+      // Set the new session in cache
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+    },
+  });
+}
+
+/**
+ * Get a specific diagnostic session
+ */
+export function useSession(sessionId: string, enabled = true) {
+  return useQuery({
+    queryKey: QUERY_KEYS.session(sessionId),
+    queryFn: () => diagnosticService.getSession(sessionId),
+    enabled: enabled && !!sessionId,
+  });
+}
+
+/**
+ * Get all diagnostic sessions for a client
+ */
+export function useSessionsByClient(clientId: string, enabled = true) {
+  return useQuery({
+    queryKey: QUERY_KEYS.clientSessions(clientId),
+    queryFn: () => diagnosticService.getSessionsByClient(clientId),
+    enabled: enabled && !!clientId,
+  });
+}
+
+/**
+ * Get all diagnostic sessions (for history view)
+ */
+export function useAllSessions(enabled = true) {
+  return useQuery({
+    queryKey: QUERY_KEYS.sessions,
+    queryFn: () => diagnosticService.getAllSessions(),
+    enabled,
+  });
+}
+
+/**
+ * Add a message to an existing session
+ */
+export function useAddMessageToSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sessionId, request }: { sessionId: string; request: SendMessageRequest }) =>
+      diagnosticService.addMessageToSession(sessionId, request),
+    onSuccess: (session) => {
+      // Update the session in cache
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+    },
+  });
+}
+
+/**
+ * Complete a diagnostic session
+ */
+export function useCompleteSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sessionId, summary }: { sessionId: string; summary?: string }) =>
+      diagnosticService.completeSession(sessionId, summary),
+    onSuccess: (session) => {
+      // Update the session in cache
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+    },
+  });
 }
