@@ -53,12 +53,6 @@ export function ClientDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const handleStartDiagnostic = () => {
-    navigation.navigate('DiagnosticChat', {
-      clientId: client.id,
-    });
-  };
-
   const handleEquipmentPress = (equipmentId: string) => {
     navigation.navigate('EquipmentDetail', { equipmentId });
   };
@@ -92,20 +86,6 @@ export function ClientDetailScreen({ route, navigation }: Props) {
             )}
           </View>
         </View>
-
-        {/* Quick Actions - Prominent placement */}
-        {!isUnassigned && (
-          <View style={styles.quickActionsSection}>
-            <TouchableOpacity
-              style={styles.primaryAction}
-              onPress={handleStartDiagnostic}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="chatbubbles" size={20} color={colors.surface} />
-              <Text style={styles.primaryActionText}>Start Diagnostic Session</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Contact Information */}
         <View style={styles.section}>
@@ -387,7 +367,7 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[5],
-    paddingBottom: spacing[4],
+    paddingBottom: spacing[6],
   },
   heroContent: {
     flexDirection: 'row',
@@ -402,28 +382,6 @@ const styles = StyleSheet.create({
   },
   specialBadge: {
     marginLeft: spacing[2],
-  },
-  quickActionsSection: {
-    paddingHorizontal: spacing[4],
-    marginBottom: spacing[5],
-  },
-  primaryAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.primary,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderRadius: borderRadius.lg,
-    minHeight: 56,
-    width: '100%',
-    ...shadows.lg,
-  },
-  primaryActionText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
   },
   section: {
     marginBottom: spacing[6],
