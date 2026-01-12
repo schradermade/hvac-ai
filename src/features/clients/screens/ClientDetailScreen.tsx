@@ -35,7 +35,7 @@ export function ClientDetailScreen({ route, navigation }: Props) {
 
   if (loadingClient) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <Spinner message="Loading client details..." />
       </SafeAreaView>
     );
@@ -43,7 +43,7 @@ export function ClientDetailScreen({ route, navigation }: Props) {
 
   if (!client) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
           <Text style={styles.errorText}>Client not found</Text>
@@ -80,7 +80,7 @@ export function ClientDetailScreen({ route, navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.heroSection}>

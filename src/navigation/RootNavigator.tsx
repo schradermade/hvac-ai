@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TabNavigator } from './TabNavigator';
 import { DiagnosticChatScreen } from '@/features/diagnostic';
 import { ClientDetailScreen } from '@/features/clients';
+import { colors, typography } from '@/components/ui';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -15,14 +16,27 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  */
 export function RootNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.primaryLight,
+        },
+        headerTintColor: colors.primary,
+        headerTitleStyle: {
+          fontSize: typography.fontSize.xl,
+          fontWeight: typography.fontWeight.bold,
+          color: colors.textPrimary,
+        },
+        headerShadowVisible: true,
+        animation: 'slide_from_right',
+      }}
+    >
       <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown: false }} />
       <Stack.Screen
         name="ClientDetail"
         component={ClientDetailScreen}
         options={{
           title: 'Client Details',
-          headerBackTitle: 'Back',
         }}
       />
       <Stack.Screen
@@ -30,7 +44,6 @@ export function RootNavigator() {
         component={DiagnosticChatScreen}
         options={{
           title: 'Diagnostic Assistant',
-          headerBackTitle: 'Back',
         }}
       />
     </Stack.Navigator>
