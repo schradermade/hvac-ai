@@ -227,6 +227,51 @@ If the answer is no, refine it.
 - **Deep linking**: Support URL-based navigation
 - **Search**: Prominent for large datasets
 
+### Forms
+
+**Premium data entry experience.**
+
+Forms are critical touchpoints. They must feel effortless, not like a chore.
+
+**Visual Structure:**
+
+- **Clear sections**: Group related fields with subtle dividers or spacing
+- **Progressive disclosure**: Show only essential fields first, "Show more" for optional
+- **Smart defaults**: Pre-fill whenever possible (current date, last used values)
+- **Field order**: Most important/frequently changed fields first
+
+**Input Types:**
+
+- **Text inputs**: Large (48pt), clear labels, proper keyboard types
+- **Pickers**: Use bottom sheet/modal pickers, NOT inline wheel pickers (too clunky)
+- **Date/Time**: Native pickers with clear format display
+- **Toggles**: For boolean choices, with clear on/off states
+- **Multi-select**: Chips or checkboxes, not dropdowns
+
+**Validation & Feedback:**
+
+- **Inline validation**: Check as user types (after field blur)
+- **Clear error states**: Red border + specific error message below field
+- **Success indicators**: Subtle checkmark for valid fields
+- **Smart assistance**: Suggest corrections (e.g., "Did you mean 2024?")
+
+**Actions:**
+
+- **Fixed bottom bar**: Primary and cancel buttons always visible
+- **Clear hierarchy**: Primary action (filled), secondary (outlined)
+- **Disable when invalid**: Show why form can't be submitted
+- **Loading states**: Button shows spinner, form dims, prevents double-tap
+
+**Polish:**
+
+- **Smooth keyboard handling**: Form scrolls to keep active field visible
+- **Autofill support**: Integrate with platform autofill APIs
+- **Persistence**: Draft saves automatically (don't lose work)
+- **Haptic feedback**: Subtle vibration on errors or completion
+
+❌ BAD: Inline wheel pickers eating screen space, unclear required fields, silent failures
+✅ GOOD: Modal pickers, clear labels with asterisks, helpful error messages, smooth animations
+
 ---
 
 ## Interaction Patterns
