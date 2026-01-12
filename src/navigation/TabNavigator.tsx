@@ -35,8 +35,7 @@ export function TabNavigator() {
         tabBarActiveBackgroundColor: colors.primaryLight,
         tabBarStyle: {
           backgroundColor: colors.primaryLight + '30',
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
+          borderTopWidth: 0,
           height: 75,
           paddingBottom: 0,
           paddingTop: 0,
@@ -44,6 +43,8 @@ export function TabNavigator() {
         tabBarItemStyle: {
           borderRightWidth: 1,
           borderRightColor: colors.border,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
           backgroundColor: colors.primaryLight + '30',
         },
         tabBarLabelStyle: {
@@ -87,6 +88,8 @@ export function TabNavigator() {
           tabBarItemStyle: {
             borderRightWidth: 1,
             borderRightColor: colors.border,
+            borderTopWidth: 1,
+            borderTopColor: '#D4D7FB',
             backgroundColor: colors.primaryLight + '30',
           },
           tabBarActiveBackgroundColor: '#9B9EF6',
@@ -101,6 +104,8 @@ export function TabNavigator() {
           tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} />,
           tabBarItemStyle: {
             borderRightWidth: 0,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
           },
         }}
       />
