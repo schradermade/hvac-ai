@@ -79,14 +79,36 @@ export function ClientListScreen() {
           <>
             {/* Fixed Header Buttons */}
             <View style={styles.fixedHeader}>
-              <TouchableOpacity
-                style={styles.quickFindButton}
-                onPress={() => setShowSearchModal(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.quickFindIcon}>🔍</Text>
-                <Text style={styles.quickFindText}>Quick Find Client</Text>
-              </TouchableOpacity>
+              {/* Search Row */}
+              <View style={styles.searchRow}>
+                <View style={styles.searchInputContainer}>
+                  <TextInput
+                    style={styles.inlineSearchInput}
+                    placeholder="Search clients..."
+                    placeholderTextColor={colors.textMuted}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity
+                      style={styles.clearButton}
+                      onPress={() => setSearchQuery('')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.clearButtonText}>×</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.quickFindButtonCompact}
+                  onPress={() => setShowSearchModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.quickFindIcon}>🔍</Text>
+                </TouchableOpacity>
+              </View>
               <Button onPress={handleAdd}>Add Client</Button>
             </View>
 
@@ -205,31 +227,64 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  list: {
-    padding: spacing[4],
-  },
-  quickFindButton: {
+  searchRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[2],
+  },
+  searchInputContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  inlineSearchInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.base,
+    paddingHorizontal: spacing[4],
+    paddingRight: spacing[12],
+    paddingVertical: spacing[3],
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: 56,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: spacing[2],
+    top: '50%',
+    transform: [{ translateY: -20 }],
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.textMuted + '20',
+  },
+  clearButtonText: {
+    fontSize: 28,
+    color: colors.textMuted,
+    fontWeight: typography.fontWeight.bold,
+    lineHeight: 28,
+  },
+  quickFindButtonCompact: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surface,
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
     borderRadius: borderRadius.base,
     borderWidth: 2,
     borderColor: colors.primary + '40',
-    marginBottom: spacing[2],
-    minHeight: 60,
+    minHeight: 56,
+    minWidth: 56,
     ...shadows.sm,
   },
   quickFindIcon: {
     fontSize: 24,
-    marginRight: spacing[2],
   },
-  quickFindText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
+  list: {
+    padding: spacing[4],
   },
   modalContainer: {
     flex: 1,
