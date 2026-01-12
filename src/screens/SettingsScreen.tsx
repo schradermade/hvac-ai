@@ -32,7 +32,7 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   content: {
     flex: 1,

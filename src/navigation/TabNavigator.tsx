@@ -31,13 +31,19 @@ export function TabNavigator() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveBackgroundColor: colors.primaryLight,
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: colors.primaryLight + '30',
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 70,
+          paddingBottom: 0,
+          paddingTop: 0,
+        },
+        tabBarItemStyle: {
+          borderRightWidth: 1,
+          borderRightColor: colors.border,
+          backgroundColor: colors.primaryLight + '30',
         },
         tabBarLabelStyle: {
           fontSize: typography.fontSize.xs,
@@ -89,6 +95,9 @@ export function TabNavigator() {
           headerTitle: 'Settings',
           tabBarLabel: 'Settings',
           tabBarIcon: ({ color }) => <TabIcon color={color} icon="⚙" />,
+          tabBarItemStyle: {
+            borderRightWidth: 0,
+          },
         }}
       />
     </Tab.Navigator>

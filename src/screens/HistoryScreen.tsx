@@ -383,7 +383,7 @@ export function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   content: {
     flex: 1,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
     paddingBottom: 0,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   modalClose: {
     fontSize: typography.fontSize.base,
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
     paddingBottom: spacing[2],
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   modalSearchInput: {
     backgroundColor: colors.surface,
