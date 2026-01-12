@@ -250,25 +250,18 @@ export function HistoryScreen() {
 
                     {/* Session Content */}
                     <View style={styles.sessionContent}>
-                      <View style={styles.sessionHeader}>
-                        <Text style={styles.sessionDate}>
-                          {new Date(session.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}{' '}
-                          •{' '}
-                          {new Date(session.createdAt).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          })}
-                        </Text>
-                        {session.completedAt ? (
-                          <Badge variant="success">Completed</Badge>
-                        ) : (
-                          <Badge variant="info">In Progress</Badge>
-                        )}
-                      </View>
+                      <Text style={styles.sessionDate}>
+                        {new Date(session.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}{' '}
+                        •{' '}
+                        {new Date(session.createdAt).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Text>
 
                       <View style={styles.sessionMetaContainer}>
                         {session.jobId && (
@@ -307,8 +300,17 @@ export function HistoryScreen() {
                       )}
                     </View>
 
-                    {/* Chevron */}
-                    <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+                    {/* Right Side: Badge at top, Chevron centered */}
+                    <View style={styles.sessionRightSide}>
+                      {session.completedAt ? (
+                        <Badge variant="success">Completed</Badge>
+                      ) : (
+                        <Badge variant="info">In Progress</Badge>
+                      )}
+                      <View style={styles.chevronContainer}>
+                        <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+                      </View>
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -625,6 +627,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: spacing[3],
     padding: spacing[4],
+    minHeight: 140,
   },
   sessionIconContainer: {
     width: 48,
@@ -633,22 +636,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary + '10',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'flex-start',
   },
   sessionContent: {
     flex: 1,
     gap: spacing[2],
   },
-  sessionHeader: {
-    flexDirection: 'row',
+  sessionRightSide: {
+    flex: 0,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    alignSelf: 'stretch',
     gap: spacing[2],
+  },
+  chevronContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sessionDate: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
     color: colors.textPrimary,
-    flex: 1,
   },
   sessionMetaContainer: {
     flexDirection: 'row',
@@ -668,6 +677,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing[2],
     borderTopWidth: 1,
     borderTopColor: colors.border,
+    width: '75%',
   },
   messageCount: {
     fontSize: typography.fontSize.xs,
