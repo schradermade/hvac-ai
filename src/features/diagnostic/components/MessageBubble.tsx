@@ -29,7 +29,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <View style={styles.messageRow}>
         {!isUser && (
           <View style={styles.avatarContainer}>
-            <Ionicons name="snow" size={20} color={colors.primary} />
+            <Ionicons name="sparkles" size={20} color="#6366F1" />
           </View>
         )}
 
@@ -37,7 +37,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
             {message.isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={colors.textSecondary} />
+                <ActivityIndicator size="small" color="#6366F1" />
                 <Text style={styles.loadingText}>Thinking...</Text>
               </View>
             ) : (
@@ -55,7 +55,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {isUser && (
           <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={20} color={colors.primary} />
+            <Ionicons name="person" size={20} color="#FFFFFF" />
           </View>
         )}
       </View>
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: '#6366F1' + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing[1],
@@ -111,11 +111,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
   },
   userBubble: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#6366F1',
     borderBottomRightRadius: borderRadius.sm,
   },
   assistantBubble: {
-    backgroundColor: colors.backgroundDark,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
     borderBottomLeftRadius: borderRadius.sm,
   },
   text: {

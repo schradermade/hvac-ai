@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
+import { spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClient } from '@/features/clients';
 import { useJob } from '@/features/jobs';
 import { useEquipment } from '@/features/equipment';
@@ -49,7 +49,7 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
         >
           <View style={styles.collapsedContent}>
             <View style={styles.collapsedIconContainer}>
-              <Ionicons name="information-circle" size={24} color={colors.primary} />
+              <Ionicons name="sparkles" size={24} color="#FFFFFF" />
             </View>
             <View style={styles.collapsedTextContainer}>
               <Text style={styles.collapsedTitle}>Session Context</Text>
@@ -59,7 +59,7 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
                 {equipment && ` • ${equipment.name}`}
               </Text>
             </View>
-            <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
+            <Ionicons name="chevron-down" size={20} color="rgba(255, 255, 255, 0.8)" />
           </View>
         </TouchableOpacity>
       ) : (
@@ -71,23 +71,23 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
             onPress={toggleExpanded}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-up" size={20} color={colors.textMuted} />
+            <Ionicons name="chevron-up" size={20} color="rgba(255, 255, 255, 0.7)" />
             <Text style={styles.collapseButtonText}>Hide</Text>
           </TouchableOpacity>
 
           {/* Client Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="person" size={20} color={colors.primary} />
+              <Ionicons name="person" size={20} color="#FFFFFF" />
               <Text style={styles.sectionLabel}>CLIENT</Text>
             </View>
             <Text style={styles.contextTitle}>{client.name}</Text>
             <View style={styles.detailRow}>
-              <Ionicons name="call" size={14} color={colors.textSecondary} />
+              <Ionicons name="call" size={14} color="rgba(255, 255, 255, 0.7)" />
               <Text style={styles.detailText}>{client.phone}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Ionicons name="location" size={14} color={colors.textSecondary} />
+              <Ionicons name="location" size={14} color="rgba(255, 255, 255, 0.7)" />
               <Text style={styles.detailText}>
                 {client.address}, {client.city}, {client.state} {client.zipCode}
               </Text>
@@ -98,12 +98,12 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
           {job && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="briefcase" size={20} color={colors.primary} />
+                <Ionicons name="briefcase" size={20} color="#FFFFFF" />
                 <Text style={styles.sectionLabel}>JOB</Text>
               </View>
               <Text style={styles.contextTitle}>{job.type.toUpperCase()}</Text>
               <View style={styles.detailRow}>
-                <Ionicons name="time" size={14} color={colors.textSecondary} />
+                <Ionicons name="time" size={14} color="rgba(255, 255, 255, 0.7)" />
                 <Text style={styles.detailText}>
                   {job.scheduledStart.toLocaleTimeString('en-US', {
                     hour: 'numeric',
@@ -113,7 +113,7 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
               </View>
               {job.description && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="document-text" size={14} color={colors.textSecondary} />
+                  <Ionicons name="document-text" size={14} color="rgba(255, 255, 255, 0.7)" />
                   <Text style={styles.detailText} numberOfLines={2}>
                     {job.description}
                   </Text>
@@ -126,25 +126,25 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
           {equipment && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="cube" size={20} color={colors.primary} />
+                <Ionicons name="cube" size={20} color="#FFFFFF" />
                 <Text style={styles.sectionLabel}>EQUIPMENT</Text>
               </View>
               <Text style={styles.contextTitle}>{equipment.name}</Text>
               {equipment.manufacturer && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="business" size={14} color={colors.textSecondary} />
+                  <Ionicons name="business" size={14} color="rgba(255, 255, 255, 0.7)" />
                   <Text style={styles.detailText}>{equipment.manufacturer}</Text>
                 </View>
               )}
               {equipment.modelNumber && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="pricetag" size={14} color={colors.textSecondary} />
+                  <Ionicons name="pricetag" size={14} color="rgba(255, 255, 255, 0.7)" />
                   <Text style={styles.detailText}>Model: {equipment.modelNumber}</Text>
                 </View>
               )}
               {equipment.systemType && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="settings" size={14} color={colors.textSecondary} />
+                  <Ionicons name="settings" size={14} color="rgba(255, 255, 255, 0.7)" />
                   <Text style={styles.detailText}>{equipment.systemType.replace(/_/g, ' ')}</Text>
                 </View>
               )}
@@ -152,15 +152,172 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
           )}
         </View>
       )}
+
+      {/* Soft glowing effect at bottom */}
+      <View style={styles.glowOverlay}>
+        <View style={styles.glowLine100} />
+        <View style={styles.glowLine100} />
+        <View style={styles.glowLine95} />
+        <View style={styles.glowLine90} />
+        <View style={styles.glowLine85} />
+        <View style={styles.glowLine80} />
+        <View style={styles.glowLine75} />
+        <View style={styles.glowLine70} />
+        <View style={styles.glowLine65} />
+        <View style={styles.glowLine60} />
+        <View style={styles.glowLine55} />
+        <View style={styles.glowLine50} />
+        <View style={styles.glowLine45} />
+        <View style={styles.glowLine40} />
+        <View style={styles.glowLine35} />
+        <View style={styles.glowLine30} />
+        <View style={styles.glowLine25} />
+        <View style={styles.glowLine20} />
+        <View style={styles.glowLine16} />
+        <View style={styles.glowLine13} />
+        <View style={styles.glowLine10} />
+        <View style={styles.glowLine08} />
+        <View style={styles.glowLine06} />
+        <View style={styles.glowLine04} />
+        <View style={styles.glowLine02} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primaryLight,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#6366F1', // Premium indigo hero
+    borderBottomWidth: 0,
+    overflow: 'visible',
+  },
+  glowOverlay: {
+    position: 'absolute',
+    bottom: -30,
+    left: 0,
+    right: 0,
+    height: 30,
+    zIndex: 10,
+  },
+  glowLine100: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 1.0,
+  },
+  glowLine95: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.95,
+  },
+  glowLine90: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.9,
+  },
+  glowLine85: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.85,
+  },
+  glowLine80: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.8,
+  },
+  glowLine75: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.75,
+  },
+  glowLine70: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.7,
+  },
+  glowLine65: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.65,
+  },
+  glowLine60: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.6,
+  },
+  glowLine55: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.55,
+  },
+  glowLine50: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.5,
+  },
+  glowLine45: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.45,
+  },
+  glowLine40: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.4,
+  },
+  glowLine35: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.35,
+  },
+  glowLine30: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.3,
+  },
+  glowLine25: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.25,
+  },
+  glowLine20: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.2,
+  },
+  glowLine16: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.16,
+  },
+  glowLine13: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.13,
+  },
+  glowLine10: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.1,
+  },
+  glowLine08: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.08,
+  },
+  glowLine06: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.06,
+  },
+  glowLine04: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.04,
+  },
+  glowLine02: {
+    height: 1.5,
+    backgroundColor: '#6366F1',
+    opacity: 0.02,
   },
   // Collapsed state
   collapsedButton: {
@@ -170,18 +327,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     padding: spacing[3],
-    borderRadius: borderRadius.base,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.sm,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    ...shadows.lg,
   },
   collapsedIconContainer: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -191,12 +348,12 @@ const styles = StyleSheet.create({
   },
   collapsedTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
   },
   collapsedSubtitle: {
     fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   // Expanded state
   expandedContainer: {
@@ -213,13 +370,13 @@ const styles = StyleSheet.create({
   collapseButtonText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.textMuted,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   section: {
     marginBottom: spacing[4],
     paddingBottom: spacing[4],
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -230,13 +387,13 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.bold,
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.8)',
     letterSpacing: 1,
   },
   contextTitle: {
     fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
     marginBottom: spacing[2],
   },
   detailRow: {
@@ -248,7 +405,7 @@ const styles = StyleSheet.create({
   detailText: {
     flex: 1,
     fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.85)',
     lineHeight: 20,
   },
 });

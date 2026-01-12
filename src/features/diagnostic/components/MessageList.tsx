@@ -35,23 +35,23 @@ export function MessageList({ messages }: MessageListProps) {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconContainer}>
-          <Ionicons name="snow" size={48} color={colors.primary} />
+          <Ionicons name="sparkles" size={48} color="#6366F1" />
         </View>
         <Text style={styles.emptyTitle}>HVAC AI Assistant</Text>
-        <Text style={styles.emptySubtitle}>Ready to help with diagnostics</Text>
+        <Text style={styles.emptySubtitle}>Powered by HVAC.ai • Ready to help</Text>
 
         <View style={styles.suggestionsContainer}>
           <Text style={styles.suggestionsTitle}>Try asking about:</Text>
           <View style={styles.suggestionCard}>
-            <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
+            <Ionicons name="thermometer-outline" size={16} color="#6366F1" />
             <Text style={styles.suggestionText}>Refrigerant charging procedures</Text>
           </View>
           <View style={styles.suggestionCard}>
-            <Ionicons name="build-outline" size={16} color={colors.primary} />
+            <Ionicons name="build-outline" size={16} color="#6366F1" />
             <Text style={styles.suggestionText}>Troubleshooting system issues</Text>
           </View>
           <View style={styles.suggestionCard}>
-            <Ionicons name="calculator-outline" size={16} color={colors.primary} />
+            <Ionicons name="calculator-outline" size={16} color="#6366F1" />
             <Text style={styles.suggestionText}>Superheat and subcooling calculations</Text>
           </View>
         </View>
@@ -66,6 +66,7 @@ export function MessageList({ messages }: MessageListProps) {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <MessageBubble message={item} />}
       contentContainerStyle={styles.listContent}
+      style={styles.list}
       showsVerticalScrollIndicator={false}
       onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
     />
@@ -73,6 +74,9 @@ export function MessageList({ messages }: MessageListProps) {
 }
 
 const styles = StyleSheet.create({
+  list: {
+    backgroundColor: '#EEF2FF',
+  },
   listContent: {
     paddingTop: spacing[4],
     paddingBottom: spacing[2],
@@ -82,12 +86,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing[6],
+    backgroundColor: '#EEF2FF',
   },
   emptyIconContainer: {
     width: 80,
     height: 80,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: '#6366F1' + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[4],
@@ -122,10 +127,10 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
+    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#C7D2FE',
   },
   suggestionText: {
     fontSize: typography.fontSize.base,

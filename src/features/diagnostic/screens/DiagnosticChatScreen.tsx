@@ -6,7 +6,7 @@ import { useCreateSession, useSession, useAddMessageToSession } from '../hooks/u
 import { MessageList } from '../components/MessageList';
 import { ChatInput } from '../components/ChatInput';
 import { SessionContextHeader } from '../components/SessionContextHeader';
-import { colors, spacing } from '@/components/ui';
+import { spacing } from '@/components/ui';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DiagnosticChat'>;
@@ -63,8 +63,8 @@ export function DiagnosticChatScreen({ route }: Props) {
   if (sessionLoading || !session) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Starting diagnostic session...</Text>
+        <ActivityIndicator size="large" color="#6366F1" />
+        <Text style={styles.loadingText}>Starting AI diagnostic session...</Text>
       </SafeAreaView>
     );
   }
@@ -86,17 +86,18 @@ export function DiagnosticChatScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#EEF2FF', // Light indigo background
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#EEF2FF',
   },
   loadingText: {
     marginTop: spacing[4],
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#6366F1',
+    fontWeight: '600',
   },
 });

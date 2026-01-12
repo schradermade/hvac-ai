@@ -98,6 +98,16 @@ export function RootNavigator() {
         component={DiagnosticChatScreen}
         options={{
           title: 'Diagnostic Assistant',
+          headerStyle: {
+            backgroundColor: '#6366F1',
+          },
+          headerTintColor: '#FFFFFF',
+          headerTitleStyle: {
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.bold,
+            color: '#FFFFFF',
+          },
+          headerShadowVisible: false,
         }}
       />
     </Stack.Navigator>

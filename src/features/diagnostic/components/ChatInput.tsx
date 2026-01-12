@@ -82,7 +82,7 @@ export function ChatInput({
             style={styles.sendIcon}
           />
           <Text style={[styles.sendButtonText, !canSend && styles.sendButtonTextDisabled]}>
-            Send
+            Ask
           </Text>
         </Pressable>
       </View>
@@ -96,9 +96,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    backgroundColor: '#E0E7FF', // Slightly darker indigo for input area
+    borderTopWidth: 0,
   },
   input: {
     flex: 1,
@@ -106,31 +105,40 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.full,
+    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.lg,
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
     marginRight: spacing[2],
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
   },
   sendButton: {
     flexDirection: 'row',
     minHeight: touchTarget.minHeight,
     minWidth: 80,
     paddingHorizontal: spacing[5],
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
+    backgroundColor: '#6366F1',
+    borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing[2],
+    shadowColor: '#6366F1',
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   sendIcon: {
     marginTop: 2,
   },
   sendButtonPressed: {
-    backgroundColor: colors.primaryPressed,
+    backgroundColor: '#5558E3',
   },
   sendButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: '#C7D2FE',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   sendButtonText: {
     color: colors.surface,
