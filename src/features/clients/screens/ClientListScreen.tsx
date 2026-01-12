@@ -151,9 +151,6 @@ export function ClientListScreen() {
                   <Ionicons name="filter" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
-
-              {/* Action Button */}
-              <Button onPress={handleAdd}>Add Client</Button>
             </View>
 
             {/* Scrollable Client List */}
@@ -172,6 +169,14 @@ export function ClientListScreen() {
           </>
         )}
       </View>
+
+      {/* Floating Add Button */}
+      {hasAnyClients && (
+        <TouchableOpacity style={styles.floatingButton} onPress={handleAdd} activeOpacity={0.8}>
+          <Ionicons name="add" size={20} color={colors.surface} />
+          <Text style={styles.floatingButtonText}>Add Client</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Create Client Modal */}
       <Modal
@@ -343,6 +348,27 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
+  floatingButton: {
+    position: 'absolute',
+    bottom: spacing[4],
+    left: '30%',
+    right: '30%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    minHeight: 56,
+    ...shadows.lg,
+  },
+  floatingButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.surface,
+  },
   searchIcon: {
     position: 'absolute',
     left: spacing[4],
@@ -387,6 +413,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
+    paddingBottom: spacing[20],
   },
   modalContainer: {
     flex: 1,
