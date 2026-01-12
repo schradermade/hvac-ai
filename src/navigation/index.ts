@@ -2,5 +2,6 @@
  * Navigation exports
  */
 
+export { RootNavigator } from './RootNavigator';
 export { TabNavigator } from './TabNavigator';
-export type { RootTabParamList, TabScreenProps } from './types';
+export type { RootTabParamList, RootStackParamList, TabScreenProps } from './types';

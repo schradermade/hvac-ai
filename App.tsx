@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TabNavigator } from './src/navigation';
+import { RootNavigator } from './src/navigation';
 import { useMigrations } from './src/hooks/useMigrations';
 import { Spinner } from './src/components/ui';
 import { colors, spacing, typography } from './src/components/ui';
@@ -66,7 +66,7 @@ function AppContent() {
   // Migrations complete - show main app
   return (
     <NavigationContainer>
-      <TabNavigator />
+      <RootNavigator />
       <StatusBar style="auto" />
     </NavigationContainer>
   );
