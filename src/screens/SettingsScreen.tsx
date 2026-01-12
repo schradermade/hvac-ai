@@ -48,11 +48,11 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroIconContainer}>
-            <Ionicons name="snow" size={32} color={colors.primary} />
-          </View>
           <View style={styles.heroContent}>
-            <Text style={styles.appName}>HVAC AI</Text>
+            <View style={styles.appNameRow}>
+              <Ionicons name="snow" size={28} color={colors.primary} />
+              <Text style={styles.appName}>HVAC AI</Text>
+            </View>
             <Text style={styles.appTagline}>Professional Diagnostic Assistant</Text>
           </View>
         </View>
@@ -234,30 +234,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[4],
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[5],
+    paddingTop: spacing[8],
     paddingBottom: spacing[4],
-  },
-  heroIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '10',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   heroContent: {
     flex: 1,
+  },
+  appNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[1],
   },
   appName: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
     letterSpacing: 0.5,
-    marginBottom: spacing[1],
   },
   appTagline: {
     fontSize: typography.fontSize.sm,
