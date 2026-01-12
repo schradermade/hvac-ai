@@ -121,8 +121,8 @@ export function HistoryScreen() {
         <View style={styles.heroSection}>
           <View style={styles.heroContent}>
             <View style={styles.titleRow}>
-              <Ionicons name="time" size={28} color={colors.primary} />
-              <Text style={styles.heroTitle}>Sessions</Text>
+              <Ionicons name="sparkles" size={28} color={colors.primary} />
+              <Text style={styles.heroTitle}>AI</Text>
               <View style={styles.countBadge}>
                 <Text style={styles.countBadgeText}>{sessions.length}</Text>
               </View>
@@ -133,7 +133,7 @@ export function HistoryScreen() {
           {/* Brand Header - Top Right */}
           <View style={styles.brandHeader}>
             <View style={styles.brandLogoContainer}>
-              <Ionicons name="snow" size={20} color={colors.primary} />
+              <Ionicons name="sparkles" size={20} color={colors.primary} />
             </View>
             <Text style={styles.brandText}>HVAC AI</Text>
           </View>
@@ -145,7 +145,7 @@ export function HistoryScreen() {
             <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
             <TextInput
               style={styles.inlineSearchInput}
-              placeholder="Search sessions..."
+              placeholder="Search AI history..."
               placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -319,9 +319,11 @@ export function HistoryScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyResults}>
-            <Text style={styles.emptyResultsTitle}>No sessions found</Text>
+            <Text style={styles.emptyResultsTitle}>No AI history found</Text>
             <Text style={styles.emptyResultsText}>
-              {searchQuery ? `No sessions match "${searchQuery}"` : 'Try adjusting your filters'}
+              {searchQuery
+                ? `No AI history matches "${searchQuery}"`
+                : 'Try adjusting your filters'}
             </Text>
           </View>
         }
@@ -349,7 +351,7 @@ export function HistoryScreen() {
             >
               <Text style={styles.modalClose}>Close</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Find Session</Text>
+            <Text style={styles.modalTitle}>Find AI Session</Text>
             <View style={styles.modalPlaceholder} />
           </View>
           <View style={styles.modalSearchContainer}>
@@ -416,7 +418,9 @@ export function HistoryScreen() {
             ListEmptyComponent={
               <View style={styles.emptySearch}>
                 <Text style={styles.emptySearchText}>
-                  {searchQuery ? `No sessions match "${searchQuery}"` : 'Start typing to search'}
+                  {searchQuery
+                    ? `No AI history matches "${searchQuery}"`
+                    : 'Start typing to search'}
                 </Text>
               </View>
             }

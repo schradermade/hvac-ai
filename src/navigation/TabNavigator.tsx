@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  * Main navigation structure with 4 tabs:
  * - Jobs: Today's scheduled jobs (main entry point)
  * - Clients: Customer management
- * - History: Past diagnostic sessions
+ * - AI: Past diagnostic sessions and AI conversations
  * - Settings: App preferences
  *
  * Follows design principles:
@@ -78,11 +78,9 @@ export function TabNavigator() {
         name="History"
         component={HistoryScreen}
         options={{
-          title: 'Sessions',
-          tabBarLabel: 'Sessions',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="chatbubbles-outline" size={22} color={color} />
-          ),
+          title: 'AI',
+          tabBarLabel: 'AI',
+          tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={22} color={color} />,
         }}
       />
       <Tab.Screen
