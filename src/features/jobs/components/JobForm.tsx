@@ -8,8 +8,9 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Input, Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClientList } from '@/features/clients';
@@ -110,192 +111,222 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-    >
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{job ? 'Edit Job' : 'Create Job'}</Text>
-            <Text style={styles.subtitle}>Schedule a service appointment</Text>
-          </View>
+    <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.form}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{job ? 'Edit Job' : 'Create Job'}</Text>
+              <Text style={styles.subtitle}>Schedule a service appointment</Text>
+            </View>
 
-          {/* Essential Fields Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Job Details</Text>
+            {/* Essential Fields Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Job Details</Text>
 
-            {/* Client Selector */}
-            <View style={styles.field}>
-              <Text style={styles.label}>
-                Client <Text style={styles.required}>*</Text>
-              </Text>
-              <TouchableOpacity
-                style={[styles.selectButton, errors.clientId && styles.selectButtonError]}
-                onPress={() => setShowClientPicker(true)}
-                disabled={clientsLoading}
-              >
-                <Text
-                  style={[
-                    styles.selectButtonText,
-                    !selectedClient && styles.selectButtonPlaceholder,
-                  ]}
-                >
-                  {clientsLoading
-                    ? 'Loading clients...'
-                    : selectedClient
-                      ? selectedClient.name
-                      : 'Select a client...'}
+              {/* Client Selector */}
+              <View style={styles.field}>
+                <Text style={styles.label}>
+                  Client <Text style={styles.required}>*</Text>
                 </Text>
-                <Text style={styles.selectButtonIcon}>›</Text>
-              </TouchableOpacity>
-              {errors.clientId && <Text style={styles.errorText}>{errors.clientId}</Text>}
-            </View>
-
-            {/* Job Type Selector */}
-            <View style={styles.field}>
-              <Text style={styles.label}>
-                Job Type <Text style={styles.required}>*</Text>
-              </Text>
-              <TouchableOpacity style={styles.selectButton} onPress={() => setShowTypePicker(true)}>
-                <View style={styles.selectButtonContent}>
-                  <Text style={styles.selectButtonIcon}>{selectedType?.icon}</Text>
-                  <Text style={styles.selectButtonText}>{selectedType?.label}</Text>
-                </View>
-                <Text style={styles.selectButtonIcon}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Schedule Display */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Scheduled Time</Text>
-              <View style={styles.scheduleCard}>
-                <View style={styles.scheduleRow}>
-                  <Text style={styles.scheduleLabel}>Date</Text>
-                  <Text style={styles.scheduleValue}>{formatDate(formData.scheduledStart)}</Text>
-                </View>
-                <View style={styles.scheduleDivider} />
-                <View style={styles.scheduleRow}>
-                  <Text style={styles.scheduleLabel}>Time</Text>
-                  <Text style={styles.scheduleValue}>
-                    {formatTime(formData.scheduledStart)} - {formatTime(formData.scheduledEnd)}
+                <TouchableOpacity
+                  style={[styles.selectButton, errors.clientId && styles.selectButtonError]}
+                  onPress={() => setShowClientPicker(true)}
+                  disabled={clientsLoading}
+                >
+                  <Text
+                    style={[
+                      styles.selectButtonText,
+                      !selectedClient && styles.selectButtonPlaceholder,
+                    ]}
+                  >
+                    {clientsLoading
+                      ? 'Loading clients...'
+                      : selectedClient
+                        ? selectedClient.name
+                        : 'Select a client...'}
                   </Text>
-                </View>
+                  <Text style={styles.selectButtonIcon}>›</Text>
+                </TouchableOpacity>
+                {errors.clientId && <Text style={styles.errorText}>{errors.clientId}</Text>}
               </View>
-              <Text style={styles.helperText}>
-                Default: 2 hours from now. Full date/time editing coming soon.
-              </Text>
+
+              {/* Job Type Selector */}
+              <View style={styles.field}>
+                <Text style={styles.label}>
+                  Job Type <Text style={styles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={styles.selectButton}
+                  onPress={() => setShowTypePicker(true)}
+                >
+                  <View style={styles.selectButtonContent}>
+                    <Text style={styles.selectButtonIcon}>{selectedType?.icon}</Text>
+                    <Text style={styles.selectButtonText}>{selectedType?.label}</Text>
+                  </View>
+                  <Text style={styles.selectButtonIcon}>›</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Schedule Display - Read only for now */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Scheduled Time</Text>
+                <View style={styles.scheduleCard}>
+                  <View style={styles.scheduleRow}>
+                    <Text style={styles.scheduleLabel}>Date</Text>
+                    <Text style={styles.scheduleValue}>{formatDate(formData.scheduledStart)}</Text>
+                  </View>
+                  <View style={styles.scheduleDivider} />
+                  <View style={styles.scheduleRow}>
+                    <Text style={styles.scheduleLabel}>Time</Text>
+                    <Text style={styles.scheduleValue}>
+                      {formatTime(formData.scheduledStart)} - {formatTime(formData.scheduledEnd)}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.helperText}>
+                  📅 Defaults to 2 hours from now • Date/time editing coming soon
+                </Text>
+              </View>
+            </View>
+
+            {/* Description Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Service Description</Text>
+
+              <Input
+                label="Description"
+                placeholder="e.g., Annual maintenance check"
+                value={formData.description}
+                onChangeText={(value) => updateField('description', value)}
+                error={errors.description}
+                required
+              />
+
+              <Input
+                label="Notes (Optional)"
+                placeholder="Additional details..."
+                value={formData.notes}
+                onChangeText={(value) => updateField('notes', value)}
+                multiline
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ minHeight: 80 }}
+              />
             </View>
           </View>
+        </ScrollView>
 
-          {/* Description Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Service Description</Text>
-
-            <Input
-              label="Description"
-              placeholder="e.g., Annual maintenance check"
-              value={formData.description}
-              onChangeText={(value) => updateField('description', value)}
-              error={errors.description}
-              required
-            />
-
-            <Input
-              label="Notes (Optional)"
-              placeholder="Additional details..."
-              value={formData.notes}
-              onChangeText={(value) => updateField('notes', value)}
-              multiline
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{ minHeight: 80 }}
-            />
-          </View>
-
-          {/* Bottom padding for fixed action bar */}
-          <View style={styles.bottomPadding} />
+        {/* Fixed Action Bar - always visible above keyboard */}
+        <View style={styles.actionBar}>
+          <Button variant="secondary" onPress={onCancel} disabled={isLoading} style={styles.button}>
+            Cancel
+          </Button>
+          <Button onPress={handleSubmit} loading={isLoading} style={styles.buttonPrimary}>
+            {job ? 'Update Job' : 'Create Job'}
+          </Button>
         </View>
-      </ScrollView>
-
-      {/* Fixed Action Bar */}
-      <View style={styles.actionBar}>
-        <Button variant="secondary" onPress={onCancel} disabled={isLoading} style={styles.button}>
-          Cancel
-        </Button>
-        <Button onPress={handleSubmit} loading={isLoading} style={styles.buttonPrimary}>
-          {job ? 'Update Job' : 'Create Job'}
-        </Button>
-      </View>
+      </KeyboardAvoidingView>
 
       {/* Client Picker Modal */}
       <Modal
         visible={showClientPicker}
-        transparent
         animationType="slide"
+        presentationStyle="pageSheet"
         onRequestClose={() => setShowClientPicker(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Client</Text>
-              <TouchableOpacity onPress={() => setShowClientPicker(false)}>
-                <Text style={styles.modalClose}>Done</Text>
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={formData.clientId}
-              onValueChange={(value: string) => {
-                updateField('clientId', value);
-                setShowClientPicker(false);
-              }}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select a client..." value="" />
-              {clients.map((client) => (
-                <Picker.Item key={client.id} label={client.name} value={client.id} />
-              ))}
-            </Picker>
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowClientPicker(false)}>
+              <Text style={styles.modalClose}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select Client</Text>
+            <TouchableOpacity onPress={() => setShowClientPicker(false)}>
+              <Text style={styles.modalClose}>Done</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+          <FlatList
+            data={clients}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.listItem, formData.clientId === item.id && styles.listItemSelected]}
+                onPress={() => {
+                  updateField('clientId', item.id);
+                  setShowClientPicker(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.listItemContent}>
+                  <View style={styles.listItemText}>
+                    <Text style={styles.listItemTitle}>{item.name}</Text>
+                    <Text style={styles.listItemSubtitle}>
+                      {item.address}, {item.city}
+                    </Text>
+                  </View>
+                  {formData.clientId === item.id && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
+            contentContainerStyle={styles.listContent}
+          />
+        </SafeAreaView>
       </Modal>
 
       {/* Job Type Picker Modal */}
       <Modal
         visible={showTypePicker}
-        transparent
         animationType="slide"
+        presentationStyle="pageSheet"
         onRequestClose={() => setShowTypePicker(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Job Type</Text>
-              <TouchableOpacity onPress={() => setShowTypePicker(false)}>
-                <Text style={styles.modalClose}>Done</Text>
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={formData.type}
-              onValueChange={(value) => {
-                updateField('type', value as JobType);
-                setShowTypePicker(false);
-              }}
-              style={styles.picker}
-            >
-              {JOB_TYPES.map((type) => (
-                <Picker.Item
-                  key={type.value}
-                  label={`${type.icon} ${type.label}`}
-                  value={type.value}
-                />
-              ))}
-            </Picker>
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowTypePicker(false)}>
+              <Text style={styles.modalClose}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select Job Type</Text>
+            <TouchableOpacity onPress={() => setShowTypePicker(false)}>
+              <Text style={styles.modalClose}>Done</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+          <FlatList
+            data={JOB_TYPES}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.listItem, formData.type === item.value && styles.listItemSelected]}
+                onPress={() => {
+                  updateField('type', item.value);
+                  setShowTypePicker(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.listItemContent}>
+                  <View style={styles.jobTypeContent}>
+                    <Text style={styles.jobTypeIcon}>{item.icon}</Text>
+                    <Text style={styles.listItemTitle}>{item.label}</Text>
+                  </View>
+                  {formData.type === item.value && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
+            contentContainerStyle={styles.listContent}
+          />
+        </SafeAreaView>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -304,8 +335,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: spacing[24], // Extra padding for action bar
   },
   form: {
     padding: spacing[4],
@@ -416,9 +453,6 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginTop: spacing[2],
   },
-  bottomPadding: {
-    height: 100,
-  },
   actionBar: {
     flexDirection: 'row',
     gap: spacing[3],
@@ -434,17 +468,9 @@ const styles = StyleSheet.create({
   buttonPrimary: {
     flex: 2,
   },
-  modalOverlay: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    paddingBottom: spacing[8],
-    maxHeight: '50%',
+    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -453,6 +479,7 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: colors.background,
   },
   modalTitle: {
     fontSize: typography.fontSize.lg,
@@ -464,7 +491,54 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
     color: colors.primary,
   },
-  picker: {
-    width: '100%',
+  listContent: {
+    paddingVertical: spacing[2],
+  },
+  listItem: {
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[4],
+    minHeight: 72,
+    justifyContent: 'center',
+  },
+  listItemSelected: {
+    backgroundColor: colors.primary + '10', // 10% opacity
+  },
+  listItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  listItemText: {
+    flex: 1,
+    marginRight: spacing[3],
+  },
+  listItemTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[1],
+  },
+  listItemSubtitle: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  listSeparator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing[4],
+  },
+  checkmark: {
+    fontSize: 24,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.primary,
+  },
+  jobTypeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  jobTypeIcon: {
+    fontSize: 32,
   },
 });
