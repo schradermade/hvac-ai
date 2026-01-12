@@ -27,7 +27,11 @@ export function HistoryScreen() {
   const { data: clientsData } = useClientList();
 
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
-  const sessions = useMemo(() => sessionsData?.items || [], [sessionsData?.items]);
+  // Only show sessions with at least 1 message
+  const sessions = useMemo(
+    () => (sessionsData?.items || []).filter((session) => session.messages.length > 0),
+    [sessionsData?.items]
+  );
 
   // Group sessions by client
   const groupedSessions = useMemo(() => {
