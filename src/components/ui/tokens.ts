@@ -11,10 +11,10 @@
  */
 export const colors = {
   // Primary Actions - Confident, high contrast, trustworthy
-  primary: '#147D64',
-  primaryHover: '#0F6A54',
+  primary: '#147D64', // Primary CTA
+  primaryHover: '#0E6A55', // CTA Boost for field mode
   primaryPressed: '#0C5A48',
-  primaryLight: '#CFE8E1', // Subtle accent for pills, tags, badges
+  primaryLight: '#C8E3DB', // Subtle accent for pills, tags, badges
 
   // Success States
   success: '#10b981',
@@ -29,22 +29,23 @@ export const colors = {
   errorLight: '#fee2e2',
 
   // Backgrounds & Surfaces
-  background: '#EEF3F1', // Soft, modern, not flat white
-  surface: '#FFFFFF', // Clean elevation against background
-  backgroundDark: '#E3EBE7',
+  background: '#E2ECE8', // App background - soft, modern
+  surface: '#FFFFFF', // Card/clean elevation against background
+  backgroundDark: '#C1D4CD',
 
   // Borders & Dividers
-  border: '#D6E2DD', // Subtle structure without noise
-  borderDark: '#C5D0CB',
+  border: '#C1D4CD', // Subtle structure without noise
+  borderDark: '#A8BCB4',
 
   // Text Colors
-  textPrimary: '#102A26', // Excellent readability
-  textSecondary: '#5E7C74', // Great secondary text color
+  textPrimary: '#0A1F1C', // Excellent readability
+  textSecondary: '#1F3A35', // Great secondary text color
+  textMuted: '#3F5F58', // Muted text
   textTertiary: '#9ca3af',
   disabled: '#9ca3af',
 
   // Focus & Interaction
-  focusRing: '#7BC7B5', // Accessible, modern focus color
+  focusRing: '#5FBFA9', // Accessible, modern focus color
 
   // Transparent
   transparent: 'transparent',
