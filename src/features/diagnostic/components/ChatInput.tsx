@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography, touchTarget } from '@/components/ui';
 
 /**
@@ -74,6 +75,12 @@ export function ChatInput({
           onPress={handleSend}
           disabled={!canSend}
         >
+          <Ionicons
+            name="send"
+            size={20}
+            color={canSend ? colors.surface : colors.disabled}
+            style={styles.sendIcon}
+          />
           <Text style={[styles.sendButtonText, !canSend && styles.sendButtonTextDisabled]}>
             Send
           </Text>
@@ -106,6 +113,7 @@ const styles = StyleSheet.create({
     marginRight: spacing[2],
   },
   sendButton: {
+    flexDirection: 'row',
     minHeight: touchTarget.minHeight,
     minWidth: 80,
     paddingHorizontal: spacing[5],
@@ -113,6 +121,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: spacing[2],
+  },
+  sendIcon: {
+    marginTop: 2,
   },
   sendButtonPressed: {
     backgroundColor: colors.primaryPressed,

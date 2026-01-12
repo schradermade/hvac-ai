@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCreateSession, useSession, useAddMessageToSession } from '../hooks/useDiagnostic';
 import { MessageList } from '../components/MessageList';
@@ -61,15 +62,15 @@ export function DiagnosticChatScreen({ route }: Props) {
   // Loading state
   if (sessionLoading || !session) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Starting diagnostic session...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <SessionContextHeader clientId={clientId} jobId={jobId} equipmentId={equipmentId} />
 
       <MessageList messages={session.messages} />
@@ -78,7 +79,7 @@ export function DiagnosticChatScreen({ route }: Props) {
         disabled={addMessageMutation.isPending}
         placeholder="Ask about diagnostics, troubleshooting, or calculations..."
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
