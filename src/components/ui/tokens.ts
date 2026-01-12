@@ -10,10 +10,11 @@
  * Functional colors that communicate meaning
  */
 export const colors = {
-  // Primary Actions
-  primary: '#2563eb',
-  primaryHover: '#1d4ed8',
-  primaryPressed: '#1e40af',
+  // Primary Actions - Confident, high contrast, trustworthy
+  primary: '#147D64',
+  primaryHover: '#0F6A54',
+  primaryPressed: '#0C5A48',
+  primaryLight: '#CFE8E1', // Subtle accent for pills, tags, badges
 
   // Success States
   success: '#10b981',
@@ -27,16 +28,23 @@ export const colors = {
   error: '#ef4444',
   errorLight: '#fee2e2',
 
-  // Neutral Grays
-  surface: '#ffffff',
-  background: '#f9fafb',
-  backgroundDark: '#f3f4f6',
-  border: '#e5e7eb',
-  borderDark: '#d1d5db',
-  disabled: '#9ca3af',
-  textPrimary: '#1f2937',
-  textSecondary: '#6b7280',
+  // Backgrounds & Surfaces
+  background: '#EEF3F1', // Soft, modern, not flat white
+  surface: '#FFFFFF', // Clean elevation against background
+  backgroundDark: '#E3EBE7',
+
+  // Borders & Dividers
+  border: '#D6E2DD', // Subtle structure without noise
+  borderDark: '#C5D0CB',
+
+  // Text Colors
+  textPrimary: '#102A26', // Excellent readability
+  textSecondary: '#5E7C74', // Great secondary text color
   textTertiary: '#9ca3af',
+  disabled: '#9ca3af',
+
+  // Focus & Interaction
+  focusRing: '#7BC7B5', // Accessible, modern focus color
 
   // Transparent
   transparent: 'transparent',
