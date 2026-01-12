@@ -89,12 +89,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF2FF',
   },
   emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: borderRadius.full,
-    backgroundColor: '#6366F1' + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing[4],
   },
   emptyTitle: {

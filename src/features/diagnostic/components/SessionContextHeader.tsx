@@ -49,7 +49,7 @@ export function SessionContextHeader({ clientId, jobId, equipmentId }: SessionCo
         >
           <View style={styles.collapsedContent}>
             <View style={styles.collapsedIconContainer}>
-              <Ionicons name="sparkles" size={24} color="#FFFFFF" />
+              <Ionicons name="information-circle" size={24} color="#FFFFFF" />
             </View>
             <View style={styles.collapsedTextContainer}>
               <Text style={styles.collapsedTitle}>Session Context</Text>

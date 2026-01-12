@@ -97,7 +97,7 @@ export function RootNavigator() {
         name="DiagnosticChat"
         component={DiagnosticChatScreen}
         options={{
-          title: 'Diagnostic Assistant',
+          title: 'HVAC.ai',
           headerStyle: {
             backgroundColor: '#6366F1',
           },

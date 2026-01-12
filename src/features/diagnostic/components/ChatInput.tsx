@@ -3,13 +3,12 @@ import {
   View,
   TextInput,
   Pressable,
-  Text,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography, touchTarget } from '@/components/ui';
+import { colors, spacing, borderRadius, typography } from '@/components/ui';
 
 /**
  * Props for ChatInput component
@@ -75,15 +74,7 @@ export function ChatInput({
           onPress={handleSend}
           disabled={!canSend}
         >
-          <Ionicons
-            name="send"
-            size={20}
-            color={canSend ? colors.surface : colors.disabled}
-            style={styles.sendIcon}
-          />
-          <Text style={[styles.sendButtonText, !canSend && styles.sendButtonTextDisabled]}>
-            Ask
-          </Text>
+          <Ionicons name="arrow-up" size={24} color={canSend ? colors.surface : colors.disabled} />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -95,16 +86,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingTop: spacing[3],
+    paddingBottom: spacing[5],
     backgroundColor: '#E0E7FF', // Slightly darker indigo for input area
     borderTopWidth: 0,
   },
   input: {
     flex: 1,
-    minHeight: 44,
-    maxHeight: 100,
+    minHeight: 52,
+    maxHeight: 120,
     paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[4],
     backgroundColor: '#FFFFFF',
     borderRadius: borderRadius.lg,
     fontSize: typography.fontSize.base,
@@ -112,25 +105,20 @@ const styles = StyleSheet.create({
     marginRight: spacing[2],
     borderWidth: 1,
     borderColor: '#C7D2FE',
+    textAlignVertical: 'center',
   },
   sendButton: {
-    flexDirection: 'row',
-    minHeight: touchTarget.minHeight,
-    minWidth: 80,
-    paddingHorizontal: spacing[5],
+    width: 52,
+    height: 52,
     backgroundColor: '#6366F1',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing[2],
     shadowColor: '#6366F1',
     shadowOpacity: 0.4,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
-  },
-  sendIcon: {
-    marginTop: 2,
   },
   sendButtonPressed: {
     backgroundColor: '#5558E3',
@@ -139,13 +127,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#C7D2FE',
     shadowOpacity: 0,
     elevation: 0,
-  },
-  sendButtonText: {
-    color: colors.surface,
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  sendButtonTextDisabled: {
-    color: colors.disabled,
   },
 });
