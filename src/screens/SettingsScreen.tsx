@@ -37,8 +37,8 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
 
   const handleAbout = () => {
     Alert.alert(
-      'About HVAC AI',
-      'HVAC AI is a professional diagnostic assistant for HVAC technicians, providing on-demand technical support and calculations in the field.',
+      'About HVACOps',
+      'HVACOps is a professional diagnostic assistant for HVAC technicians, providing on-demand technical support and calculations in the field.',
       [{ text: 'OK' }]
     );
   };
@@ -51,7 +51,7 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
           <View style={styles.heroContent}>
             <View style={styles.appNameRow}>
               <Ionicons name="snow" size={28} color={colors.primary} />
-              <Text style={styles.appName}>HVAC AI</Text>
+              <Text style={styles.appName}>HVACOps</Text>
             </View>
             <Text style={styles.appTagline}>Professional Diagnostic Assistant</Text>
           </View>

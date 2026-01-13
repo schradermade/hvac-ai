@@ -133,6 +133,19 @@ If the answer is no, refine it.
 - Avoid using color alone (include icons/labels)
 - Maintain WCAG AA contrast ratios minimum
 
+**AI Theme Colors:**
+
+The AI tab uses a cohesive indigo/purple theme to create a distinct identity:
+
+- **Dark Indigo** (`#6366F1`): Header background, client containers, tab active state
+- **Medium Purple** (`#9B9EF6`): Main content background, tab button background
+- **Light Purple** (`#D4D7FB`): Borders, dividers
+- **Purple Tinted Cards** (`#F5F6FE`): Session card backgrounds
+- **White** (`#FFFFFF`): All text on indigo backgrounds for maximum contrast
+- **Semi-transparent White**: Search input (`rgba(255, 255, 255, 0.15)`) with white glow on focus
+
+This creates a premium gradient effect: Dark indigo header → Medium purple background → Light purple containers → Tinted cards
+
 ### Typography
 
 **Clear hierarchy, easy scanning.**
@@ -371,6 +384,24 @@ Every detail screen MUST include:
 
 ---
 
+## Screen Layout Patterns
+
+### Consistent Header Visibility
+
+**Hero sections should always be visible, even when content is empty.**
+
+List screens (Jobs, Clients, AI) maintain their header, search, and filter sections regardless of whether there's data to display. This ensures:
+
+- Consistent navigation and orientation
+- Search/filter functionality always available
+- Professional appearance with branded header
+- Empty states appear within the scrollable content area, not replacing the entire screen
+
+**Example:**
+The AI tab always shows its indigo hero section, search bar, and filter chips. When no sessions exist, the empty state message appears in the content area below, maintaining the screen structure and brand presence.
+
+---
+
 ## Component Patterns
 
 ### Buttons
@@ -396,6 +427,12 @@ Every detail screen MUST include:
 - **Error states**: Red border, error message below
 - **Keyboard types**: Numeric, email, phone optimized
 - **Autocomplete**: Pre-fill when possible
+- **Focus states**: Visual feedback when active (e.g., white glow on dark backgrounds, border color change)
+
+**AI Theme Focus Example:**
+
+- Unfocused: Semi-transparent white background with white text
+- Focused: Solid white background with dark text and white glow effect (shadowRadius: 8, shadowOpacity: 0.5)
 
 ### Lists & Cards
 
@@ -407,6 +444,10 @@ Every detail screen MUST include:
 - **Pull to refresh**: Standard gesture
 - **Empty states**: Helpful message, not just blank
 - **Loading states**: Skeleton screens or spinners
+- **Card elevation**: Subtle shadows for depth and focus
+
+**AI Theme Card Glow:**
+Session cards in the AI tab feature a purple glow effect (shadowColor: `#9B9EF6`, shadowRadius: 6, shadowOpacity: 0.4) that creates a floating appearance and reinforces the premium AI aesthetic.
 
 ### Modals & Sheets
 

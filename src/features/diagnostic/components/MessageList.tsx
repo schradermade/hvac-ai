@@ -37,7 +37,7 @@ export function MessageList({ messages }: MessageListProps) {
         <View style={styles.emptyIconContainer}>
           <Ionicons name="sparkles" size={48} color="#6366F1" />
         </View>
-        <Text style={styles.emptyTitle}>HVAC AI Assistant</Text>
+        <Text style={styles.emptyTitle}>HVACOps Assistant</Text>
         <Text style={styles.emptySubtitle}>Powered by HVAC.ai • Ready to help</Text>
 
         <View style={styles.suggestionsContainer}>

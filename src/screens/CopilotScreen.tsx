@@ -110,7 +110,7 @@ export function HistoryScreen() {
           <View style={styles.heroContent}>
             <View style={styles.titleRow}>
               <Ionicons name="sparkles" size={28} color="#FFFFFF" />
-              <Text style={styles.heroTitle}>AI</Text>
+              <Text style={styles.heroTitle}>Copilot</Text>
               <View style={styles.countBadge}>
                 <Text style={styles.countBadgeText}>{sessions.length}</Text>
               </View>
@@ -123,7 +123,7 @@ export function HistoryScreen() {
             <View style={styles.brandLogoContainer}>
               <Ionicons name="snow" size={20} color="#FFFFFF" />
             </View>
-            <Text style={styles.brandText}>HVAC AI</Text>
+            <Text style={styles.brandText}>HVACOps</Text>
           </View>
         </View>
 

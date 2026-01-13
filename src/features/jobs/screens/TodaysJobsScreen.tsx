@@ -116,7 +116,7 @@ export function TodaysJobsScreen() {
                   <View style={styles.brandLogoContainer}>
                     <Ionicons name="snow" size={20} color={colors.primary} />
                   </View>
-                  <Text style={styles.brandText}>HVAC AI</Text>
+                  <Text style={styles.brandText}>HVACOps</Text>
                 </View>
               </View>
 

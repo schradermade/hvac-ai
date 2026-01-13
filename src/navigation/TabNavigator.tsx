@@ -80,7 +80,7 @@ export function TabNavigator() {
         component={HistoryScreen}
         options={{
           title: 'AI',
-          tabBarLabel: 'AI',
+          tabBarLabel: 'Copilot',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name="sparkles-outline" size={22} color={focused ? '#FFFFFF' : color} />
           ),
