@@ -102,6 +102,7 @@ export function TodaysJobsScreen() {
                     day: 'numeric',
                   }),
                 }}
+                variant="dark"
               />
 
               {/* Search Row */}
@@ -283,9 +284,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing[3],
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[3],
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryPressed,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
   },
   searchRow: {

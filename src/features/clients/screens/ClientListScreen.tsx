@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Button, Spinner } from '@/components/ui';
+import { EmptyState, Button, Spinner, HeroSection } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
 import { ClientCard } from '../components/ClientCard';
@@ -93,26 +93,16 @@ export function ClientListScreen() {
             {/* Professional Header */}
             <View style={styles.fixedHeader}>
               {/* Hero Section with Brand */}
-              <View style={styles.heroSection}>
-                <View style={styles.heroContent}>
-                  <View style={styles.titleRow}>
-                    <Ionicons name="people" size={28} color={colors.primary} />
-                    <Text style={styles.heroTitle}>Clients</Text>
-                    <View style={styles.countBadge}>
-                      <Text style={styles.countBadgeText}>{allClients.length}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.subtitleText}>Manage your customer base</Text>
-                </View>
-
-                {/* Brand Header - Top Right */}
-                <View style={styles.brandHeader}>
-                  <View style={styles.brandLogoContainer}>
-                    <Ionicons name="snow" size={20} color={colors.primary} />
-                  </View>
-                  <Text style={styles.brandText}>HVACOps</Text>
-                </View>
-              </View>
+              <HeroSection
+                icon="people"
+                title="Clients"
+                count={allClients.length}
+                metadata={{
+                  icon: 'briefcase-outline',
+                  text: 'Manage your customer base',
+                }}
+                variant="dark"
+              />
 
               {/* Search Row */}
               <View style={styles.searchRow}>
@@ -280,64 +270,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing[3],
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[3],
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryPressed,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
-  },
-  heroSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing[3],
-  },
-  heroContent: {
-    flex: 1,
-    gap: spacing[2],
-  },
-  brandHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  brandLogoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    letterSpacing: 0.5,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  heroTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  subtitleText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  countBadge: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary,
   },
   searchRow: {
     flexDirection: 'row',

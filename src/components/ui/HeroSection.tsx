@@ -15,8 +15,8 @@ export interface HeroSectionProps {
     icon: keyof typeof Ionicons.glyphMap;
     text: string;
   };
-  /** Theme variant - 'default' uses primary color, 'indigo' uses white text on indigo */
-  variant?: 'default' | 'indigo';
+  /** Theme variant - 'default' uses primary color, 'indigo' uses white text on indigo, 'dark' uses white text for dark backgrounds */
+  variant?: 'default' | 'indigo' | 'dark';
 }
 
 /**
@@ -27,7 +27,7 @@ export interface HeroSectionProps {
  * - Icon + Title + Count badge
  * - Optional metadata row
  * - Brand header (HVACOps logo)
- * - Support for default and indigo themes
+ * - Support for default, indigo, and dark themes
  *
  * @example
  * <HeroSection
@@ -47,13 +47,13 @@ export function HeroSection({
   metadata,
   variant = 'default',
 }: HeroSectionProps) {
-  const isIndigo = variant === 'indigo';
-  const iconColor = isIndigo ? '#FFFFFF' : colors.primary;
-  const titleColor = isIndigo ? '#FFFFFF' : colors.textPrimary;
-  const metaColor = isIndigo ? '#FFFFFF' : colors.textSecondary;
-  const countBadgeBg = isIndigo ? 'rgba(255, 255, 255, 0.2)' : colors.primary + '20';
-  const countBadgeTextColor = isIndigo ? '#FFFFFF' : colors.primary;
-  const brandColor = isIndigo ? '#FFFFFF' : colors.primary;
+  const isDarkTheme = variant === 'indigo' || variant === 'dark';
+  const iconColor = isDarkTheme ? '#FFFFFF' : colors.primary;
+  const titleColor = isDarkTheme ? '#FFFFFF' : colors.textPrimary;
+  const metaColor = isDarkTheme ? '#FFFFFF' : colors.textSecondary;
+  const countBadgeBg = isDarkTheme ? 'rgba(255, 255, 255, 0.2)' : colors.primary + '20';
+  const countBadgeTextColor = isDarkTheme ? '#FFFFFF' : colors.primary;
+  const brandColor = isDarkTheme ? '#FFFFFF' : colors.primary;
 
   return (
     <View style={styles.heroSection}>
@@ -81,7 +81,7 @@ export function HeroSection({
         <View style={styles.brandLogoContainer}>
           <Ionicons name="snow" size={20} color={brandColor} />
         </View>
-        <Text style={[styles.brandText, { color: isIndigo ? '#FFFFFF' : colors.textPrimary }]}>
+        <Text style={[styles.brandText, { color: isDarkTheme ? '#FFFFFF' : colors.textPrimary }]}>
           HVACOps
         </Text>
       </View>
