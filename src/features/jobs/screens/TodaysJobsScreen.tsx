@@ -275,7 +275,7 @@ export function TodaysJobsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryPressed,
   },
   content: {
     flex: 1,
