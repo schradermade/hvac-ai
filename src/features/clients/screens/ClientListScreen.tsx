@@ -261,19 +261,21 @@ export function ClientListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primaryPressed,
+    backgroundColor: colors.primaryLight,
   },
   content: {
     flex: 1,
+    backgroundColor: colors.primaryLight,
   },
   fixedHeader: {
-    paddingTop: spacing[3],
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[3],
     backgroundColor: colors.primaryPressed,
     borderBottomWidth: 1,
     borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
+    marginTop: -100,
+    paddingTop: 100 + spacing[3],
   },
   searchRow: {
     flexDirection: 'row',
