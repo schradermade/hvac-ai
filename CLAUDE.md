@@ -1,4 +1,4 @@
-# HVAC AI Assistant - Project Context
+# HVACOps - Project Context
 
 This file is automatically loaded at the start of every Claude Code session.
 

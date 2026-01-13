@@ -167,7 +167,7 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingTitle}>About</Text>
-                <Text style={styles.settingSubtitle}>Learn more about HVAC AI</Text>
+                <Text style={styles.settingSubtitle}>Learn more about HVACOps</Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
             </TouchableOpacity>
@@ -215,7 +215,7 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Made with precision for HVAC professionals</Text>
-          <Text style={styles.footerCopyright}>© 2024 HVAC AI. All rights reserved.</Text>
+          <Text style={styles.footerCopyright}>© 2024 HVACOps. All rights reserved.</Text>
         </View>
 
         {/* Bottom spacer */}

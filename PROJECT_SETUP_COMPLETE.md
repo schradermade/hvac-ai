@@ -1,6 +1,6 @@
 # Project Setup Complete ✅
 
-The HVAC AI Assistant project has been set up with professional-grade architecture and tooling.
+The HVACOps project has been set up with professional-grade architecture and tooling.
 
 ## What Was Built
 

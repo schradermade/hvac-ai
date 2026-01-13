@@ -1,6 +1,6 @@
-# HVAC AI Assistant - Documentation
+# HVACOps - Documentation
 
-Welcome to the HVAC AI Assistant documentation. This directory contains all architectural decisions, coding standards, and development guidelines.
+Welcome to the HVACOps documentation. This directory contains all architectural decisions, coding standards, and development guidelines.
 
 ## 📚 Core Documentation
 

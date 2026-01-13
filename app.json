@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hvac-ai",
-    "slug": "hvac-ai",
+    "name": "HVACOps",
+    "slug": "hvacops",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

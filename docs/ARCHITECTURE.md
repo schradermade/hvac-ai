@@ -2,7 +2,7 @@
 
 ## Vision
 
-HVAC AI Assistant is an AI-powered mobile application for HVAC technicians, providing on-demand diagnostic help, parts identification, and technical knowledge in the field.
+HVACOps is an AI-powered mobile application for HVAC technicians, providing on-demand diagnostic help, parts identification, and technical knowledge in the field.
 
 ## Core Principles
 
