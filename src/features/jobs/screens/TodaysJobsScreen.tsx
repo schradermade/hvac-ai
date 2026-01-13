@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Button, Spinner } from '@/components/ui';
+import { EmptyState, Button, Spinner, HeroSection } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
 import { JobCard } from '../components/JobCard';
@@ -90,35 +90,19 @@ export function TodaysJobsScreen() {
             {/* Professional Header */}
             <View style={styles.fixedHeader}>
               {/* Hero Section with Brand */}
-              <View style={styles.heroSection}>
-                <View style={styles.heroContent}>
-                  <View style={styles.titleRow}>
-                    <Ionicons name="calendar" size={28} color={colors.primary} />
-                    <Text style={styles.heroTitle}>Today's Schedule</Text>
-                    <View style={styles.countBadge}>
-                      <Text style={styles.countBadgeText}>{allJobs.length}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.metaRow}>
-                    <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-                    <Text style={styles.dateText}>
-                      {new Date().toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Brand Header - Top Right */}
-                <View style={styles.brandHeader}>
-                  <View style={styles.brandLogoContainer}>
-                    <Ionicons name="snow" size={20} color={colors.primary} />
-                  </View>
-                  <Text style={styles.brandText}>HVACOps</Text>
-                </View>
-              </View>
+              <HeroSection
+                icon="calendar"
+                title="Today's Schedule"
+                count={allJobs.length}
+                metadata={{
+                  icon: 'time-outline',
+                  text: new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  }),
+                }}
+              />
 
               {/* Search Row */}
               <View style={styles.searchRow}>
@@ -303,65 +287,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing[3],
-  },
-  heroSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing[3],
-  },
-  heroContent: {
-    flex: 1,
-    gap: spacing[2],
-  },
-  brandHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  brandLogoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    letterSpacing: 0.5,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  heroTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  dateText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  countBadge: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary,
   },
   searchRow: {
     flexDirection: 'row',
