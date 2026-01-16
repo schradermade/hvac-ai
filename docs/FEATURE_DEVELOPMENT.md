@@ -308,7 +308,7 @@ Create small, focused components:
 // features/parts/components/PartCard.tsx
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { Button } from '@/ui/Button';
+import { Button } from '@/components/ui';
 import type { Part } from '../types';
 
 interface PartCardProps {
@@ -404,9 +404,9 @@ import React, { useState } from 'react';
 import { View, TextInput, FlatList, StyleSheet } from 'react-native';
 import { usePartSearch } from '../hooks/usePartSearch';
 import { PartCard } from '../components/PartCard';
-import { LoadingSpinner } from '@/ui/LoadingSpinner';
-import { ErrorMessage } from '@/ui/ErrorMessage';
-import { EmptyState } from '@/ui/EmptyState';
+import { LoadingSpinner } from '@/components/ui';
+import { ErrorMessage } from '@/components/ui';
+import { EmptyState } from '@/components/ui';
 import type { Part } from '../types';
 
 interface PartSearchScreenProps {
@@ -502,15 +502,70 @@ export type { Part, PartSearchParams, PartCategory } from './types';
 
 ### 8. Integration
 
-Add your feature to the app:
+Add your feature to the app's navigation:
+
+**Option A: Add as a new tab (most common)**
 
 ```typescript
-// app/(main)/parts.tsx
+// navigation/TabNavigator.tsx
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { PartSearchScreen } from '@/features/parts';
 
-export default function PartsRoute() {
+const Tab = createBottomTabNavigator();
+
+export function TabNavigator() {
+  return (
+    <Tab.Navigator>
+      {/* ...existing tabs... */}
+      <Tab.Screen
+        name="Parts"
+        component={PartSearchScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="construct-outline" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+```
+
+**Option B: Add as a detail screen in stack navigator**
+
+```typescript
+// navigation/RootNavigator.tsx
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { PartDetailScreen } from '@/features/parts';
+
+const Stack = createNativeStackNavigator();
+
+export function RootNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Main" component={TabNavigator} />
+      {/* Add detail screen */}
+      <Stack.Screen
+        name="PartDetail"
+        component={PartDetailScreen}
+        options={{ title: 'Part Details' }}
+      />
+    </Stack.Navigator>
+  );
+}
+```
+
+**Option C: Create a standalone screen component**
+
+```typescript
+// screens/PartsScreen.tsx
+import React from 'react';
+import { PartSearchScreen } from '@/features/parts';
+
+export function PartsScreen() {
   const handleSelectPart = (part: Part) => {
-    // Handle part selection
+    // Handle part selection (e.g., navigate to detail)
+    navigation.navigate('PartDetail', { partId: part.id });
   };
 
   return <PartSearchScreen onSelectPart={handleSelectPart} />;

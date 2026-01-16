@@ -15,6 +15,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type RootTabParamList = {
   Jobs: undefined;
   Clients: undefined;
+  Technicians: undefined;
   History: undefined;
   Settings: undefined;
 };
@@ -24,6 +25,11 @@ export type RootTabParamList = {
  * For detail screens and modals
  */
 export type RootStackParamList = {
+  // Auth screens (shown when not authenticated)
+  Login: undefined;
+  Signup: undefined;
+  PasswordReset: undefined;
+  // Main app (shown when authenticated)
   Main: undefined;
   // Client flows
   ClientDetail: { clientId: string };
@@ -32,6 +38,11 @@ export type RootStackParamList = {
   EquipmentDetail: { equipmentId: string };
   // Job flows
   JobDetail: { jobId: string };
+  // Technician flows
+  TechnicianList: undefined;
+  TechnicianDetail: { technicianId: string };
+  CreateTechnician: undefined;
+  MyProfile: undefined;
   // Diagnostic flows
   DiagnosticChat: {
     clientId: string;

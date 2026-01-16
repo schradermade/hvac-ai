@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation';
+import { AuthProvider } from './src/providers';
 import { useMigrations } from './src/hooks/useMigrations';
 import { Spinner } from './src/components/ui';
 import { colors, spacing, typography } from './src/components/ui';
@@ -24,13 +25,16 @@ const queryClient = new QueryClient({
  * Sets up:
  * - Data migrations (equipment → clients)
  * - React Query for server state
+ * - Authentication context
  * - React Navigation for routing
  * - Tab-based navigation structure
  */
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/providers';
 import { jobService } from '../services/jobService';
 import type { JobFormData, JobFilters } from '../types';
 
@@ -8,9 +9,11 @@ import type { JobFormData, JobFilters } from '../types';
 const jobKeys = {
   all: ['jobs'] as const,
   lists: () => [...jobKeys.all, 'list'] as const,
-  list: (filters: JobFilters) => [...jobKeys.lists(), { filters }] as const,
-  todays: () => [...jobKeys.lists(), 'today'] as const,
-  byClient: (clientId: string) => [...jobKeys.lists(), 'client', clientId] as const,
+  list: (companyId: string, filters: JobFilters) =>
+    [...jobKeys.lists(), companyId, { filters }] as const,
+  todays: (companyId: string) => [...jobKeys.lists(), companyId, 'today'] as const,
+  byClient: (companyId: string, clientId: string) =>
+    [...jobKeys.lists(), companyId, 'client', clientId] as const,
   details: () => [...jobKeys.all, 'detail'] as const,
   detail: (id: string) => [...jobKeys.details(), id] as const,
 };
@@ -20,10 +23,13 @@ const jobKeys = {
  * Refreshes every minute to stay current
  */
 export function useTodaysJobs() {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: jobKeys.todays(),
-    queryFn: () => jobService.getTodaysJobs(),
+    queryKey: jobKeys.todays(user?.companyId || ''),
+    queryFn: () => jobService.getTodaysJobs(user!.companyId),
     refetchInterval: 60000, // Refresh every minute
+    enabled: !!user?.companyId,
   });
 }
 
@@ -31,9 +37,12 @@ export function useTodaysJobs() {
  * Hook for getting all jobs with optional filters
  */
 export function useJobList(filters?: JobFilters) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: jobKeys.list(filters || {}),
-    queryFn: () => jobService.getAll(filters),
+    queryKey: jobKeys.list(user?.companyId || '', filters || {}),
+    queryFn: () => jobService.getAll(user!.companyId, filters),
+    enabled: !!user?.companyId,
   });
 }
 
@@ -52,10 +61,12 @@ export function useJob(id: string) {
  * Hook for getting jobs by client
  */
 export function useJobsByClient(clientId: string) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: jobKeys.byClient(clientId),
-    queryFn: () => jobService.getByClient(clientId),
-    enabled: !!clientId,
+    queryKey: jobKeys.byClient(user?.companyId || '', clientId),
+    queryFn: () => jobService.getByClient(user!.companyId, clientId),
+    enabled: !!user?.companyId && !!clientId,
   });
 }
 
@@ -63,10 +74,11 @@ export function useJobsByClient(clientId: string) {
  * Hook for creating a new job
  */
 export function useCreateJob() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: JobFormData) => jobService.create(data),
+    mutationFn: (data: JobFormData) => jobService.create(user!.companyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
     },

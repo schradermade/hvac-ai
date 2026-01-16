@@ -19,12 +19,21 @@ Our architecture is guided by these principles:
 
 ## Technology Stack
 
+**Current Implementation:**
+
 - **Framework**: React Native with Expo (managed workflow)
 - **Language**: TypeScript (strict mode)
-- **Navigation**: Expo Router (file-based routing)
+- **Navigation**: React Navigation (stack + bottom tab navigation)
 - **State Management**: React Query (server state) + React Context (local state)
-- **Database**: WatermelonDB (local-first, reactive)
-- **AI Integration**: Anthropic Claude API (with context injection)
+- **Database**: AsyncStorage (key-value persistence)
+- **AI Integration**: Mock diagnostic responses (Claude API integration planned)
+- **Styling**: React Native StyleSheet with design tokens
+
+**Planned Upgrades:**
+
+- **Navigation**: Migration to Expo Router for file-based routing
+- **Database**: WatermelonDB for local-first reactive data
+- **AI Integration**: Anthropic Claude API with vector DB context injection
 - **Styling**: NativeWind (Tailwind for React Native)
 
 See [TECH_STACK.md](./TECH_STACK.md) for detailed rationale.
@@ -34,10 +43,15 @@ See [TECH_STACK.md](./TECH_STACK.md) for detailed rationale.
 ```
 hvac-ai/
 ├── src/
-│   ├── app/                       # Expo Router - app screens
-│   │   ├── _layout.tsx           # Root layout
-│   │   ├── (auth)/               # Auth flow screens
-│   │   └── (main)/               # Main app screens
+│   ├── navigation/                # React Navigation setup
+│   │   ├── RootNavigator.tsx     # Stack navigator (wraps tabs)
+│   │   ├── TabNavigator.tsx      # Bottom tab navigation
+│   │   └── types.ts              # Navigation type definitions
+│   │
+│   ├── screens/                   # Top-level screens
+│   │   ├── CopilotScreen.tsx     # AI copilot tab screen
+│   │   ├── EquipmentScreen.tsx   # Equipment list screen
+│   │   └── SettingsScreen.tsx    # Settings screen
 │   │
 │   ├── features/                  # Feature modules
 │   │   ├── _example/             # Reference implementation
@@ -47,20 +61,26 @@ hvac-ai/
 │   │   └── job-notes/            # Job documentation
 │   │
 │   ├── lib/                       # Shared infrastructure
-│   │   ├── api/                  # API client
-│   │   ├── storage/              # Local database
-│   │   ├── ai/                   # AI client wrapper
-│   │   ├── sync/                 # Offline sync
-│   │   └── utils/                # Pure utility functions
+│   │   ├── api/                  # API client (implemented)
+│   │   ├── migrations/           # Data migrations (implemented)
+│   │   ├── storage/              # Local database (planned)
+│   │   ├── ai/                   # AI client wrapper (planned)
+│   │   ├── sync/                 # Offline sync (planned)
+│   │   └── utils/                # Pure utility functions (planned)
 │   │
-│   ├── ui/                        # Design system components
-│   │   ├── Button/
-│   │   ├── Input/
-│   │   └── Card/
+│   ├── components/ui/             # Design system components
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   ├── Card.tsx
+│   │   ├── Badge.tsx
+│   │   ├── HeroSection.tsx
+│   │   ├── Loading.tsx
+│   │   ├── Typography.tsx
+│   │   └── tokens.ts             # Design tokens
 │   │
 │   ├── hooks/                     # Global hooks
-│   ├── providers/                 # Context providers
-│   └── types/                     # Global types
+│   ├── providers/                 # Context providers (planned)
+│   └── types/                     # Global types (planned)
 │
 ├── docs/                          # Documentation
 ├── scripts/                       # Development scripts
@@ -96,7 +116,7 @@ Example:
 import { useDiagnostic } from '@/features/diagnostic';
 
 // ❌ Bad: Don't reach into internal implementation
-import { DiagnosticService } from '@/features/diagnostic/services/diagnosticService';
+import { diagnosticService } from '@/features/diagnostic/services/diagnosticService';
 ```
 
 ## Data Flow Architecture
@@ -149,7 +169,7 @@ Our code is organized in layers, with clear dependencies:
 
 ```
 ┌─────────────────────────────────┐
-│   Screens (Expo Router)         │  app/
+│   Screens & Navigation           │  navigation/, screens/
 ├─────────────────────────────────┤
 │   Feature Modules                │  features/
 │   ├── Components                 │
@@ -161,7 +181,7 @@ Our code is organized in layers, with clear dependencies:
 │   ├── Database                   │
 │   └── Utilities                  │
 ├─────────────────────────────────┤
-│   UI Components (Design System)  │  ui/
+│   UI Components (Design System)  │  components/ui/
 └─────────────────────────────────┘
 ```
 
@@ -315,7 +335,13 @@ function App() {
 
 ## AI Integration Architecture
 
-Our AI integration uses **context injection**, not model training:
+**Current MVP Implementation:**
+
+The diagnostic feature currently uses mock AI responses with professional HVAC knowledge hardcoded into the service layer. This allows for rapid feature development and UI/UX refinement without API dependencies.
+
+**Planned Production Architecture:**
+
+Our production AI integration will use **context injection**, not model training:
 
 ```
 User Question
@@ -341,9 +367,9 @@ Response
 - **Context Injection**: Relevant knowledge added to each Claude API call
 - **Prompt Engineering**: Carefully crafted system prompts
 
-## Offline-First Strategy
+## Offline-First Strategy (Planned)
 
-The app is designed to work without internet:
+The app is designed to work without internet (implementation in progress):
 
 1. **All data stored locally first** (WatermelonDB)
 2. **Sync queue** for operations that need server

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/providers';
 import { clientService } from '../services/clientService';
 import type { ClientFormData, ClientFilters } from '../types';
 
@@ -8,7 +9,8 @@ import type { ClientFormData, ClientFilters } from '../types';
 const clientKeys = {
   all: ['clients'] as const,
   lists: () => [...clientKeys.all, 'list'] as const,
-  list: (filters: ClientFilters) => [...clientKeys.lists(), { filters }] as const,
+  list: (companyId: string, filters: ClientFilters) =>
+    [...clientKeys.lists(), companyId, { filters }] as const,
   details: () => [...clientKeys.all, 'detail'] as const,
   detail: (id: string) => [...clientKeys.details(), id] as const,
 };
@@ -17,9 +19,12 @@ const clientKeys = {
  * Hook for getting all clients with optional filters
  */
 export function useClientList(filters?: ClientFilters) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: clientKeys.list(filters || {}),
-    queryFn: () => clientService.getAll(filters),
+    queryKey: clientKeys.list(user?.companyId || '', filters || {}),
+    queryFn: () => clientService.getAll(user!.companyId, filters),
+    enabled: !!user?.companyId,
   });
 }
 
@@ -38,10 +43,11 @@ export function useClient(id: string) {
  * Hook for creating a new client
  */
 export function useCreateClient() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ClientFormData) => clientService.create(data),
+    mutationFn: (data: ClientFormData) => clientService.create(user!.companyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
     },

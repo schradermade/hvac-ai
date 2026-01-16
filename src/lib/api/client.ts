@@ -37,13 +37,23 @@ class ApiClient {
   }
 
   private setupInterceptors(): void {
-    // Request interceptor: add auth token
+    // Request interceptor: add auth token and company context
     this.client.interceptors.request.use(async (config) => {
-      // TODO: Add auth token from storage
-      // const token = await storage.getAuthToken();
-      // if (token) {
-      //   config.headers.Authorization = `Bearer ${token}`;
-      // }
+      // Import dynamically to avoid circular dependency
+      const { getAuthToken, getCurrentUser } = await import('@/lib/storage');
+
+      // Add auth token
+      const token = await getAuthToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      // Add company context (for multi-tenant data isolation)
+      const user = await getCurrentUser();
+      if (user?.companyId) {
+        config.headers['X-Company-Id'] = user.companyId;
+      }
+
       return config;
     });
 

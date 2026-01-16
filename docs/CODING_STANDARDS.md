@@ -48,6 +48,8 @@ Enforce these limits to keep code maintainable:
 
 **If a file exceeds these limits, split it into smaller pieces.**
 
+**Note:** If a service has many private helper methods (like response generators), consider extracting them into separate modules (e.g., `diagnosticResponses.ts`) that the main service imports.
+
 ### Public API Pattern
 
 Every feature must have an `index.ts` that explicitly exports its public interface:
@@ -515,7 +517,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 // 2. Internal absolute imports (@ prefix for src/)
-import { Button } from '@/ui/Button';
+import { Button } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
 

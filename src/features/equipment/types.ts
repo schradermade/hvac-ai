@@ -20,6 +20,7 @@ export type SystemType = 'split_system' | 'package_unit' | 'heat_pump' | 'mini_s
  */
 export interface Equipment {
   id: string;
+  companyId: string;
   clientId: string; // Equipment belongs to a client
   name: string;
   manufacturer?: string;

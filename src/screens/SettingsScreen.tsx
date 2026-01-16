@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui';
+import { Card, Badge } from '@/components/ui';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
-import type { TabScreenProps } from '@/navigation/types';
+import { useAuth } from '@/providers';
+import type { TabScreenProps, RootStackParamList } from '@/navigation/types';
 import Constants from 'expo-constants';
 
 /**
@@ -18,8 +21,31 @@ import Constants from 'expo-constants';
  */
 // eslint-disable-next-line no-unused-vars
 export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
+  const { user } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const buildNumber = Constants.expoConfig?.extra?.buildNumber || '1';
+
+  const getRoleDisplay = (role?: string): string => {
+    const roleMap: Record<string, string> = {
+      admin: 'Admin',
+      lead_tech: 'Lead Technician',
+      technician: 'Technician',
+      office_staff: 'Office Staff',
+    };
+    return role ? roleMap[role] || role : 'User';
+  };
+
+  const getRoleVariant = (role?: string): 'info' | 'success' | 'neutral' => {
+    switch (role) {
+      case 'admin':
+        return 'info';
+      case 'lead_tech':
+        return 'success';
+      default:
+        return 'neutral';
+    }
+  };
 
   const handleSupport = () => {
     Alert.alert('Support', 'Contact support at support@hvacai.app or visit our help center.', [
@@ -56,6 +82,37 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
             <Text style={styles.appTagline}>Professional Diagnostic Assistant</Text>
           </View>
         </View>
+
+        {/* My Profile Section */}
+        {user && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="person-outline" size={24} color={colors.primary} />
+              <Text style={styles.sectionTitle}>My Profile</Text>
+            </View>
+
+            <Card style={styles.card}>
+              <TouchableOpacity
+                style={styles.profileItem}
+                onPress={() => navigation.navigate('MyProfile')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.profileIconContainer}>
+                  <Ionicons name="person" size={24} color={colors.primary} />
+                </View>
+                <View style={styles.profileContent}>
+                  <Text style={styles.profileName}>
+                    {user.firstName} {user.lastName}
+                  </Text>
+                  <View style={styles.profileMeta}>
+                    <Badge variant={getRoleVariant(user.role)}>{getRoleDisplay(user.role)}</Badge>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+              </TouchableOpacity>
+            </Card>
+          </View>
+        )}
 
         {/* Preferences Section */}
         <View style={styles.section}>
@@ -363,5 +420,34 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing[8],
+  },
+  profileItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[4],
+    minHeight: 80,
+  },
+  profileIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileContent: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing[2],
+  },
+  profileMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

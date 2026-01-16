@@ -12,6 +12,7 @@ export const UNASSIGNED_CLIENT_ID = 'client_unassigned';
  */
 export interface Client {
   id: string;
+  companyId: string;
 
   // Required fields
   name: string;

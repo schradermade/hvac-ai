@@ -21,6 +21,7 @@ export type AppointmentStatus =
  */
 export interface Job {
   id: string;
+  companyId: string;
   clientId: string;
   equipmentId?: string; // Optional - may be multi-equipment or new install
   type: JobType;

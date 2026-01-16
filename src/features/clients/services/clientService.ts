@@ -24,6 +24,7 @@ class ClientService {
   private createUnassignedClient(): void {
     const unassigned: Client = {
       id: UNASSIGNED_CLIENT_ID,
+      companyId: 'company_test_1',
       name: 'Unassigned Equipment',
       phone: 'N/A',
       address: 'N/A',
@@ -46,6 +47,7 @@ class ClientService {
     const testClients: Client[] = [
       {
         id: 'client_test_1',
+        companyId: 'company_test_1',
         name: 'John Smith',
         phone: '555-123-4567',
         address: '123 Main Street',
@@ -356,12 +358,14 @@ class ClientService {
   }
 
   /**
-   * Get all clients with optional filtering
+   * Get all clients for a company with optional filtering
    */
-  async getAll(filters?: ClientFilters): Promise<ClientListResponse> {
+  async getAll(companyId: string, filters?: ClientFilters): Promise<ClientListResponse> {
     await this.delay(300);
 
-    let items = Array.from(this.clients.values());
+    let items = Array.from(this.clients.values()).filter(
+      (client) => client.companyId === companyId
+    );
 
     // Apply search filter
     if (filters?.search) {
@@ -411,7 +415,7 @@ class ClientService {
   /**
    * Create a new client
    */
-  async create(data: ClientFormData): Promise<Client> {
+  async create(companyId: string, data: ClientFormData): Promise<Client> {
     await this.delay(400);
 
     // Validate required fields
@@ -422,6 +426,7 @@ class ClientService {
 
     const client: Client = {
       id: `client_${this.idCounter}`,
+      companyId,
       ...data,
       createdAt: now,
       updatedAt: now,

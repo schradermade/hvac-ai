@@ -53,6 +53,7 @@ export interface ChatSession {
  */
 export interface DiagnosticSession {
   id: string;
+  companyId: string;
   clientId: string; // REQUIRED - every diagnostic is for a client
   jobId?: string; // Optional - may be standalone diagnostic
   equipmentId?: string; // Optional - may be general consultation

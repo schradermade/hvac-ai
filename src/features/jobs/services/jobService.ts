@@ -285,9 +285,9 @@ class JobService {
   }
 
   /**
-   * Get today's scheduled jobs
+   * Get today's scheduled jobs for a company
    */
-  async getTodaysJobs(): Promise<JobListResponse> {
+  async getTodaysJobs(companyId: string): Promise<JobListResponse> {
     await this.delay(300);
 
     const today = new Date();
@@ -297,7 +297,7 @@ class JobService {
     const items = Array.from(this.jobs.values())
       .filter((job) => {
         const scheduled = job.scheduledStart;
-        return scheduled >= startOfDay && scheduled <= endOfDay;
+        return job.companyId === companyId && scheduled >= startOfDay && scheduled <= endOfDay;
       })
       .sort((a, b) => a.scheduledStart.getTime() - b.scheduledStart.getTime());
 
@@ -308,12 +308,12 @@ class JobService {
   }
 
   /**
-   * Get all jobs with optional filtering
+   * Get all jobs for a company with optional filtering
    */
-  async getAll(filters?: JobFilters): Promise<JobListResponse> {
+  async getAll(companyId: string, filters?: JobFilters): Promise<JobListResponse> {
     await this.delay(300);
 
-    let items = Array.from(this.jobs.values());
+    let items = Array.from(this.jobs.values()).filter((job) => job.companyId === companyId);
 
     // Apply filters
     if (filters?.clientId) {
@@ -354,14 +354,14 @@ class JobService {
   /**
    * Get jobs by client
    */
-  async getByClient(clientId: string): Promise<JobListResponse> {
-    return this.getAll({ clientId });
+  async getByClient(companyId: string, clientId: string): Promise<JobListResponse> {
+    return this.getAll(companyId, { clientId });
   }
 
   /**
    * Create a new job
    */
-  async create(data: JobFormData): Promise<Job> {
+  async create(companyId: string, data: JobFormData): Promise<Job> {
     await this.delay(400);
 
     this.idCounter++;
@@ -369,6 +369,7 @@ class JobService {
 
     const job: Job = {
       id: `job_${this.idCounter}`,
+      companyId,
       ...data,
       status: 'scheduled',
       createdAt: now,
