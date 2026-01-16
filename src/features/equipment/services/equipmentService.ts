@@ -63,7 +63,7 @@ class EquipmentService {
    * Assign equipment to a client
    */
   async assignToClient(equipmentId: string, clientId: string): Promise<Equipment> {
-    return this.update(equipmentId, { clientId });
+    return this.update(equipmentId, 'system', 'System', { clientId });
   }
 
   /**

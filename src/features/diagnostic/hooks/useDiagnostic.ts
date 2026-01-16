@@ -129,7 +129,16 @@ export function useCreateSession() {
       mode?: DiagnosticMode;
       jobId?: string;
       equipmentId?: string;
-    }) => diagnosticService.createSession(user!.companyId, clientId, mode, jobId, equipmentId),
+    }) =>
+      diagnosticService.createSession(
+        user!.companyId,
+        clientId,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`,
+        mode,
+        jobId,
+        equipmentId
+      ),
     onSuccess: (session) => {
       // Invalidate sessions list
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });

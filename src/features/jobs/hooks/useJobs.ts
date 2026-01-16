@@ -78,7 +78,8 @@ export function useCreateJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: JobFormData) => jobService.create(user!.companyId, data),
+    mutationFn: (data: JobFormData) =>
+      jobService.create(user!.companyId, user!.id, `${user!.firstName} ${user!.lastName}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
     },
@@ -89,6 +90,7 @@ export function useCreateJob() {
  * Hook for updating an existing job
  */
 export function useUpdateJob() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -98,7 +100,7 @@ export function useUpdateJob() {
     }: {
       id: string;
       data: Partial<Omit<import('../types').Job, 'id' | 'createdAt'>>;
-    }) => jobService.update(id, data),
+    }) => jobService.update(id, user!.id, `${user!.firstName} ${user!.lastName}`, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: jobKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.lists() });

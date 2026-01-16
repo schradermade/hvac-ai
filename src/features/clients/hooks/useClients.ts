@@ -47,7 +47,8 @@ export function useCreateClient() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ClientFormData) => clientService.create(user!.companyId, data),
+    mutationFn: (data: ClientFormData) =>
+      clientService.create(user!.companyId, user!.id, `${user!.firstName} ${user!.lastName}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
     },
@@ -58,11 +59,12 @@ export function useCreateClient() {
  * Hook for updating an existing client
  */
 export function useUpdateClient() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ClientFormData> }) =>
-      clientService.update(id, data),
+      clientService.update(id, user!.id, `${user!.firstName} ${user!.lastName}`, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });

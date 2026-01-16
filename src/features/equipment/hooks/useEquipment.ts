@@ -62,7 +62,13 @@ export function useCreateEquipment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: EquipmentFormData) => equipmentService.create(user!.companyId, data),
+    mutationFn: (data: EquipmentFormData) =>
+      equipmentService.create(
+        user!.companyId,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`,
+        data
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
     },
@@ -73,11 +79,12 @@ export function useCreateEquipment() {
  * Hook for updating equipment
  */
 export function useUpdateEquipment() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<EquipmentFormData> }) =>
-      equipmentService.update(id, data),
+      equipmentService.update(id, user!.id, `${user!.firstName} ${user!.lastName}`, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: equipmentKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
