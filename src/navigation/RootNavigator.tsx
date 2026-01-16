@@ -8,7 +8,11 @@ import { DiagnosticChatScreen } from '@/features/diagnostic';
 import { ClientDetailScreen } from '@/features/clients';
 import { CreateEquipmentScreen, EquipmentDetailScreen } from '@/features/equipment';
 import { JobDetailScreen } from '@/features/jobs';
-import { TechnicianDetailScreen, MyProfileScreen } from '@/features/technicians';
+import {
+  TechnicianDetailScreen,
+  CreateTechnicianScreen,
+  MyProfileScreen,
+} from '@/features/technicians';
 import { LoginScreen, SignupScreen, PasswordResetScreen } from '@/features/auth';
 import { useAuth } from '@/providers';
 import { colors, typography } from '@/components/ui';
@@ -141,6 +145,14 @@ export function RootNavigator() {
             component={TechnicianDetailScreen}
             options={{
               title: 'Technician Details',
+            }}
+          />
+          <Stack.Screen
+            name="CreateTechnician"
+            component={CreateTechnicianScreen}
+            options={{
+              title: 'Add Technician',
+              presentation: 'modal',
             }}
           />
           <Stack.Screen

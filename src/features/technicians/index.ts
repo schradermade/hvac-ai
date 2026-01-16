@@ -7,6 +7,7 @@
 // Export screens
 export { TechnicianListScreen } from './screens/TechnicianListScreen';
 export { TechnicianDetailScreen } from './screens/TechnicianDetailScreen';
+export { CreateTechnicianScreen } from './screens/CreateTechnicianScreen';
 export { MyProfileScreen } from './screens/MyProfileScreen';
 
 // Export hooks
@@ -21,6 +22,7 @@ export { useCurrentTechnician } from './hooks/useCurrentTechnician';
 
 // Export components
 export { TechnicianCard } from './components/TechnicianCard';
+export { TechnicianForm } from './components/TechnicianForm';
 export { CertificationBadges } from './components/CertificationBadges';
 
 // Export types
