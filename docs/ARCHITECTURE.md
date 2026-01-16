@@ -44,29 +44,31 @@ See [TECH_STACK.md](./TECH_STACK.md) for detailed rationale.
 hvac-ai/
 ├── src/
 │   ├── navigation/                # React Navigation setup
-│   │   ├── RootNavigator.tsx     # Stack navigator (wraps tabs)
-│   │   ├── TabNavigator.tsx      # Bottom tab navigation
+│   │   ├── RootNavigator.tsx     # Stack navigator with auth flow
+│   │   ├── TabNavigator.tsx      # Bottom tab navigation (role-based)
 │   │   └── types.ts              # Navigation type definitions
 │   │
 │   ├── screens/                   # Top-level screens
-│   │   ├── CopilotScreen.tsx     # AI copilot tab screen
+│   │   ├── CopilotScreen.tsx     # AI copilot tab (diagnostic history)
 │   │   ├── EquipmentScreen.tsx   # Equipment list screen
-│   │   └── SettingsScreen.tsx    # Settings screen
+│   │   └── SettingsScreen.tsx    # Settings with logout
 │   │
 │   ├── features/                  # Feature modules
 │   │   ├── _example/             # Reference implementation
-│   │   ├── diagnostic/           # AI diagnostic assistant
+│   │   ├── auth/                 # Authentication (login, signup, logout)
+│   │   ├── clients/              # Client management
+│   │   ├── jobs/                 # Job/appointment management with assignment
 │   │   ├── equipment/            # Equipment management
-│   │   ├── parts/                # Parts identification
-│   │   └── job-notes/            # Job documentation
+│   │   ├── diagnostic/           # AI diagnostic assistant (collaborative)
+│   │   ├── technicians/          # Technician & company management
+│   │   └── company/              # Company entity
 │   │
 │   ├── lib/                       # Shared infrastructure
-│   │   ├── api/                  # API client (implemented)
-│   │   ├── migrations/           # Data migrations (implemented)
-│   │   ├── storage/              # Local database (planned)
-│   │   ├── ai/                   # AI client wrapper (planned)
-│   │   ├── sync/                 # Offline sync (planned)
-│   │   └── utils/                # Pure utility functions (planned)
+│   │   ├── api/                  # API client with auth token injection
+│   │   ├── storage/              # Auth storage (AsyncStorage)
+│   │   ├── migrations/           # Data migrations (equipment, multi-tenant)
+│   │   ├── types/                # Global types (Auditable interface)
+│   │   └── utils/                # Utility functions
 │   │
 │   ├── components/ui/             # Design system components
 │   │   ├── Button.tsx
@@ -74,15 +76,21 @@ hvac-ai/
 │   │   ├── Card.tsx
 │   │   ├── Badge.tsx
 │   │   ├── HeroSection.tsx
-│   │   ├── Loading.tsx
-│   │   ├── Typography.tsx
-│   │   └── tokens.ts             # Design tokens
+│   │   ├── Spinner.tsx
+│   │   └── tokens.ts             # Design tokens (colors, spacing, typography)
 │   │
 │   ├── hooks/                     # Global hooks
-│   ├── providers/                 # Context providers (planned)
-│   └── types/                     # Global types (planned)
+│   │   └── useMigrations.ts      # Data migration hook
+│   ├── providers/                 # Context providers
+│   │   ├── AuthProvider.tsx      # Global auth state
+│   │   └── index.ts
+│   └── types/                     # Global types
 │
 ├── docs/                          # Documentation
+│   ├── ARCHITECTURE.md
+│   ├── CODING_STANDARDS.md
+│   ├── FEATURE_DEVELOPMENT.md
+│   └── DESIGN_PRINCIPLES.md
 ├── scripts/                       # Development scripts
 └── assets/                        # Static assets
 ```
@@ -410,6 +418,665 @@ See [ADR 003](./adr/003-offline-first.md) for details.
 - **Unit tests**: Services, utilities (Jest)
 - **Integration tests**: Hooks, components (React Testing Library)
 - **E2E tests**: Critical flows (Maestro or Detox)
+
+## Authentication Architecture
+
+**Fully Implemented:** Login, signup, logout, session management with secure token storage.
+
+### Token Flow
+
+```
+User Login → authService.login() → JWT Token + User Data
+    ↓
+AsyncStorage (authStorage.ts)
+    ↓
+AuthProvider (React Context) → Global auth state
+    ↓
+RootNavigator checks isAuthenticated
+    ↓
+- Not authenticated: Show Auth Screens (Login/Signup)
+- Authenticated: Show Main App (TabNavigator + Screens)
+```
+
+### Key Components
+
+**AuthProvider** (`src/providers/AuthProvider.tsx`):
+
+- Global React Context providing auth state to entire app
+- Manages user session, token, and authentication status
+- Handles initialization (checks AsyncStorage for existing session)
+- Exposes `useAuth()` hook for accessing auth state
+
+**authStorage** (`src/lib/storage/authStorage.ts`):
+
+- Secure storage using AsyncStorage
+- Methods: `getAuthToken()`, `setAuthToken()`, `getUserData()`, `setUserData()`, `clearAuthData()`
+- Persists across app restarts
+
+**authService** (`src/features/auth/services/authService.ts`):
+
+- Business logic for authentication operations
+- Methods: `login()`, `signup()`, `logout()`, `refreshToken()`
+- Mock implementation for MVP (accepts any credentials)
+- Returns `AuthResponse` with token, user, and expiry
+
+### Auth User Model
+
+```typescript
+interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  companyId: string;
+  role: TechnicianRole; // admin, lead_tech, technician, office_staff
+}
+```
+
+### Protected Routes
+
+**RootNavigator** conditionally renders screens based on `isAuthenticated`:
+
+```typescript
+{isAuthenticated ? (
+  <>
+    <Stack.Screen name="Main" component={TabNavigator} />
+    <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
+    {/* ... other authenticated screens */}
+  </>
+) : (
+  <>
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Signup" component={SignupScreen} />
+  </>
+)}
+```
+
+### Role-Based Access
+
+Roles determine:
+
+- **Tab visibility**: Admins see Technicians tab, others don't
+- **Feature access**: Job assignment only for admins
+- **UI elements**: Edit/delete buttons based on permissions
+
+Access roles via `useAuth()` hook:
+
+```typescript
+const { user } = useAuth();
+const isAdmin = user?.role === 'admin';
+```
+
+## Multi-Tenant Data Model
+
+**Fully Implemented:** Company-based data isolation with technician management.
+
+### Entity Hierarchy
+
+```
+Company (Top Level)
+  ↓
+  ├── Technicians (employees)
+  │   ├── Admin (full access)
+  │   ├── Lead Tech (assign jobs, view all)
+  │   ├── Technician (own jobs only)
+  │   └── Office Staff (scheduling, clients)
+  │
+  └── Data (isolated by companyId)
+      ├── Clients
+      ├── Jobs
+      ├── Equipment
+      └── Diagnostic Sessions
+```
+
+### Company Model
+
+```typescript
+interface Company {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  address?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Technician Model
+
+```typescript
+type TechnicianRole = 'admin' | 'lead_tech' | 'technician' | 'office_staff';
+type TechnicianStatus = 'active' | 'inactive' | 'on_leave';
+
+interface Technician {
+  id: string;
+  companyId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: TechnicianRole;
+  status: TechnicianStatus;
+  certifications: Certification[];
+  licenseNumber?: string;
+  licenseExpiry?: Date;
+  hireDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Data Isolation Pattern
+
+All entities include `companyId` for isolation:
+
+```typescript
+interface Client {
+  id: string;
+  companyId: string; // ← Isolates data by company
+  name: string;
+  // ... other fields
+}
+```
+
+Services filter by company:
+
+```typescript
+// clientService.ts
+async getAll(companyId: string, filters?: ClientFilters): Promise<ClientListResponse> {
+  // Filter clients by companyId
+  const companyClients = Array.from(this.clients.values())
+    .filter(client => client.companyId === companyId);
+  // ... apply additional filters
+}
+```
+
+Hooks get companyId from auth context:
+
+```typescript
+export function useClients(filters?: ClientFilters) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['clients', user.companyId, filters],
+    queryFn: () => clientService.getAll(user.companyId, filters),
+  });
+}
+```
+
+### Audit Trail
+
+All entities extend `Auditable` interface:
+
+```typescript
+interface Auditable {
+  createdBy: string; // Technician ID
+  createdByName?: string; // Cached for display
+  createdAt: Date;
+  modifiedBy: string; // Technician ID
+  modifiedByName?: string; // Cached for display
+  updatedAt: Date;
+}
+```
+
+Every create/update operation tracks who made the change:
+
+```typescript
+async create(companyId: string, technicianId: string, technicianName: string, data: ClientFormData) {
+  const client: Client = {
+    id: generateId(),
+    companyId,
+    ...data,
+    createdBy: technicianId,
+    createdByName: technicianName,
+    createdAt: new Date(),
+    modifiedBy: technicianId,
+    modifiedByName: technicianName,
+    updatedAt: new Date(),
+  };
+  // ... save client
+}
+```
+
+Displayed in detail screens:
+
+```
+History Section:
+- Created by: John Smith • Jan 15, 2024
+- Last modified: Alice Johnson • Jan 20, 2024
+```
+
+## Job Assignment Workflow
+
+**Fully Implemented:** Admin assigns jobs to technicians, techs accept/decline, track status.
+
+### Assignment Status Flow
+
+```
+unassigned → assigned → accepted → in_progress → completed
+               ↓
+            declined
+```
+
+### Job Assignment Model
+
+```typescript
+export interface JobAssignment {
+  technicianId: string;
+  technicianName: string;
+  assignedAt: Date;
+  assignedBy: string; // Admin who assigned
+  assignedByName: string;
+  acceptedAt?: Date;
+  declinedAt?: Date;
+  declineReason?: string;
+}
+
+export interface Job extends Auditable {
+  id: string;
+  companyId: string;
+  clientId: string;
+  status: AppointmentStatus; // includes assignment statuses
+  assignment?: JobAssignment; // Present when job is assigned
+  // ... other fields
+}
+```
+
+### Assignment Operations
+
+**Admin assigns job:**
+
+```typescript
+// jobService.ts
+async assign(
+  jobId: string,
+  technicianId: string,
+  technicianName: string,
+  assignedBy: string,
+  assignedByName: string
+): Promise<Job> {
+  const job = this.jobs.get(jobId);
+
+  job.assignment = {
+    technicianId,
+    technicianName,
+    assignedAt: new Date(),
+    assignedBy,
+    assignedByName,
+  };
+  job.status = 'assigned'; // Pending acceptance
+
+  this.jobs.set(jobId, job);
+  return job;
+}
+```
+
+**Technician accepts job:**
+
+```typescript
+async accept(jobId: string, technicianId: string): Promise<Job> {
+  const job = this.jobs.get(jobId);
+
+  if (!job.assignment || job.assignment.technicianId !== technicianId) {
+    throw new Error('Not authorized to accept this job');
+  }
+
+  job.assignment.acceptedAt = new Date();
+  job.status = 'accepted';
+
+  this.jobs.set(jobId, job);
+  return job;
+}
+```
+
+**Technician declines job:**
+
+```typescript
+async decline(jobId: string, technicianId: string, reason?: string): Promise<Job> {
+  const job = this.jobs.get(jobId);
+
+  job.assignment.declinedAt = new Date();
+  job.assignment.declineReason = reason;
+  job.status = 'declined';
+
+  this.jobs.set(jobId, job);
+  return job;
+}
+```
+
+### UI Components
+
+**TodaysJobsScreen** - Filter toggle:
+
+- "All Jobs" - Shows all company jobs (admin view)
+- "My Jobs" - Shows only assigned-to-current-user jobs (tech view)
+
+**JobCard** - Shows assignment info:
+
+- Assignment badge (assigned/accepted/declined)
+- Technician name if assigned
+- Visual indicator if job is yours
+
+**JobDetailScreen** - Assignment section:
+
+- Shows assigned technician with avatar
+- Assignment status badge
+- Accept/Decline buttons (if assigned to current user and status is "assigned")
+- Assign button (if admin and job is unassigned)
+
+**AssignJobModal** - Technician picker:
+
+- List of available technicians
+- Shows current workload for each
+- Search/filter technicians
+- Assign button to complete assignment
+
+### React Query Patterns
+
+```typescript
+// Get jobs assigned to current user
+export function useMyJobs() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: QUERY_KEYS.myJobs(user!.companyId, user!.id),
+    queryFn: () => jobService.getByTechnician(user!.companyId, user!.id),
+  });
+}
+
+// Assign job mutation
+export function useAssignJob() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ jobId, technicianId, technicianName }) =>
+      jobService.assign(
+        jobId,
+        technicianId,
+        technicianName,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all() });
+    },
+  });
+}
+```
+
+## Collaborative Diagnostic Architecture
+
+**Fully Implemented:** Multi-participant AI chat sessions with real-time collaboration.
+
+### Collaborative Session Model
+
+```typescript
+export type ParticipantRole = 'primary' | 'invited' | 'ai';
+
+export interface Participant {
+  id: string; // 'ai' or technician ID
+  role: ParticipantRole;
+  name: string;
+  joinedAt: Date;
+  leftAt?: Date;
+}
+
+export interface Message {
+  id: string;
+  role: MessageRole;
+  content: string;
+  timestamp: Date;
+
+  // Sender attribution for collaborative sessions
+  senderId?: string; // Technician ID (undefined for AI)
+  senderName?: string;
+  senderRole?: ParticipantRole;
+}
+
+export interface DiagnosticSession {
+  id: string;
+  companyId: string;
+  messages: Message[];
+
+  // Collaborative features
+  participants: Participant[]; // Includes AI + all techs
+  isCollaborative: boolean; // True if >1 human participant
+
+  // ... other fields
+}
+```
+
+### Collaboration Flow
+
+**1. Junior tech starts session:**
+
+```typescript
+// diagnosticService.ts - createSession()
+const participants: Participant[] = [
+  {
+    id: 'ai',
+    role: 'ai',
+    name: 'HVAC.ai',
+    joinedAt: now,
+  },
+  {
+    id: technicianId,
+    role: 'primary', // Session creator
+    name: technicianName,
+    joinedAt: now,
+  },
+];
+
+const session = {
+  // ... session fields
+  participants,
+  isCollaborative: false, // Only 1 human initially
+};
+```
+
+**2. Junior tech invites senior tech:**
+
+```typescript
+// diagnosticService.ts - inviteTechnician()
+async inviteTechnician(
+  sessionId: string,
+  invitedTechnicianId: string,
+  invitedTechnicianName: string,
+  invitedBy: string,
+  invitedByName: string
+): Promise<DiagnosticSession> {
+  const session = await this.getSession(sessionId);
+
+  // Add new participant
+  const newParticipant: Participant = {
+    id: invitedTechnicianId,
+    role: 'invited',
+    name: invitedTechnicianName,
+    joinedAt: new Date(),
+  };
+  session.participants.push(newParticipant);
+
+  // Add system message
+  const systemMessage: Message = {
+    id: this.generateMessageId(),
+    role: 'user',
+    content: `${invitedTechnicianName} joined the conversation`,
+    timestamp: new Date(),
+    senderId: 'system',
+    senderName: 'System',
+    senderRole: 'ai',
+  };
+  session.messages.push(systemMessage);
+
+  // Update collaborative flag
+  const humanParticipants = session.participants.filter(p => p.id !== 'ai' && !p.leftAt);
+  session.isCollaborative = humanParticipants.length > 1;
+
+  return session;
+}
+```
+
+**3. Send message with attribution:**
+
+```typescript
+// diagnosticService.ts - addMessageToSession()
+async addMessageToSession(
+  sessionId: string,
+  request: SendMessageRequest,
+  senderId?: string,
+  senderName?: string
+): Promise<DiagnosticSession> {
+  const session = await this.getSession(sessionId);
+
+  // Find sender's participant role
+  const senderParticipant = session.participants.find(p => p.id === senderId);
+  const senderRole = senderParticipant?.role;
+
+  // Add user message with sender attribution
+  const userMessage: Message = {
+    id: this.generateMessageId(),
+    role: 'user',
+    content: request.content,
+    timestamp: new Date(),
+    senderId,
+    senderName,
+    senderRole,
+  };
+  session.messages.push(userMessage);
+
+  // Generate AI response (visible to all participants)
+  // ...
+}
+```
+
+### UI Components
+
+**DiagnosticChatScreen** - Main collaborative interface:
+
+- **ParticipantsList**: Horizontal avatar list showing all active participants + AI
+- **Invite button**: Opens InviteTechnicianModal
+- **MessageList**: Shows messages with sender attribution
+- **ChatInput**: Send messages (attributed to current user)
+
+**ParticipantsList** - Shows who's in the session:
+
+```
+[Avatar: AI] [Avatar: You] [Avatar: Bob] [+ Invite]
+```
+
+- Circular avatars (32x32pt)
+- AI has indigo background with sparkles icon
+- Techs have primary background with person icon
+- Online indicator (green dot) for active participants
+- "Invite" button to add more techs
+
+**MessageBubble** - Color-coded by participant role:
+
+- **Primary tech** (session creator): Blue (#2563eb)
+- **Invited techs**: Purple (#9333ea)
+- **AI**: Indigo (#6366f1)
+- **System messages**: Gray, centered
+
+```tsx
+{
+  /* Sender name (only in collaborative mode) */
+}
+{
+  isCollaborative && !isOwnMessage && (
+    <Text style={[styles.senderName, { color: getSenderColor(role) }]}>{senderName}</Text>
+  );
+}
+
+{
+  /* Message bubble with role-based color */
+}
+<View style={[styles.bubble, { backgroundColor: getBubbleColor(role) }]}>
+  <Text>{content}</Text>
+</View>;
+```
+
+**InviteTechnicianModal** - Bottom sheet to select technician:
+
+- Lists available technicians (excluding current participants)
+- Shows role, certifications, online status
+- Search/filter functionality
+- Invite button sends invitation immediately
+
+### React Query Hooks
+
+```typescript
+// Invite technician
+export function useInviteTechnician() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sessionId, technicianId, technicianName }) =>
+      diagnosticService.inviteTechnician(
+        sessionId,
+        technicianId,
+        technicianName,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`
+      ),
+    onSuccess: (session) => {
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+    },
+  });
+}
+
+// Leave session
+export function useLeaveSession() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => diagnosticService.leaveSession(sessionId, user!.id),
+    onSuccess: (session) => {
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+    },
+  });
+}
+```
+
+### System Messages
+
+Special messages for join/leave events:
+
+```
+• Alice Johnson joined the conversation
+• Bob Wilson left the conversation
+```
+
+- Centered, italic, gray text
+- Small font size
+- Timestamp in parentheses
+- No bubble, no sender attribution
+
+### 3-Way Conversation Example
+
+```
+[Alice - Blue bubble]
+The AC unit isn't cooling properly. Compressor is running but no cold air.
+
+[AI - Indigo bubble]
+Let's check the refrigerant level first. What's the pressure reading on the suction line?
+
+[Alice - Blue bubble]
+I don't have a gauge with me. Should I get one?
+
+[Bob - Purple bubble]
+@Alice I'm nearby and have a gauge. What's the address? I can help.
+
+[Alice - Blue bubble]
+123 Main St. Thanks Bob!
+
+[AI - Indigo bubble]
+Great teamwork. Bob, when you arrive, check both suction and discharge pressures.
+```
 
 ## Deployment Architecture
 
