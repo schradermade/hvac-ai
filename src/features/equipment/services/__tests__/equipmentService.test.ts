@@ -13,7 +13,7 @@ describe('EquipmentService', () => {
       const mockData = [{ id: '1' }, { id: '2' }];
       (apiClient.get as jest.Mock).mockResolvedValue(mockData);
 
-      const result = await equipmentService.getAll();
+      const result = await equipmentService.getAll('company_test_1');
 
       expect(apiClient.get).toHaveBeenCalledWith('/equipment');
       expect(result).toEqual(mockData);
@@ -40,7 +40,7 @@ describe('EquipmentService', () => {
       const mockResponse = { id: '1', ...formData };
       (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
 
-      const result = await equipmentService.create(formData as any);
+      const result = await equipmentService.create('company_test_1', formData as any);
 
       expect(apiClient.post).toHaveBeenCalledWith('/equipment', formData);
       expect(result).toEqual(mockResponse);

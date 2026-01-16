@@ -33,7 +33,7 @@ export async function migrateEquipmentToClients(): Promise<void> {
  * Check if migration is needed
  * Returns true if there is any equipment without clientId
  */
-export async function needsEquipmentMigration(): Promise<boolean> {
-  const { items } = await equipmentService.getAll();
+export async function needsEquipmentMigration(companyId: string): Promise<boolean> {
+  const { items } = await equipmentService.getAll(companyId);
   return items.some((eq) => !eq.clientId);
 }

@@ -24,6 +24,7 @@ class JobService {
 
     const testJobs: Job[] = [
       {
+        companyId: 'company_test_1',
         id: 'job_test_1',
         clientId: 'client_test_1',
         type: 'maintenance',
@@ -36,6 +37,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_2',
         clientId: 'client_test_2',
         type: 'repair',
@@ -48,6 +50,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_3',
         clientId: 'client_test_3',
         type: 'installation',
@@ -60,6 +63,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_4',
         clientId: 'client_test_4',
         type: 'inspection',
@@ -72,6 +76,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_5',
         clientId: 'client_test_5',
         type: 'emergency',
@@ -84,6 +89,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_6',
         clientId: 'client_test_6',
         type: 'maintenance',
@@ -96,6 +102,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_7',
         clientId: 'client_test_7',
         type: 'repair',
@@ -108,6 +115,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_8',
         clientId: 'client_test_8',
         type: 'maintenance',
@@ -120,6 +128,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_9',
         clientId: 'client_test_9',
         type: 'inspection',
@@ -132,6 +141,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_10',
         clientId: 'client_test_10',
         type: 'repair',
@@ -144,6 +154,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_11',
         clientId: 'client_test_11',
         type: 'installation',
@@ -156,6 +167,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_12',
         clientId: 'client_test_12',
         type: 'maintenance',
@@ -168,6 +180,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_13',
         clientId: 'client_test_13',
         type: 'repair',
@@ -180,6 +193,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_14',
         clientId: 'client_test_14',
         type: 'inspection',
@@ -192,6 +206,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_15',
         clientId: 'client_test_15',
         type: 'maintenance',
@@ -204,6 +219,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_16',
         clientId: 'client_test_16',
         type: 'repair',
@@ -216,6 +232,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_17',
         clientId: 'client_test_17',
         type: 'emergency',
@@ -228,6 +245,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_18',
         clientId: 'client_test_18',
         type: 'maintenance',
@@ -240,6 +258,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_19',
         clientId: 'client_test_19',
         type: 'installation',
@@ -252,6 +271,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_20',
         clientId: 'client_test_20',
         type: 'repair',
@@ -264,6 +284,7 @@ class JobService {
         updatedAt: new Date(),
       },
       {
+        companyId: 'company_test_1',
         id: 'job_test_21',
         clientId: 'client_test_22',
         type: 'maintenance',

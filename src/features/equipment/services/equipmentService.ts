@@ -14,14 +14,14 @@ class EquipmentService {
   private idCounter = 0;
 
   /**
-   * Get all equipment
+   * Get all equipment for a company
    */
-  async getAll(): Promise<EquipmentListResponse> {
+  async getAll(companyId: string): Promise<EquipmentListResponse> {
     await this.delay(300);
 
-    const items = Array.from(this.equipment.values()).sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
-    );
+    const items = Array.from(this.equipment.values())
+      .filter((eq) => eq.companyId === companyId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return {
       items,
@@ -46,11 +46,11 @@ class EquipmentService {
   /**
    * Get equipment by client ID
    */
-  async getByClient(clientId: string): Promise<EquipmentListResponse> {
+  async getByClient(companyId: string, clientId: string): Promise<EquipmentListResponse> {
     await this.delay(300);
 
     const items = Array.from(this.equipment.values())
-      .filter((eq) => eq.clientId === clientId)
+      .filter((eq) => eq.companyId === companyId && eq.clientId === clientId)
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return {
@@ -87,7 +87,7 @@ class EquipmentService {
   /**
    * Create new equipment
    */
-  async create(data: EquipmentFormData): Promise<Equipment> {
+  async create(companyId: string, data: EquipmentFormData): Promise<Equipment> {
     await this.delay(400);
 
     this.idCounter++;
@@ -95,6 +95,7 @@ class EquipmentService {
 
     const equipment: Equipment = {
       id: `eq_${this.idCounter}`,
+      companyId,
       ...data,
       createdAt: now,
       updatedAt: now,

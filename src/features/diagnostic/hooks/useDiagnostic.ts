@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/providers';
 import { diagnosticService } from '../services/diagnosticService';
 import type { Message, SendMessageRequest, DiagnosticMode, EquipmentContext } from '../types';
 
@@ -102,15 +103,19 @@ export function useDiagnosticChat(initialMode: DiagnosticMode = 'expert') {
 // ============================================================================
 
 const QUERY_KEYS = {
-  sessions: ['diagnostic', 'sessions'] as const,
-  session: (id: string) => ['diagnostic', 'sessions', id] as const,
-  clientSessions: (clientId: string) => ['diagnostic', 'sessions', 'client', clientId] as const,
+  all: ['diagnostic', 'sessions'] as const,
+  lists: () => [...QUERY_KEYS.all, 'list'] as const,
+  list: (companyId: string) => [...QUERY_KEYS.lists(), companyId] as const,
+  session: (id: string) => [...QUERY_KEYS.all, 'detail', id] as const,
+  clientSessions: (companyId: string, clientId: string) =>
+    [...QUERY_KEYS.lists(), companyId, 'client', clientId] as const,
 };
 
 /**
  * Create a new diagnostic session
  */
 export function useCreateSession() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -124,11 +129,13 @@ export function useCreateSession() {
       mode?: DiagnosticMode;
       jobId?: string;
       equipmentId?: string;
-    }) => diagnosticService.createSession(clientId, mode, jobId, equipmentId),
+    }) => diagnosticService.createSession(user!.companyId, clientId, mode, jobId, equipmentId),
     onSuccess: (session) => {
       // Invalidate sessions list
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.clientSessions(session.companyId, session.clientId),
+      });
       // Set the new session in cache
       queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
     },
@@ -150,10 +157,12 @@ export function useSession(sessionId: string, enabled = true) {
  * Get all diagnostic sessions for a client
  */
 export function useSessionsByClient(clientId: string, enabled = true) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: QUERY_KEYS.clientSessions(clientId),
-    queryFn: () => diagnosticService.getSessionsByClient(clientId),
-    enabled: enabled && !!clientId,
+    queryKey: QUERY_KEYS.clientSessions(user?.companyId || '', clientId),
+    queryFn: () => diagnosticService.getSessionsByClient(user!.companyId, clientId),
+    enabled: enabled && !!clientId && !!user?.companyId,
   });
 }
 
@@ -161,10 +170,12 @@ export function useSessionsByClient(clientId: string, enabled = true) {
  * Get all diagnostic sessions (for history view)
  */
 export function useAllSessions(enabled = true) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: QUERY_KEYS.sessions,
-    queryFn: () => diagnosticService.getAllSessions(),
-    enabled,
+    queryKey: QUERY_KEYS.list(user?.companyId || ''),
+    queryFn: () => diagnosticService.getAllSessions(user!.companyId),
+    enabled: enabled && !!user?.companyId,
   });
 }
 
@@ -181,8 +192,10 @@ export function useAddMessageToSession() {
       // Update the session in cache
       queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
       // Invalidate lists
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.clientSessions(session.companyId, session.clientId),
+      });
     },
   });
 }
@@ -200,8 +213,10 @@ export function useCompleteSession() {
       // Update the session in cache
       queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
       // Invalidate lists
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sessions });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clientSessions(session.clientId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.clientSessions(session.companyId, session.clientId),
+      });
     },
   });
 }

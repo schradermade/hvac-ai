@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/providers';
 import { equipmentService } from '../services/equipmentService';
 import type { EquipmentFormData } from '../types';
 
@@ -8,8 +9,10 @@ import type { EquipmentFormData } from '../types';
 const equipmentKeys = {
   all: ['equipment'] as const,
   lists: () => [...equipmentKeys.all, 'list'] as const,
-  list: (filters: string) => [...equipmentKeys.lists(), { filters }] as const,
-  byClient: (clientId: string) => [...equipmentKeys.lists(), 'client', clientId] as const,
+  list: (companyId: string, filters: string) =>
+    [...equipmentKeys.lists(), companyId, { filters }] as const,
+  byClient: (companyId: string, clientId: string) =>
+    [...equipmentKeys.lists(), companyId, 'client', clientId] as const,
   details: () => [...equipmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...equipmentKeys.details(), id] as const,
 };
@@ -18,9 +21,12 @@ const equipmentKeys = {
  * Hook for getting all equipment items
  */
 export function useEquipmentList() {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: equipmentKeys.lists(),
-    queryFn: () => equipmentService.getAll(),
+    queryKey: equipmentKeys.list(user?.companyId || '', ''),
+    queryFn: () => equipmentService.getAll(user!.companyId),
+    enabled: !!user?.companyId,
   });
 }
 
@@ -39,10 +45,12 @@ export function useEquipment(id: string) {
  * Hook for getting equipment by client
  */
 export function useEquipmentByClient(clientId: string) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: equipmentKeys.byClient(clientId),
-    queryFn: () => equipmentService.getByClient(clientId),
-    enabled: !!clientId,
+    queryKey: equipmentKeys.byClient(user?.companyId || '', clientId),
+    queryFn: () => equipmentService.getByClient(user!.companyId, clientId),
+    enabled: !!user?.companyId && !!clientId,
   });
 }
 
@@ -50,10 +58,11 @@ export function useEquipmentByClient(clientId: string) {
  * Hook for creating equipment
  */
 export function useCreateEquipment() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: EquipmentFormData) => equipmentService.create(data),
+    mutationFn: (data: EquipmentFormData) => equipmentService.create(user!.companyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
     },
@@ -102,7 +111,7 @@ export function useAssignEquipment() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: equipmentKeys.detail(variables.equipmentId) });
       queryClient.invalidateQueries({ queryKey: equipmentKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: equipmentKeys.byClient(variables.clientId) });
+      queryClient.invalidateQueries({ queryKey: equipmentKeys.byClient('', variables.clientId) });
     },
   });
 }

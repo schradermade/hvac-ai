@@ -63,6 +63,7 @@ class ClientService {
         updatedAt: new Date('2024-01-15'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_2',
         name: 'Sarah Johnson',
         phone: '555-234-5678',
@@ -76,6 +77,7 @@ class ClientService {
         updatedAt: new Date('2024-02-01'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_3',
         name: 'Michael Chen',
         phone: '555-345-6789',
@@ -90,6 +92,7 @@ class ClientService {
         updatedAt: new Date('2024-01-20'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_4',
         name: 'Emily Rodriguez',
         phone: '555-456-7890',
@@ -104,6 +107,7 @@ class ClientService {
         updatedAt: new Date('2024-03-10'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_5',
         name: 'David Wilson',
         phone: '555-567-8901',
@@ -116,6 +120,7 @@ class ClientService {
         updatedAt: new Date('2024-02-15'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_6',
         name: 'Jennifer Martinez',
         phone: '555-678-9012',
@@ -129,6 +134,7 @@ class ClientService {
         updatedAt: new Date('2024-01-25'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_7',
         name: 'Robert Taylor',
         phone: '555-789-0123',
@@ -144,6 +150,7 @@ class ClientService {
         updatedAt: new Date('2024-03-01'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_8',
         name: 'Amanda Brown',
         phone: '555-890-1234',
@@ -157,6 +164,7 @@ class ClientService {
         updatedAt: new Date('2024-02-20'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_9',
         name: 'Christopher Lee',
         phone: '555-901-2345',
@@ -170,6 +178,7 @@ class ClientService {
         updatedAt: new Date('2024-03-15'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_10',
         name: 'Lisa Anderson',
         phone: '555-012-3456',
@@ -184,6 +193,7 @@ class ClientService {
         updatedAt: new Date('2024-01-30'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_11',
         name: 'James Thompson',
         phone: '555-123-7890',
@@ -197,6 +207,7 @@ class ClientService {
         updatedAt: new Date('2024-02-25'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_12',
         name: 'Patricia Garcia',
         phone: '555-234-8901',
@@ -210,6 +221,7 @@ class ClientService {
         updatedAt: new Date('2024-03-05'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_13',
         name: 'Daniel White',
         phone: '555-345-9012',
@@ -224,6 +236,7 @@ class ClientService {
         updatedAt: new Date('2024-01-10'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_14',
         name: 'Jessica Harris',
         phone: '555-456-0123',
@@ -238,6 +251,7 @@ class ClientService {
         updatedAt: new Date('2024-02-10'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_15',
         name: 'Matthew Clark',
         phone: '555-567-1234',
@@ -251,6 +265,7 @@ class ClientService {
         updatedAt: new Date('2024-03-20'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_16',
         name: 'Michelle Lewis',
         phone: '555-678-2345',
@@ -264,6 +279,7 @@ class ClientService {
         updatedAt: new Date('2024-02-05'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_17',
         name: 'Kevin Walker',
         phone: '555-789-3456',
@@ -279,6 +295,7 @@ class ClientService {
         updatedAt: new Date('2024-01-05'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_18',
         name: 'Nancy Hall',
         phone: '555-890-4567',
@@ -292,6 +309,7 @@ class ClientService {
         updatedAt: new Date('2024-03-12'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_19',
         name: 'Steven Young',
         phone: '555-901-5678',
@@ -306,6 +324,7 @@ class ClientService {
         updatedAt: new Date('2024-02-28'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_20',
         name: 'Karen King',
         phone: '555-012-6789',
@@ -320,6 +339,7 @@ class ClientService {
         updatedAt: new Date('2024-01-22'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_21',
         name: 'Brian Scott',
         phone: '555-123-9876',
@@ -334,6 +354,7 @@ class ClientService {
         updatedAt: new Date('2024-03-25'),
       },
       {
+        companyId: 'company_test_1',
         id: 'client_test_22',
         name: 'Margaret Wilson',
         phone: '555-234-5678',

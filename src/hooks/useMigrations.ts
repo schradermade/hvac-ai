@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/providers';
 import {
   migrateEquipmentToClients,
   needsEquipmentMigration,
@@ -15,14 +16,20 @@ import {
  * - error: any error that occurred during migration
  */
 export function useMigrations() {
+  const { user } = useAuth();
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function runMigrations() {
+      if (!user?.companyId) {
+        setIsComplete(true);
+        return;
+      }
+
       try {
         // Check if equipment migration is needed
-        const needsMigration = await needsEquipmentMigration();
+        const needsMigration = await needsEquipmentMigration(user.companyId);
 
         if (needsMigration) {
           console.log('[App] Running equipment migration...');
@@ -37,7 +44,7 @@ export function useMigrations() {
     }
 
     runMigrations();
-  }, []);
+  }, [user?.companyId]);
 
   return { isComplete, error };
 }

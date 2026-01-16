@@ -258,6 +258,7 @@ class DiagnosticService {
    * Create a new diagnostic session
    */
   async createSession(
+    companyId: string,
     clientId: string,
     mode: DiagnosticMode = 'expert',
     jobId?: string,
@@ -270,6 +271,7 @@ class DiagnosticService {
 
     const session: DiagnosticSession = {
       id: `session_${this.sessionIdCounter}`,
+      companyId,
       clientId,
       jobId,
       equipmentId,
@@ -300,11 +302,14 @@ class DiagnosticService {
   /**
    * Get all diagnostic sessions for a client
    */
-  async getSessionsByClient(clientId: string): Promise<DiagnosticSessionListResponse> {
+  async getSessionsByClient(
+    companyId: string,
+    clientId: string
+  ): Promise<DiagnosticSessionListResponse> {
     await this.delay(200);
 
     const items = Array.from(this.sessions.values())
-      .filter((session) => session.clientId === clientId)
+      .filter((session) => session.companyId === companyId && session.clientId === clientId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return {
@@ -316,12 +321,12 @@ class DiagnosticService {
   /**
    * Get all diagnostic sessions (for history view)
    */
-  async getAllSessions(): Promise<DiagnosticSessionListResponse> {
+  async getAllSessions(companyId: string): Promise<DiagnosticSessionListResponse> {
     await this.delay(200);
 
-    const items = Array.from(this.sessions.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    const items = Array.from(this.sessions.values())
+      .filter((session) => session.companyId === companyId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return {
       items,
