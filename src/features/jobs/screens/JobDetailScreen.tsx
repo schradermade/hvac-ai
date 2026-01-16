@@ -16,6 +16,10 @@ import { colors, spacing, typography, borderRadius, shadows } from '@/components
 import { useJob, useUpdateJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
 import { useEquipment } from '@/features/equipment';
+import { useAuth } from '@/providers';
+import { AssignJobModal } from '../components/AssignJobModal';
+import { JobActionButtons } from '../components/JobActionButtons';
+import { JobAssignmentBadge } from '../components/JobAssignmentBadge';
 import type { RootStackParamList } from '@/navigation/types';
 import type { AppointmentStatus, JobType } from '../types';
 
@@ -35,12 +39,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
  */
 export function JobDetailScreen({ route, navigation }: Props) {
   const { jobId } = route.params;
+  const { user } = useAuth();
   const { data: job, isLoading: loadingJob } = useJob(jobId);
   const { data: client, isLoading: loadingClient } = useClient(job?.clientId || '');
   const { data: equipment, isLoading: loadingEquipment } = useEquipment(job?.equipmentId || '');
   const updateJobMutation = useUpdateJob();
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [assignModalVisible, setAssignModalVisible] = useState(false);
 
   if (loadingJob) {
     return (
@@ -168,6 +174,17 @@ export function JobDetailScreen({ route, navigation }: Props) {
   const formatDateTime = (date: Date) => {
     return `${formatDate(date)} at ${formatTime(date)}`;
   };
+
+  // Assignment handlers
+  const handleAssignJob = () => {
+    setAssignModalVisible(true);
+  };
+
+  // Determine user permissions and job state
+  const isAdmin = user?.role === 'admin' || user?.role === 'lead_tech';
+  const isAssignedToUser = job.assignment?.technicianId === user?.id;
+  const canAcceptOrDecline =
+    isAssignedToUser && (job.status === 'assigned' || job.status === 'unassigned');
 
   const statusColor = getStatusColor(job.status);
   const canStartJob = job.status === 'scheduled';
@@ -301,6 +318,62 @@ export function JobDetailScreen({ route, navigation }: Props) {
                 </View>
               )}
             </View>
+          </Card>
+        </View>
+
+        {/* Assignment Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderContainer}>
+            <Ionicons name="person-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Assignment</Text>
+          </View>
+
+          <Card style={styles.infoCard}>
+            {job.assignment ? (
+              <View style={styles.assignmentContent}>
+                {/* Assignment Info */}
+                <View style={styles.assignmentInfo}>
+                  <View style={styles.assignmentAvatarContainer}>
+                    <Ionicons name="person" size={24} color={colors.primary} />
+                  </View>
+                  <View style={styles.assignmentDetails}>
+                    <Text style={styles.assignmentName}>{job.assignment.technicianName}</Text>
+                    <JobAssignmentBadge status={job.status} />
+                    <Text style={styles.assignmentMeta}>
+                      Assigned {formatDateTime(job.assignment.assignedAt)}
+                    </Text>
+                    <Text style={styles.assignmentMeta}>By: {job.assignment.assignedByName}</Text>
+                  </View>
+                </View>
+
+                {/* Accept/Decline Buttons (only for assigned technician) */}
+                {canAcceptOrDecline && (
+                  <View style={styles.assignmentActions}>
+                    <JobActionButtons job={job} currentUserId={user?.id || ''} />
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View style={styles.unassignedContent}>
+                <Ionicons name="person-add-outline" size={48} color={colors.textMuted} />
+                <Text style={styles.unassignedTitle}>Unassigned</Text>
+                <Text style={styles.unassignedHint}>
+                  This job has not been assigned to a technician yet
+                </Text>
+
+                {/* Assign Button (only for admins) */}
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={styles.assignButton}
+                    onPress={handleAssignJob}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="person-add" size={20} color={colors.surface} />
+                    <Text style={styles.assignButtonText}>Assign Technician</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </Card>
         </View>
 
@@ -463,6 +536,13 @@ export function JobDetailScreen({ route, navigation }: Props) {
           </Card>
         </View>
       </ScrollView>
+
+      {/* Assignment Modal */}
+      <AssignJobModal
+        visible={assignModalVisible}
+        jobId={job.id}
+        onClose={() => setAssignModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -777,5 +857,72 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.textPrimary,
     lineHeight: 20,
+  },
+  // Assignment section styles
+  assignmentContent: {
+    gap: spacing[4],
+  },
+  assignmentInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[3],
+  },
+  assignmentAvatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assignmentDetails: {
+    flex: 1,
+    gap: spacing[2],
+  },
+  assignmentName: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  assignmentMeta: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  assignmentActions: {
+    paddingTop: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  unassignedContent: {
+    alignItems: 'center',
+    paddingVertical: spacing[8],
+    gap: spacing[3],
+  },
+  unassignedTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  unassignedHint: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: spacing[4],
+  },
+  assignButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[6],
+    borderRadius: borderRadius.base,
+    gap: spacing[2],
+    marginTop: spacing[4],
+  },
+  assignButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.surface,
   },
 });
