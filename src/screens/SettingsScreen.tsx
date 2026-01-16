@@ -21,7 +21,7 @@ import Constants from 'expo-constants';
  */
 // eslint-disable-next-line no-unused-vars
 export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const buildNumber = Constants.expoConfig?.extra?.buildNumber || '1';
@@ -67,6 +67,24 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
       'HVACOps is a professional diagnostic assistant for HVAC technicians, providing on-demand technical support and calculations in the field.',
       [{ text: 'OK' }]
     );
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error('Logout error:', error);
+            Alert.alert('Error', 'Failed to sign out. Please try again.');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -269,6 +287,27 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
           </Card>
         </View>
 
+        {/* Account Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="log-out-outline" size={24} color={colors.error} />
+            <Text style={styles.sectionTitle}>Account</Text>
+          </View>
+
+          <Card style={styles.card}>
+            <TouchableOpacity style={styles.settingItem} onPress={handleLogout} activeOpacity={0.7}>
+              <View style={[styles.settingIconContainer, styles.logoutIconContainer]}>
+                <Ionicons name="log-out-outline" size={20} color={colors.error} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingTitle, styles.logoutText]}>Sign Out</Text>
+                <Text style={styles.settingSubtitle}>Sign out of your account</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Made with precision for HVAC professionals</Text>
@@ -449,5 +488,11 @@ const styles = StyleSheet.create({
   profileMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  logoutIconContainer: {
+    backgroundColor: colors.error + '10',
+  },
+  logoutText: {
+    color: colors.error,
   },
 });
