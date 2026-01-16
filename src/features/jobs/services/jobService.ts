@@ -618,6 +618,141 @@ class JobService {
   }
 
   /**
+   * Get jobs assigned to a specific technician
+   */
+  async getByTechnician(companyId: string, technicianId: string): Promise<JobListResponse> {
+    await this.delay(300);
+
+    const items = Array.from(this.jobs.values())
+      .filter((job) => job.companyId === companyId && job.assignment?.technicianId === technicianId)
+      .sort((a, b) => a.scheduledStart.getTime() - b.scheduledStart.getTime());
+
+    return {
+      items,
+      total: items.length,
+    };
+  }
+
+  /**
+   * Assign job to a technician (admin action)
+   */
+  async assign(
+    jobId: string,
+    technicianId: string,
+    technicianName: string,
+    assignedBy: string,
+    assignedByName: string
+  ): Promise<Job> {
+    await this.delay(400);
+
+    const job = await this.getById(jobId);
+
+    const updated: Job = {
+      ...job,
+      status: 'assigned',
+      assignment: {
+        technicianId,
+        technicianName,
+        assignedAt: new Date(),
+        assignedBy,
+        assignedByName,
+      },
+      modifiedBy: assignedBy,
+      modifiedByName: assignedByName,
+      updatedAt: new Date(),
+    };
+
+    this.jobs.set(jobId, updated);
+    return updated;
+  }
+
+  /**
+   * Technician accepts assigned job
+   */
+  async accept(jobId: string, technicianId: string): Promise<Job> {
+    await this.delay(400);
+
+    const job = await this.getById(jobId);
+
+    if (!job.assignment) {
+      throw new Error('Job is not assigned');
+    }
+
+    if (job.assignment.technicianId !== technicianId) {
+      throw new Error('Job is not assigned to this technician');
+    }
+
+    const updated: Job = {
+      ...job,
+      status: 'accepted',
+      assignment: {
+        ...job.assignment,
+        acceptedAt: new Date(),
+      },
+      modifiedBy: technicianId,
+      modifiedByName: job.assignment.technicianName,
+      updatedAt: new Date(),
+    };
+
+    this.jobs.set(jobId, updated);
+    return updated;
+  }
+
+  /**
+   * Technician declines assigned job
+   */
+  async decline(jobId: string, technicianId: string, reason?: string): Promise<Job> {
+    await this.delay(400);
+
+    const job = await this.getById(jobId);
+
+    if (!job.assignment) {
+      throw new Error('Job is not assigned');
+    }
+
+    if (job.assignment.technicianId !== technicianId) {
+      throw new Error('Job is not assigned to this technician');
+    }
+
+    const updated: Job = {
+      ...job,
+      status: 'declined',
+      assignment: {
+        ...job.assignment,
+        declinedAt: new Date(),
+        declineReason: reason,
+      },
+      modifiedBy: technicianId,
+      modifiedByName: job.assignment.technicianName,
+      updatedAt: new Date(),
+    };
+
+    this.jobs.set(jobId, updated);
+    return updated;
+  }
+
+  /**
+   * Unassign job (admin action)
+   */
+  async unassign(jobId: string, adminId: string, adminName: string): Promise<Job> {
+    await this.delay(400);
+
+    const job = await this.getById(jobId);
+
+    const updated: Job = {
+      ...job,
+      status: 'unassigned',
+      assignment: undefined,
+      modifiedBy: adminId,
+      modifiedByName: adminName,
+      updatedAt: new Date(),
+    };
+
+    this.jobs.set(jobId, updated);
+    return updated;
+  }
+
+  /**
    * Simulate network delay
    */
   private delay(ms: number): Promise<void> {

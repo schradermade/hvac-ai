@@ -11,11 +11,29 @@ export type JobType = 'maintenance' | 'repair' | 'installation' | 'inspection' |
  * Appointment status
  */
 export type AppointmentStatus =
-  | 'scheduled'
+  | 'unassigned' // Not assigned to any technician
+  | 'assigned' // Assigned but not accepted
+  | 'accepted' // Tech accepted the job
+  | 'declined' // Tech declined the job
+  | 'scheduled' // Scheduled and ready
   | 'in_progress'
   | 'completed'
   | 'cancelled'
   | 'rescheduled';
+
+/**
+ * Job assignment information
+ */
+export interface JobAssignment {
+  technicianId: string;
+  technicianName: string;
+  assignedAt: Date;
+  assignedBy: string; // Admin who assigned
+  assignedByName: string;
+  acceptedAt?: Date;
+  declinedAt?: Date;
+  declineReason?: string;
+}
 
 /**
  * Job/Appointment entity
@@ -34,6 +52,9 @@ export interface Job extends Auditable {
   actualEnd?: Date;
   description: string;
   notes?: string;
+
+  // Assignment info
+  assignment?: JobAssignment;
 
   // Future sync preparation
   syncedAt?: Date;

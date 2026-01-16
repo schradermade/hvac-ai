@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClient } from '@/features/clients';
+import { JobAssignmentBadge } from './JobAssignmentBadge';
 import type { Job } from '../types';
 
 /**
@@ -34,24 +35,6 @@ export function JobCard({ job, onPress }: JobCardProps) {
     hour: 'numeric',
     minute: '2-digit',
   });
-
-  // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return colors.success;
-      case 'in_progress':
-        return colors.primary;
-      case 'scheduled':
-        return colors.primary;
-      case 'cancelled':
-        return colors.error;
-      default:
-        return colors.textSecondary;
-    }
-  };
-
-  const statusColor = getStatusColor(job.status);
 
   // Get icon based on job type
   const getJobIcon = (type: string): keyof typeof Ionicons.glyphMap => {
@@ -108,6 +91,21 @@ export function JobCard({ job, onPress }: JobCardProps) {
             </Text>
           </View>
 
+          {/* Assignment info */}
+          {job.assignment && (
+            <View style={styles.detailRow}>
+              <Ionicons
+                name="person-circle"
+                size={14}
+                color={colors.textSecondary}
+                style={styles.detailIcon}
+              />
+              <Text style={styles.detailText} numberOfLines={1}>
+                Assigned to: {job.assignment.technicianName}
+              </Text>
+            </View>
+          )}
+
           {/* Description */}
           {job.description && (
             <Text style={styles.description} numberOfLines={2}>
@@ -118,13 +116,8 @@ export function JobCard({ job, onPress }: JobCardProps) {
 
         {/* Right side: status badge and chevron aligned vertically */}
         <View style={styles.rightSide}>
-          {/* Status badge at top */}
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {job.status.replace('_', ' ')}
-            </Text>
-          </View>
+          {/* Assignment Status badge at top */}
+          <JobAssignmentBadge status={job.status} />
 
           {/* Chevron at bottom */}
           {onPress && (
@@ -168,30 +161,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: spacing[1],
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: borderRadius.sm,
-  },
   rightSide: {
     flex: 0,
     justifyContent: 'flex-start',
     alignItems: 'center',
     alignSelf: 'stretch',
     gap: spacing[2],
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    textTransform: 'capitalize',
   },
   detailRow: {
     flexDirection: 'row',
