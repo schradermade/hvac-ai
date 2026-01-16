@@ -211,11 +211,10 @@ export function TodaysJobsScreen() {
         )}
       </View>
 
-      {/* Floating Create Button */}
+      {/* Floating Action Button */}
       {hasAnyJobs && (
-        <TouchableOpacity style={styles.floatingButton} onPress={handleAdd} activeOpacity={0.8}>
-          <Ionicons name="add" size={20} color={colors.surface} />
-          <Text style={styles.floatingButtonText}>Create Job</Text>
+        <TouchableOpacity style={styles.fab} onPress={handleAdd} activeOpacity={0.8}>
+          <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       )}
 
@@ -396,26 +395,21 @@ const styles = StyleSheet.create({
     paddingTop: spacing[4],
     paddingBottom: spacing[20],
   },
-  floatingButton: {
+  fab: {
     position: 'absolute',
+    right: spacing[4],
     bottom: spacing[4],
-    left: '30%',
-    right: '30%',
-    flexDirection: 'row',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.primary,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderRadius: borderRadius.lg,
-    minHeight: 56,
-    ...shadows.lg,
-  },
-  floatingButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
   },
   modalContainer: {
     flex: 1,
