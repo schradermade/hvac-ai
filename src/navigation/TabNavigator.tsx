@@ -13,10 +13,11 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 /**
  * TabNavigator
  *
- * Main navigation structure with 4 tabs:
+ * Main navigation structure with 5 tabs:
  * - Jobs: Today's scheduled jobs (main entry point)
  * - Clients: Customer management
- * - AI: Past diagnostic sessions and AI conversations
+ * - Copilot: AI diagnostic assistant (center focal point)
+ * - Team: Technician directory and collaboration
  * - Settings: App preferences
  *
  * Follows design principles:
@@ -24,6 +25,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  * - Clear labels (no mystery meat navigation)
  * - Uses design tokens for consistency
  * - Proper touch targets
+ * - AI Copilot positioned centrally for easy access
  */
 export function TabNavigator() {
   return (
@@ -77,17 +79,6 @@ export function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Technicians"
-        component={TechnicianListScreen}
-        options={{
-          title: 'Technicians',
-          tabBarLabel: 'Team',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="people-circle-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="History"
         component={HistoryScreen}
         options={{
@@ -105,6 +96,17 @@ export function TabNavigator() {
             backgroundColor: colors.primaryLight + '30',
           },
           tabBarActiveBackgroundColor: '#9B9EF6',
+        }}
+      />
+      <Tab.Screen
+        name="Technicians"
+        component={TechnicianListScreen}
+        options={{
+          title: 'Technicians',
+          tabBarLabel: 'Team',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="people-circle-outline" size={22} color={color} />
+          ),
         }}
       />
       <Tab.Screen
