@@ -89,20 +89,36 @@ export function TodaysJobsScreen() {
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
 
   // Debug logging
-  console.log('DEBUG TodaysJobsScreen:', {
-    userId: user?.id,
-    jobFilter,
-    allJobsCount: allJobs.length,
-    myJobsCount: myJobs.length,
-    myJobsRawCount: myJobsData?.items?.length,
-    filteredJobsCount: filteredJobs.length,
-    sampleJob: myJobs[0]
-      ? {
-          id: myJobs[0].id,
-          assignedTo: myJobs[0].assignment?.technicianId,
-        }
-      : 'no jobs',
+  console.log('=== DEBUG TodaysJobsScreen ===');
+  console.log('Current user:', {
+    id: user?.id,
+    idType: typeof user?.id,
+    email: user?.email,
+    name: `${user?.firstName} ${user?.lastName}`,
+    role: user?.role,
+    companyId: user?.companyId,
   });
+  console.log('Job filter:', jobFilter);
+  console.log('Counts:', {
+    allJobsCount: allJobs.length,
+    myJobsFromQuery: myJobsData?.items?.length || 0,
+    myJobsAfterFilter: myJobs.length,
+    filteredJobsShown: filteredJobs.length,
+  });
+
+  if (myJobs.length > 0) {
+    console.log('Sample "My Job":', {
+      id: myJobs[0].id,
+      clientName: myJobs[0].clientName,
+      status: myJobs[0].status,
+      assignedTo: myJobs[0].assignment?.technicianId,
+      assignedName: myJobs[0].assignment?.technicianName,
+    });
+  } else {
+    console.log('No jobs in myJobs array');
+  }
+
+  console.log('================================');
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
