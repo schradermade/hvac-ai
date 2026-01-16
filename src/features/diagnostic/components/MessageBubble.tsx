@@ -9,7 +9,19 @@ import type { Message } from '../types';
  */
 interface MessageBubbleProps {
   message: Message;
+  isCollaborative: boolean;
+  currentUserId: string;
 }
+
+/**
+ * Role colors for collaborative chat
+ */
+const ROLE_COLORS = {
+  primary: '#2563eb', // Blue
+  invited: '#9333ea', // Purple
+  ai: '#6366f1', // Indigo
+  system: '#6b7280', // Gray
+};
 
 /**
  * MessageBubble component
@@ -17,45 +29,97 @@ interface MessageBubbleProps {
  * Professional message bubble with FAANG-level design:
  * - Avatar icons for user and assistant
  * - Different styling for user vs assistant messages
+ * - Sender attribution in collaborative mode
+ * - Color coding by participant role
+ * - System messages for join/leave events
  * - Loading indicator for assistant responses
  * - Timestamp display
  * - Proper spacing and shadows
  */
-export function MessageBubble({ message }: MessageBubbleProps) {
-  const isUser = message.role === 'user';
+export function MessageBubble({ message, isCollaborative, currentUserId }: MessageBubbleProps) {
+  const isOwnMessage = message.senderId === currentUserId;
+  const isAI = message.senderId === 'ai' || message.role === 'assistant';
+  const isSystem = message.senderId === 'system';
+
+  // System messages (join/leave events)
+  if (isSystem) {
+    return (
+      <View style={styles.systemMessageContainer}>
+        <Text style={styles.systemMessage}>{message.content}</Text>
+        <Text style={styles.systemTimestamp}>{formatTimestamp(message.timestamp)}</Text>
+      </View>
+    );
+  }
+
+  // Get color based on role
+  const getSenderColor = (): string => {
+    if (isAI) return ROLE_COLORS.ai;
+    if (message.senderRole === 'primary') return ROLE_COLORS.primary;
+    if (message.senderRole === 'invited') return ROLE_COLORS.invited;
+    return ROLE_COLORS.primary;
+  };
+
+  const getBubbleColor = (): string => {
+    if (isAI) return ROLE_COLORS.ai + '10'; // Indigo 10%
+    if (message.senderRole === 'primary') return ROLE_COLORS.primary + '10'; // Blue 10%
+    if (message.senderRole === 'invited') return ROLE_COLORS.invited + '10'; // Purple 10%
+    return ROLE_COLORS.primary + '10';
+  };
+
+  const senderColor = getSenderColor();
 
   return (
-    <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
+    <View
+      style={[styles.container, isOwnMessage ? styles.userContainer : styles.assistantContainer]}
+    >
+      {/* Sender name (only in collaborative mode for non-own messages) */}
+      {isCollaborative && !isOwnMessage && message.senderName && (
+        <Text style={[styles.senderName, { color: senderColor }]}>{message.senderName}</Text>
+      )}
+
       <View style={styles.messageRow}>
-        {!isUser && (
-          <View style={styles.avatarContainer}>
-            <Ionicons name="sparkles" size={20} color="#6366F1" />
+        {!isOwnMessage && (
+          <View style={[styles.avatarContainer, { backgroundColor: senderColor + '15' }]}>
+            {isAI ? (
+              <Ionicons name="sparkles" size={20} color={senderColor} />
+            ) : (
+              <Ionicons name="person" size={20} color={senderColor} />
+            )}
           </View>
         )}
 
         <View style={styles.contentContainer}>
-          <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+          <View
+            style={[
+              styles.bubble,
+              isOwnMessage && styles.userBubble,
+              !isOwnMessage && { backgroundColor: getBubbleColor() },
+            ]}
+          >
             {message.isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#6366F1" />
+                <ActivityIndicator size="small" color={senderColor} />
                 <Text style={styles.loadingText}>Thinking...</Text>
               </View>
             ) : (
-              <Text style={[styles.text, isUser ? styles.userText : styles.assistantText]}>
+              <Text style={[styles.text, isOwnMessage ? styles.userText : styles.assistantText]}>
                 {message.content}
               </Text>
             )}
           </View>
           <Text
-            style={[styles.timestamp, isUser ? styles.userTimestamp : styles.assistantTimestamp]}
+            style={[
+              styles.timestamp,
+              isOwnMessage ? styles.userTimestamp : styles.assistantTimestamp,
+            ]}
           >
             {formatTimestamp(message.timestamp)}
           </Text>
         </View>
 
-        {isUser && (
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={20} color="#FFFFFF" />
+        {isOwnMessage && (
+          <View style={[styles.avatarContainer, { backgroundColor: senderColor + '15' }]}>
+            <Ionicons name="person" size={20} color={colors.surface} />
           </View>
         )}
       </View>
@@ -87,6 +151,12 @@ const styles = StyleSheet.create({
   assistantContainer: {
     alignItems: 'flex-start',
   },
+  senderName: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: '600',
+    marginBottom: spacing[1],
+    marginLeft: 40, // Offset for avatar
+  },
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -97,7 +167,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: '#6366F1' + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing[1],
@@ -113,12 +182,6 @@ const styles = StyleSheet.create({
   userBubble: {
     backgroundColor: '#6366F1',
     borderBottomRightRadius: borderRadius.sm,
-  },
-  assistantBubble: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-    borderBottomLeftRadius: borderRadius.sm,
   },
   text: {
     fontSize: typography.fontSize.base,
@@ -150,5 +213,22 @@ const styles = StyleSheet.create({
   },
   assistantTimestamp: {
     textAlign: 'left',
+  },
+  // System messages
+  systemMessageContainer: {
+    alignItems: 'center',
+    marginVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+  },
+  systemMessage: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  systemTimestamp: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textTertiary,
+    marginTop: spacing[1],
   },
 });

@@ -6,6 +6,9 @@ import { useCreateSession, useSession, useAddMessageToSession } from '../hooks/u
 import { MessageList } from '../components/MessageList';
 import { ChatInput } from '../components/ChatInput';
 import { SessionContextHeader } from '../components/SessionContextHeader';
+import { ParticipantsList } from '../components/ParticipantsList';
+import { InviteTechnicianModal } from '../components/InviteTechnicianModal';
+import { useAuth } from '@/providers';
 import { spacing } from '@/components/ui';
 import type { RootStackParamList } from '@/navigation/types';
 
@@ -20,13 +23,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'DiagnosticChat'>;
  * Features:
  * - Context-aware AI assistant with client/job/equipment info
  * - Persistent sessions with message history
+ * - Collaborative multi-participant sessions with real-time chat
+ * - Invite technicians to join sessions
  * - Session completion and summary generation
  * - Seamless integration with job workflow
  */
 export function DiagnosticChatScreen({ route }: Props) {
   const { clientId, jobId, equipmentId, sessionId: existingSessionId } = route.params;
+  const { user } = useAuth();
 
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>(existingSessionId);
+  const [inviteModalVisible, setInviteModalVisible] = useState(false);
 
   // Session management
   const createSessionMutation = useCreateSession();
@@ -59,8 +66,12 @@ export function DiagnosticChatScreen({ route }: Props) {
     });
   };
 
+  const handleInvite = () => {
+    setInviteModalVisible(true);
+  };
+
   // Loading state
-  if (sessionLoading || !session) {
+  if (sessionLoading || !session || !user) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top', 'left', 'right']}>
         <ActivityIndicator size="large" color="#6366F1" />
@@ -73,11 +84,32 @@ export function DiagnosticChatScreen({ route }: Props) {
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <SessionContextHeader clientId={clientId} jobId={jobId} equipmentId={equipmentId} />
 
-      <MessageList messages={session.messages} />
+      {/* Participants list with invite button */}
+      <ParticipantsList
+        participants={session.participants}
+        currentUserId={user.id}
+        onInvite={handleInvite}
+      />
+
+      {/* Message list with collaborative support */}
+      <MessageList
+        messages={session.messages}
+        isCollaborative={session.isCollaborative}
+        currentUserId={user.id}
+      />
+
       <ChatInput
         onSend={handleSendMessage}
         disabled={addMessageMutation.isPending}
         placeholder="Ask about diagnostics, troubleshooting, or calculations..."
+      />
+
+      {/* Invite technician modal */}
+      <InviteTechnicianModal
+        sessionId={activeSessionId!}
+        currentParticipants={session.participants}
+        visible={inviteModalVisible}
+        onClose={() => setInviteModalVisible(false)}
       />
     </SafeAreaView>
   );

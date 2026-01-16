@@ -10,6 +10,8 @@ import type { Message } from '../types';
  */
 interface MessageListProps {
   messages: Message[];
+  isCollaborative: boolean;
+  currentUserId: string;
 }
 
 /**
@@ -18,9 +20,11 @@ interface MessageListProps {
  * Displays a scrollable list of chat messages with:
  * - Auto-scroll to bottom on new messages
  * - Empty state when no messages
+ * - Collaborative session support with sender attribution
+ * - Color-coded messages by participant role
  * - Optimized rendering with FlatList
  */
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, isCollaborative, currentUserId }: MessageListProps) {
   const flatListRef = useRef<FlatList>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -64,7 +68,13 @@ export function MessageList({ messages }: MessageListProps) {
       ref={flatListRef}
       data={messages}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <MessageBubble message={item} />}
+      renderItem={({ item }) => (
+        <MessageBubble
+          message={item}
+          isCollaborative={isCollaborative}
+          currentUserId={currentUserId}
+        />
+      )}
       contentContainerStyle={styles.listContent}
       style={styles.list}
       showsVerticalScrollIndicator={false}
