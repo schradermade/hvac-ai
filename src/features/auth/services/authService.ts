@@ -31,13 +31,41 @@ class AuthService {
 
     // For MVP, accept any email/password combination
     // In production, this will make an API call
-    const mockUser: AuthUser = {
+    // Check if email matches a test technician
+    const testUsers: Record<string, AuthUser> = {
+      'admin@test.com': {
+        id: 'tech_test_admin',
+        email: 'admin@test.com',
+        firstName: 'John',
+        lastName: 'Smith',
+        companyId: 'company_test_1',
+        role: 'admin',
+      },
+      'bob.wilson@test.com': {
+        id: 'tech_test_lead',
+        email: 'bob.wilson@test.com',
+        firstName: 'Bob',
+        lastName: 'Wilson',
+        companyId: 'company_test_1',
+        role: 'lead_tech',
+      },
+      'alice.johnson@test.com': {
+        id: 'tech_test_alice',
+        email: 'alice.johnson@test.com',
+        firstName: 'Alice',
+        lastName: 'Johnson',
+        companyId: 'company_test_1',
+        role: 'technician',
+      },
+    };
+
+    const mockUser: AuthUser = testUsers[credentials.email.toLowerCase()] || {
       id: 'user_' + Date.now(),
       email: credentials.email,
       firstName: 'Test',
       lastName: 'User',
       companyId: 'company_test_1',
-      role: 'admin', // Always admin for testing
+      role: 'admin', // Default to admin for unknown emails
     };
 
     const expiresAt = new Date();
