@@ -7,11 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { EmptyState, Button, Spinner, HeroSection } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
+import { useMyJobs } from '../hooks/useJobAssignment';
 import { JobCard } from '../components/JobCard';
 import { JobForm } from '../components/JobForm';
 import type { JobFormData, Job } from '../types';
 import type { RootStackParamList } from '@/navigation/types';
 import { useClientList } from '@/features/clients';
+import { useAuth } from '@/providers';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,10 +25,13 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
  */
 export function TodaysJobsScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [jobFilter, setJobFilter] = useState<'all' | 'my'>('all');
   const { data, isLoading } = useTodaysJobs();
+  const { data: myJobsData } = useMyJobs();
   const { data: clientsData } = useClientList();
   const createMutation = useCreateJob();
 
@@ -45,16 +50,21 @@ export function TodaysJobsScreen() {
     navigation.navigate('JobDetail', { jobId: job.id });
   };
 
-  // Filter jobs based on search query
+  // Filter jobs based on filter toggle and search query
   const filteredJobs = useMemo(() => {
     const allJobs = data?.items || [];
+    const myJobs = myJobsData?.items || [];
 
+    // First apply the "All" vs "My Jobs" filter
+    const jobsToShow = jobFilter === 'my' ? myJobs : allJobs;
+
+    // Then apply search query
     if (!searchQuery.trim()) {
-      return allJobs;
+      return jobsToShow;
     }
 
     const query = searchQuery.toLowerCase();
-    return allJobs.filter((job) => {
+    return jobsToShow.filter((job) => {
       const client = clients.find((c) => c.id === job.clientId);
       const clientName = client?.name.toLowerCase() || '';
       const jobType = job.type.toLowerCase();
@@ -62,7 +72,7 @@ export function TodaysJobsScreen() {
 
       return clientName.includes(query) || jobType.includes(query) || description.includes(query);
     });
-  }, [data?.items, searchQuery, clients]);
+  }, [data?.items, myJobsData?.items, searchQuery, clients, jobFilter]);
 
   if (isLoading) {
     return (
@@ -74,7 +84,9 @@ export function TodaysJobsScreen() {
 
   const jobs = filteredJobs;
   const allJobs = data?.items || [];
+  const myJobs = myJobsData?.items || [];
   const hasAnyJobs = allJobs.length > 0;
+  const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -140,6 +152,44 @@ export function TodaysJobsScreen() {
                   activeOpacity={0.7}
                 >
                   <Ionicons name="filter" size={20} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Filter Chips */}
+              <View style={styles.filterChips}>
+                <TouchableOpacity
+                  style={[styles.filterChip, jobFilter === 'all' && styles.filterChipActive]}
+                  onPress={() => setJobFilter('all')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      jobFilter === 'all' && styles.filterChipTextActive,
+                    ]}
+                  >
+                    All Jobs
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.filterChip, jobFilter === 'my' && styles.filterChipActive]}
+                  onPress={() => setJobFilter('my')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      jobFilter === 'my' && styles.filterChipTextActive,
+                    ]}
+                  >
+                    My Jobs
+                  </Text>
+                  {myJobsCount > 0 && (
+                    <View style={styles.filterChipBadge}>
+                      <Text style={styles.filterChipBadgeText}>{myJobsCount}</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -474,5 +524,49 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  // Filter chips
+  filterChips: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    gap: spacing[2],
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textPrimary,
+  },
+  filterChipTextActive: {
+    color: colors.surface,
+  },
+  filterChipBadge: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[1],
+  },
+  filterChipBadgeText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
   },
 });
