@@ -5,6 +5,8 @@
 export type {
   Message,
   MessageRole,
+  ParticipantRole,
+  Participant,
   DiagnosticMode,
   EquipmentContext,
   ChatSession,
@@ -23,6 +25,8 @@ export {
   useAllSessions,
   useAddMessageToSession,
   useCompleteSession,
+  useInviteTechnician,
+  useLeaveSession,
 } from './hooks/useDiagnostic';
 
 // Export screens

@@ -6,6 +6,7 @@ import type {
   DiagnosticSession,
   DiagnosticSessionListResponse,
   DiagnosticMode,
+  Participant,
 } from '../types';
 
 /**
@@ -271,6 +272,22 @@ class DiagnosticService {
     this.sessionIdCounter++;
     const now = new Date();
 
+    // Initialize participants with AI and creating technician
+    const participants: Participant[] = [
+      {
+        id: 'ai',
+        role: 'ai',
+        name: 'HVAC.ai',
+        joinedAt: now,
+      },
+      {
+        id: technicianId,
+        role: 'primary',
+        name: technicianName,
+        joinedAt: now,
+      },
+    ];
+
     const session: DiagnosticSession = {
       id: `session_${this.sessionIdCounter}`,
       companyId,
@@ -279,6 +296,8 @@ class DiagnosticService {
       equipmentId,
       messages: [],
       mode,
+      participants,
+      isCollaborative: false, // Only 1 human participant initially
       createdBy: technicianId,
       createdByName: technicianName,
       createdAt: now,
@@ -345,21 +364,30 @@ class DiagnosticService {
    */
   async addMessageToSession(
     sessionId: string,
-    request: SendMessageRequest
+    request: SendMessageRequest,
+    senderId?: string,
+    senderName?: string
   ): Promise<DiagnosticSession> {
     const session = await this.getSession(sessionId);
 
-    // Add user message
+    // Find sender's participant role
+    const senderParticipant = session.participants.find((p) => p.id === senderId);
+    const senderRole = senderParticipant?.role;
+
+    // Add user message with sender attribution
     const userMessage: Message = {
       id: this.generateMessageId(),
       role: 'user',
       content: request.content,
       timestamp: new Date(),
+      senderId,
+      senderName,
+      senderRole,
     };
 
     session.messages.push(userMessage);
 
-    // Get AI response
+    // Get AI response (AI messages don't have senderId/senderName)
     const aiMessage = await this.sendMessage(request);
     session.messages.push(aiMessage);
 
@@ -390,6 +418,98 @@ class DiagnosticService {
     }
 
     this.sessions.set(sessionId, session);
+    return session;
+  }
+
+  /**
+   * Invite a technician to join a diagnostic session
+   */
+  async inviteTechnician(
+    sessionId: string,
+    invitedTechnicianId: string,
+    invitedTechnicianName: string,
+    invitedBy: string,
+    invitedByName: string
+  ): Promise<DiagnosticSession> {
+    await this.delay(200);
+
+    const session = await this.getSession(sessionId);
+
+    // Check if technician is already a participant
+    const existingParticipant = session.participants.find((p) => p.id === invitedTechnicianId);
+    if (existingParticipant) {
+      // If they left before, remove their leftAt timestamp
+      if (existingParticipant.leftAt) {
+        existingParticipant.leftAt = undefined;
+      }
+    } else {
+      // Add new participant as invited
+      const newParticipant: Participant = {
+        id: invitedTechnicianId,
+        role: 'invited',
+        name: invitedTechnicianName,
+        joinedAt: new Date(),
+      };
+      session.participants.push(newParticipant);
+    }
+
+    // Add system message about invitation
+    const systemMessage: Message = {
+      id: this.generateMessageId(),
+      role: 'user',
+      content: `${invitedTechnicianName} joined the conversation`,
+      timestamp: new Date(),
+      senderId: 'system',
+      senderName: 'System',
+      senderRole: 'ai',
+    };
+    session.messages.push(systemMessage);
+
+    // Update collaborative flag - true if more than 1 human participant
+    const humanParticipants = session.participants.filter((p) => p.id !== 'ai' && !p.leftAt);
+    session.isCollaborative = humanParticipants.length > 1;
+
+    session.modifiedBy = invitedBy;
+    session.modifiedByName = invitedByName;
+    session.updatedAt = new Date();
+
+    this.sessions.set(sessionId, session);
+    return session;
+  }
+
+  /**
+   * Technician leaves a diagnostic session
+   */
+  async leaveSession(sessionId: string, technicianId: string): Promise<DiagnosticSession> {
+    await this.delay(200);
+
+    const session = await this.getSession(sessionId);
+
+    // Find participant and mark as left
+    const participant = session.participants.find((p) => p.id === technicianId);
+    if (participant) {
+      participant.leftAt = new Date();
+
+      // Add system message about leaving
+      const systemMessage: Message = {
+        id: this.generateMessageId(),
+        role: 'user',
+        content: `${participant.name} left the conversation`,
+        timestamp: new Date(),
+        senderId: 'system',
+        senderName: 'System',
+        senderRole: 'ai',
+      };
+      session.messages.push(systemMessage);
+
+      // Update collaborative flag
+      const humanParticipants = session.participants.filter((p) => p.id !== 'ai' && !p.leftAt);
+      session.isCollaborative = humanParticipants.length > 1;
+
+      session.updatedAt = new Date();
+      this.sessions.set(sessionId, session);
+    }
+
     return session;
   }
 

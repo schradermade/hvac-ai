@@ -8,12 +8,28 @@ import type { Auditable } from '@/lib/types';
 export type MessageRole = 'user' | 'assistant';
 
 /**
+ * Participant role in collaborative session
+ */
+export type ParticipantRole = 'primary' | 'invited' | 'ai';
+
+/**
  * Diagnostic mode
  * - expert: Quick answers for experienced techs
  * - guided: Step-by-step troubleshooting
  * - quick: Fast lookups and calculations
  */
 export type DiagnosticMode = 'expert' | 'guided' | 'quick';
+
+/**
+ * Participant in a diagnostic session
+ */
+export interface Participant {
+  id: string; // 'ai' or technician ID
+  role: ParticipantRole;
+  name: string;
+  joinedAt: Date;
+  leftAt?: Date;
+}
 
 /**
  * A single message in the chat
@@ -24,6 +40,11 @@ export interface Message {
   content: string;
   timestamp: Date;
   isLoading?: boolean;
+
+  // Sender attribution for collaborative sessions
+  senderId?: string; // Technician ID (undefined for AI)
+  senderName?: string;
+  senderRole?: ParticipantRole;
 }
 
 /**
@@ -63,6 +84,10 @@ export interface DiagnosticSession extends Auditable {
   mode: DiagnosticMode;
   summary?: string; // Auto-generated or manual summary of the session
   completedAt?: Date; // When the session was marked complete
+
+  // Collaborative features
+  participants: Participant[]; // Includes AI and all technicians
+  isCollaborative: boolean; // True if more than 1 human participant
 }
 
 /**

@@ -192,11 +192,17 @@ export function useAllSessions(enabled = true) {
  * Add a message to an existing session
  */
 export function useAddMessageToSession() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ sessionId, request }: { sessionId: string; request: SendMessageRequest }) =>
-      diagnosticService.addMessageToSession(sessionId, request),
+      diagnosticService.addMessageToSession(
+        sessionId,
+        request,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`
+      ),
     onSuccess: (session) => {
       // Update the session in cache
       queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
@@ -218,6 +224,63 @@ export function useCompleteSession() {
   return useMutation({
     mutationFn: ({ sessionId, summary }: { sessionId: string; summary?: string }) =>
       diagnosticService.completeSession(sessionId, summary),
+    onSuccess: (session) => {
+      // Update the session in cache
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.clientSessions(session.companyId, session.clientId),
+      });
+    },
+  });
+}
+
+/**
+ * Invite a technician to join a diagnostic session
+ */
+export function useInviteTechnician() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      technicianId,
+      technicianName,
+    }: {
+      sessionId: string;
+      technicianId: string;
+      technicianName: string;
+    }) =>
+      diagnosticService.inviteTechnician(
+        sessionId,
+        technicianId,
+        technicianName,
+        user!.id,
+        `${user!.firstName} ${user!.lastName}`
+      ),
+    onSuccess: (session) => {
+      // Update the session in cache
+      queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.clientSessions(session.companyId, session.clientId),
+      });
+    },
+  });
+}
+
+/**
+ * Leave a diagnostic session
+ */
+export function useLeaveSession() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => diagnosticService.leaveSession(sessionId, user!.id),
     onSuccess: (session) => {
       // Update the session in cache
       queryClient.setQueryData(QUERY_KEYS.session(session.id), session);
