@@ -87,7 +87,12 @@ class EquipmentService {
   /**
    * Create new equipment
    */
-  async create(companyId: string, data: EquipmentFormData): Promise<Equipment> {
+  async create(
+    companyId: string,
+    technicianId: string,
+    technicianName: string,
+    data: EquipmentFormData
+  ): Promise<Equipment> {
     await this.delay(400);
 
     this.idCounter++;
@@ -97,7 +102,11 @@ class EquipmentService {
       id: `eq_${this.idCounter}`,
       companyId,
       ...data,
+      createdBy: technicianId,
+      createdByName: technicianName,
       createdAt: now,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: now,
     };
 
@@ -109,7 +118,12 @@ class EquipmentService {
   /**
    * Update existing equipment
    */
-  async update(id: string, data: Partial<EquipmentFormData>): Promise<Equipment> {
+  async update(
+    id: string,
+    technicianId: string,
+    technicianName: string,
+    data: Partial<EquipmentFormData>
+  ): Promise<Equipment> {
     await this.delay(400);
 
     const existing = this.equipment.get(id);
@@ -120,6 +134,8 @@ class EquipmentService {
     const updated: Equipment = {
       ...existing,
       ...data,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: new Date(),
     };
 

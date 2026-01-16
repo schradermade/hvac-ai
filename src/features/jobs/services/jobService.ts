@@ -33,7 +33,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 10 * 60 * 60 * 1000), // 10:00 AM
         description: 'Annual HVAC maintenance check',
         notes: 'Check filters, coils, and refrigerant levels',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -46,7 +54,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000),
         description: 'AC not cooling properly',
         notes: 'Customer reports warm air from vents',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -59,7 +75,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 14 * 60 * 60 * 1000),
         description: 'Install new 3-ton split system',
         notes: 'New construction, all materials on site',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -72,7 +96,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 8 * 60 * 60 * 1000),
         description: 'Pre-season inspection',
         notes: 'All systems operational, minor filter replacement needed',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -85,7 +117,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 13 * 60 * 60 * 1000),
         description: 'No heat - emergency service',
         notes: 'Customer has elderly occupant, priority service',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -98,7 +138,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 13 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Quarterly maintenance visit',
         notes: 'Commercial property, coordinate with property manager',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -111,7 +159,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000),
         description: 'Strange noise from outdoor unit',
         notes: 'Possible compressor or fan issue',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -124,7 +180,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Spring tune-up service',
         notes: 'Historic home, special care required',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -137,7 +201,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 16 * 60 * 60 * 1000),
         description: 'Home sale inspection',
         notes: 'Buyer requested inspection before closing',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -150,7 +222,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Water leak from indoor unit',
         notes: 'Possible condensate drain clog',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -163,7 +243,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Replace old furnace with high-efficiency model',
         notes: 'Large property, may need additional time',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -176,7 +264,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000),
         description: 'Fall maintenance service',
         notes: 'Customer prefers afternoon appointments',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -189,7 +285,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000),
         description: 'Thermostat not responding',
         notes: 'May need replacement',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -202,7 +306,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Building code compliance inspection',
         notes: 'Condo building, coordinate with property manager',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -215,7 +327,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 15 * 60 * 60 * 1000),
         description: 'End of warranty maintenance',
         notes: 'Maintenance contract expires next month',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -228,7 +348,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 16 * 60 * 60 * 1000),
         description: 'System short cycling',
         notes: 'Recently purchased home, full inspection needed',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -241,7 +369,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000),
         description: 'Complete system failure',
         notes: 'VIP client, priority service',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -254,7 +390,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 17 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Rental property inspection',
         notes: 'Contact owner for major repairs',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -267,7 +411,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 11 * 60 * 60 * 1000 + 30 * 60 * 1000),
         description: 'Install mini-split system',
         notes: 'Office building, service during business hours only',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -280,7 +432,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 18 * 60 * 60 * 1000),
         description: 'Smart thermostat integration issue',
         notes: 'App access available for remote diagnostics',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
       {
@@ -293,7 +453,15 @@ class JobService {
         scheduledEnd: new Date(today.getTime() + 12 * 60 * 60 * 1000), // 12:00 PM
         description: 'Annual HVAC system inspection',
         notes: 'Text client before arrival. Large dog on property - see client pet info.',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date(),
       },
     ];
@@ -382,7 +550,12 @@ class JobService {
   /**
    * Create a new job
    */
-  async create(companyId: string, data: JobFormData): Promise<Job> {
+  async create(
+    companyId: string,
+    technicianId: string,
+    technicianName: string,
+    data: JobFormData
+  ): Promise<Job> {
     await this.delay(400);
 
     this.idCounter++;
@@ -393,7 +566,11 @@ class JobService {
       companyId,
       ...data,
       status: 'scheduled',
+      createdBy: technicianId,
+      createdByName: technicianName,
       createdAt: now,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: now,
     };
 
@@ -404,7 +581,12 @@ class JobService {
   /**
    * Update an existing job
    */
-  async update(id: string, data: Partial<Omit<Job, 'id' | 'createdAt'>>): Promise<Job> {
+  async update(
+    id: string,
+    technicianId: string,
+    technicianName: string,
+    data: Partial<Omit<Job, 'id' | 'createdAt'>>
+  ): Promise<Job> {
     await this.delay(400);
 
     const existing = await this.getById(id);
@@ -412,6 +594,8 @@ class JobService {
     const updated: Job = {
       ...existing,
       ...data,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: new Date(),
     };
 

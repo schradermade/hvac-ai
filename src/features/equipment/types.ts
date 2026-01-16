@@ -4,6 +4,8 @@
  * Data models for HVAC equipment profiles
  */
 
+import type { Auditable } from '@/lib/types';
+
 // Re-export UNASSIGNED_CLIENT_ID for convenience
 export { UNASSIGNED_CLIENT_ID } from '@/features/clients';
 
@@ -18,7 +20,7 @@ export type SystemType = 'split_system' | 'package_unit' | 'heat_pump' | 'mini_s
  * Represents a saved HVAC unit with specifications
  * Now belongs to a client
  */
-export interface Equipment {
+export interface Equipment extends Auditable {
   id: string;
   companyId: string;
   clientId: string; // Equipment belongs to a client
@@ -32,8 +34,6 @@ export interface Equipment {
   installDate?: Date;
   location?: string;
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 /**

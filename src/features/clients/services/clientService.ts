@@ -34,7 +34,11 @@ class ClientService {
       serviceNotes:
         'This is a special client for equipment not yet assigned to a customer. ' +
         'When servicing equipment, please assign it to the actual client.',
+      createdBy: 'system',
+      createdByName: 'System',
       createdAt: new Date(),
+      modifiedBy: 'system',
+      modifiedByName: 'System',
       updatedAt: new Date(),
     };
     this.clients.set(UNASSIGNED_CLIENT_ID, unassigned);
@@ -59,7 +63,15 @@ class ClientService {
         warrantyInfo: 'Standard 5-year warranty on HVAC system installed 2020',
         serviceNotes:
           'Prefers morning appointments. Has two dogs, please call before entering backyard.',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-15'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-15'),
       },
       {
@@ -73,7 +85,15 @@ class ClientService {
         zipCode: '60614',
         email: 'sarah.j@email.com',
         serviceNotes: 'New construction, installed system in 2023',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-01'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-01'),
       },
       {
@@ -88,7 +108,15 @@ class ClientService {
         email: 'mchen@business.com',
         warrantyInfo: '10-year extended warranty through 2028',
         serviceNotes: 'Commercial property, requires after-hours service',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-20'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-20'),
       },
       {
@@ -103,7 +131,15 @@ class ClientService {
         email: 'emily.r@gmail.com',
         secondaryPhone: '555-111-2222',
         serviceNotes: 'Prefers text messages for appointment reminders',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-10'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-10'),
       },
       {
@@ -116,7 +152,15 @@ class ClientService {
         state: 'IL',
         zipCode: '60435',
         warrantyInfo: 'Manufacturer warranty expires 2025',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-15'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-15'),
       },
       {
@@ -130,7 +174,15 @@ class ClientService {
         zipCode: '61101',
         email: 'jmartinez@company.com',
         serviceNotes: 'Gate code: 1234. Park on street.',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-25'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-25'),
       },
       {
@@ -146,7 +198,15 @@ class ClientService {
         secondaryPhone: '555-333-4444',
         warrantyInfo: 'Premium service plan, annual maintenance included',
         serviceNotes: 'Elderly homeowner, please be patient',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-01'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-01'),
       },
       {
@@ -160,7 +220,15 @@ class ClientService {
         zipCode: '60201',
         email: 'abrown@home.net',
         serviceNotes: 'Historic home, special equipment required',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-20'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-20'),
       },
       {
@@ -174,7 +242,15 @@ class ClientService {
         zipCode: '60193',
         email: 'clee@business.org',
         warrantyInfo: 'Transfer warranty from previous owner',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-15'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-15'),
       },
       {
@@ -189,7 +265,15 @@ class ClientService {
         email: 'landerson@mail.com',
         secondaryPhone: '555-555-6666',
         serviceNotes: 'Call before arrival, works from home',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-30'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-30'),
       },
       {
@@ -203,7 +287,15 @@ class ClientService {
         zipCode: '61701',
         warrantyInfo: 'Extended warranty purchased 2023',
         serviceNotes: 'Large property, multiple units',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-25'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-25'),
       },
       {
@@ -217,7 +309,15 @@ class ClientService {
         zipCode: '62521',
         email: 'pgarcia@icloud.com',
         serviceNotes: 'Prefers afternoon appointments after 2pm',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-05'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-05'),
       },
       {
@@ -232,7 +332,15 @@ class ClientService {
         email: 'dwhite@fastmail.com',
         warrantyInfo: 'No warranty, older system',
         serviceNotes: 'System needs replacement soon',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-10'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-10'),
       },
       {
@@ -247,7 +355,15 @@ class ClientService {
         email: 'jharris@domain.com',
         secondaryPhone: '555-777-8888',
         serviceNotes: 'Condo building, coordinate with property manager',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-10'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-10'),
       },
       {
@@ -261,7 +377,15 @@ class ClientService {
         zipCode: '60302',
         email: 'mclark@work.com',
         warrantyInfo: 'Maintenance contract expires December 2024',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-20'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-20'),
       },
       {
@@ -275,7 +399,15 @@ class ClientService {
         zipCode: '60187',
         email: 'mlewis@home.net',
         serviceNotes: 'Recently purchased home, need full inspection',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-05'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-05'),
       },
       {
@@ -291,7 +423,15 @@ class ClientService {
         secondaryPhone: '555-999-0000',
         warrantyInfo: 'Premium plan with unlimited service calls',
         serviceNotes: 'VIP client, priority service',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-05'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-05'),
       },
       {
@@ -305,7 +445,15 @@ class ClientService {
         zipCode: '60120',
         email: 'nhall@mail.com',
         serviceNotes: 'Tenant property, contact owner for major repairs',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-12'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-12'),
       },
       {
@@ -320,7 +468,15 @@ class ClientService {
         email: 'syoung@business.com',
         warrantyInfo: 'Commercial warranty through 2026',
         serviceNotes: 'Office building, service during business hours only',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-02-28'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-02-28'),
       },
       {
@@ -335,7 +491,15 @@ class ClientService {
         email: 'kking@personal.com',
         secondaryPhone: '555-222-3333',
         serviceNotes: 'Smart thermostat installed, app access available',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-01-22'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-01-22'),
       },
       {
@@ -350,7 +514,15 @@ class ClientService {
         email: 'bscott@mail.org',
         warrantyInfo: 'Standard warranty, 2 years remaining',
         serviceNotes: 'New customer, first service appointment',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-25'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-25'),
       },
       {
@@ -366,7 +538,15 @@ class ClientService {
         petInfo:
           '1 large German Shepherd (Max) - very protective, barks at strangers. Keep gates closed.',
         serviceNotes: 'Please text before arrival. Equipment in backyard.',
+        createdBy: 'tech_test_admin',
+
+        createdByName: 'Test Admin',
+
         createdAt: new Date('2024-03-28'),
+        modifiedBy: 'tech_test_admin',
+
+        modifiedByName: 'Test Admin',
+
         updatedAt: new Date('2024-03-28'),
       },
     ];
@@ -436,7 +616,12 @@ class ClientService {
   /**
    * Create a new client
    */
-  async create(companyId: string, data: ClientFormData): Promise<Client> {
+  async create(
+    companyId: string,
+    technicianId: string,
+    technicianName: string,
+    data: ClientFormData
+  ): Promise<Client> {
     await this.delay(400);
 
     // Validate required fields
@@ -449,7 +634,11 @@ class ClientService {
       id: `client_${this.idCounter}`,
       companyId,
       ...data,
+      createdBy: technicianId,
+      createdByName: technicianName,
       createdAt: now,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: now,
     };
 
@@ -460,7 +649,12 @@ class ClientService {
   /**
    * Update an existing client
    */
-  async update(id: string, data: Partial<ClientFormData>): Promise<Client> {
+  async update(
+    id: string,
+    technicianId: string,
+    technicianName: string,
+    data: Partial<ClientFormData>
+  ): Promise<Client> {
     await this.delay(400);
 
     const existing = await this.getById(id);
@@ -477,6 +671,8 @@ class ClientService {
     const updated: Client = {
       ...existing,
       ...data,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: new Date(),
     };
 

@@ -1,5 +1,7 @@
 // Types for job/appointment management feature
 
+import type { Auditable } from '@/lib/types';
+
 /**
  * Job type categories
  */
@@ -19,7 +21,7 @@ export type AppointmentStatus =
  * Job/Appointment entity
  * Represents a scheduled service call
  */
-export interface Job {
+export interface Job extends Auditable {
   id: string;
   companyId: string;
   clientId: string;
@@ -32,8 +34,6 @@ export interface Job {
   actualEnd?: Date;
   description: string;
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
 
   // Future sync preparation
   syncedAt?: Date;

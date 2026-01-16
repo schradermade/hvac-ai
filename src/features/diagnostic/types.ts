@@ -1,5 +1,7 @@
 // Types for diagnostic chat feature
 
+import type { Auditable } from '@/lib/types';
+
 /**
  * Role of the message sender
  */
@@ -51,7 +53,7 @@ export interface ChatSession {
  * Diagnostic session with full job context
  * Connected to the job-client-equipment hierarchy
  */
-export interface DiagnosticSession {
+export interface DiagnosticSession extends Auditable {
   id: string;
   companyId: string;
   clientId: string; // REQUIRED - every diagnostic is for a client
@@ -60,8 +62,6 @@ export interface DiagnosticSession {
   messages: Message[];
   mode: DiagnosticMode;
   summary?: string; // Auto-generated or manual summary of the session
-  createdAt: Date;
-  updatedAt: Date;
   completedAt?: Date; // When the session was marked complete
 }
 

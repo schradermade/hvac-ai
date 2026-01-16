@@ -260,6 +260,8 @@ class DiagnosticService {
   async createSession(
     companyId: string,
     clientId: string,
+    technicianId: string,
+    technicianName: string,
     mode: DiagnosticMode = 'expert',
     jobId?: string,
     equipmentId?: string
@@ -277,7 +279,11 @@ class DiagnosticService {
       equipmentId,
       messages: [],
       mode,
+      createdBy: technicianId,
+      createdByName: technicianName,
       createdAt: now,
+      modifiedBy: technicianId,
+      modifiedByName: technicianName,
       updatedAt: now,
     };
 

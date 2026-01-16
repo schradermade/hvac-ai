@@ -1,5 +1,7 @@
 // Types for client management feature
 
+import type { Auditable } from '@/lib/types';
+
 /**
  * Special client ID for equipment migration
  * Equipment without a client will be assigned to this "Unassigned" client
@@ -10,7 +12,7 @@ export const UNASSIGNED_CLIENT_ID = 'client_unassigned';
  * Client entity
  * Represents a customer with contact information and service history
  */
-export interface Client {
+export interface Client extends Auditable {
   id: string;
   companyId: string;
 
@@ -29,10 +31,6 @@ export interface Client {
   warrantyInfo?: string;
   serviceNotes?: string;
   petInfo?: string; // Information about pets (dogs, cats, etc.) for tech safety
-
-  // Timestamps
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 /**
