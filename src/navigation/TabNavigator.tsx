@@ -5,7 +5,6 @@ import { colors, typography } from '@/components/ui';
 import { TodaysJobsScreen } from '@/features/jobs';
 import { ClientListScreen } from '@/features/clients';
 import { TechnicianListScreen } from '@/features/technicians';
-import { useAuth } from '@/providers';
 import { HistoryScreen, SettingsScreen } from '@/screens';
 import type { RootTabParamList } from './types';
 
@@ -27,9 +26,6 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  * - Proper touch targets
  */
 export function TabNavigator() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.role === 'lead_tech';
-
   return (
     <Tab.Navigator
       initialRouteName="Jobs"
@@ -80,19 +76,17 @@ export function TabNavigator() {
           tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />,
         }}
       />
-      {isAdmin ? (
-        <Tab.Screen
-          name="Technicians"
-          component={TechnicianListScreen}
-          options={{
-            title: 'Technicians',
-            tabBarLabel: 'Team',
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="people-circle-outline" size={22} color={color} />
-            ),
-          }}
-        />
-      ) : null}
+      <Tab.Screen
+        name="Technicians"
+        component={TechnicianListScreen}
+        options={{
+          title: 'Technicians',
+          tabBarLabel: 'Team',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="people-circle-outline" size={22} color={color} />
+          ),
+        }}
+      />
       <Tab.Screen
         name="History"
         component={HistoryScreen}

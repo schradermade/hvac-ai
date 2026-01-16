@@ -15,6 +15,7 @@ import { Spinner, Card } from '@/components/ui';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { TechnicianCard } from '../components/TechnicianCard';
+import { useAuth } from '@/providers';
 import type { RootStackParamList } from '@/navigation/types';
 import type { TechnicianStatus } from '../types';
 
@@ -27,8 +28,12 @@ type FilterOption = 'all' | TechnicianStatus;
  */
 export function TechnicianListScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterOption>('all');
+
+  // Check if user can manage team (add/edit/delete)
+  const canManageTeam = user?.role === 'admin' || user?.role === 'lead_tech';
 
   // Fetch technicians with filters
   const { data, isLoading, error } = useTechnicians({
@@ -200,14 +205,16 @@ export function TechnicianListScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateTechnician')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="person-add" size={24} color="#fff" />
-      </TouchableOpacity>
+      {/* Floating Action Button - Only for admins/lead_techs */}
+      {canManageTeam && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('CreateTechnician')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="person-add" size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }

@@ -13,6 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Spinner, Card, Badge } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useTechnician } from '../hooks/useTechnicians';
+import { useAuth } from '@/providers';
 import type { RootStackParamList } from '@/navigation/types';
 import { format } from 'date-fns';
 
@@ -50,7 +51,11 @@ function getRoleVariant(role: string): 'info' | 'success' | 'neutral' {
  */
 export function TechnicianDetailScreen({ route }: Props) {
   const { technicianId } = route.params;
+  const { user } = useAuth();
   const { data: technician, isLoading, error } = useTechnician(technicianId);
+
+  // Check if user can see sensitive information (notes, hire date)
+  const canManageTeam = user?.role === 'admin' || user?.role === 'lead_tech';
 
   if (isLoading) {
     return (
@@ -183,8 +188,8 @@ export function TechnicianDetailScreen({ route }: Props) {
           )}
         </View>
 
-        {/* Notes Section */}
-        {technician.notes && (
+        {/* Notes Section - Only visible to admins/lead_techs */}
+        {canManageTeam && technician.notes && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderContainer}>
               <Ionicons name="document-text-outline" size={24} color={colors.primary} />
@@ -205,7 +210,8 @@ export function TechnicianDetailScreen({ route }: Props) {
           </View>
 
           <Card>
-            {technician.hireDate && (
+            {/* Hire Date - Only visible to admins/lead_techs */}
+            {canManageTeam && technician.hireDate && (
               <>
                 <View style={styles.historyItem}>
                   <View style={styles.historyIconContainer}>
