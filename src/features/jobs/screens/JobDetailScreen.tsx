@@ -187,7 +187,7 @@ export function JobDetailScreen({ route, navigation }: Props) {
     isAssignedToUser && (job.status === 'assigned' || job.status === 'unassigned');
 
   const statusColor = getStatusColor(job.status);
-  const canStartJob = job.status === 'scheduled';
+  const canStartJob = job.status === 'scheduled' || job.status === 'accepted';
   const canCompleteJob = job.status === 'in_progress';
 
   return (
