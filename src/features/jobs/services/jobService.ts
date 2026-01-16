@@ -623,51 +623,9 @@ class JobService {
   async getByTechnician(companyId: string, technicianId: string): Promise<JobListResponse> {
     await this.delay(300);
 
-    const allJobs = Array.from(this.jobs.values());
-
-    // Detailed logging
-    console.log('=== DEBUG getByTechnician ===');
-    console.log('Looking for:', { companyId, technicianId });
-    console.log('Total jobs in system:', allJobs.length);
-
-    // Log ALL jobs with their assignments
-    allJobs.forEach((job, index) => {
-      console.log(`Job ${index + 1}:`, {
-        id: job.id,
-        companyId: job.companyId,
-        clientName: job.clientName,
-        status: job.status,
-        hasAssignment: !!job.assignment,
-        assignedTo: job.assignment?.technicianId,
-        assignedName: job.assignment?.technicianName,
-      });
-    });
-
     const items = Array.from(this.jobs.values())
-      .filter((job) => {
-        const companyMatch = job.companyId === companyId;
-        const techMatch = job.assignment?.technicianId === technicianId;
-
-        if (job.assignment) {
-          console.log('Checking job:', {
-            jobId: job.id,
-            companyMatch,
-            techMatch,
-            jobCompanyId: job.companyId,
-            queryCompanyId: companyId,
-            jobTechId: job.assignment.technicianId,
-            queryTechId: technicianId,
-            techIdType: typeof job.assignment.technicianId,
-            queryTechIdType: typeof technicianId,
-            strictEqual: job.assignment.technicianId === technicianId,
-          });
-        }
-
-        return companyMatch && techMatch;
-      })
+      .filter((job) => job.companyId === companyId && job.assignment?.technicianId === technicianId)
       .sort((a, b) => a.scheduledStart.getTime() - b.scheduledStart.getTime());
-
-    console.log('=== Found', items.length, 'matching jobs ===');
 
     return {
       items,
@@ -689,16 +647,6 @@ class JobService {
 
     const job = await this.getById(jobId);
 
-    console.log('=== DEBUG assign() ===');
-    console.log('Assigning job:', {
-      jobId,
-      technicianId,
-      technicianIdType: typeof technicianId,
-      technicianName,
-      assignedBy,
-      assignedByName,
-    });
-
     const updated: Job = {
       ...job,
       status: 'assigned',
@@ -715,14 +663,6 @@ class JobService {
     };
 
     this.jobs.set(jobId, updated);
-
-    console.log('Assignment stored:', {
-      jobId: updated.id,
-      storedTechId: updated.assignment?.technicianId,
-      storedTechIdType: typeof updated.assignment?.technicianId,
-      storedTechName: updated.assignment?.technicianName,
-    });
-
     return updated;
   }
 
