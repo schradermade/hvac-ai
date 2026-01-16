@@ -88,6 +88,22 @@ export function TodaysJobsScreen() {
   const hasAnyJobs = allJobs.length > 0;
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
 
+  // Debug logging
+  console.log('DEBUG TodaysJobsScreen:', {
+    userId: user?.id,
+    jobFilter,
+    allJobsCount: allJobs.length,
+    myJobsCount: myJobs.length,
+    myJobsRawCount: myJobsData?.items?.length,
+    filteredJobsCount: filteredJobs.length,
+    sampleJob: myJobs[0]
+      ? {
+          id: myJobs[0].id,
+          assignedTo: myJobs[0].assignment?.technicianId,
+        }
+      : 'no jobs',
+  });
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.content}>
