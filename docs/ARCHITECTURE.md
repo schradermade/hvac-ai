@@ -33,6 +33,7 @@ Our architecture is guided by these principles:
 
 - **Navigation**: Migration to Expo Router for file-based routing
 - **Database**: WatermelonDB for local-first reactive data
+- **Real-time Collaboration**: Cloudflare Durable Objects + Workers for collaborative chat sessions
 - **AI Integration**: Anthropic Claude API with vector DB context injection
 - **Styling**: NativeWind (Tailwind for React Native)
 
@@ -808,7 +809,7 @@ export function useAssignJob() {
 
 ## Collaborative Diagnostic Architecture
 
-**Fully Implemented:** Multi-participant AI chat sessions with real-time collaboration.
+**Current Status:** UI and data models fully implemented with mock real-time updates. Production real-time infrastructure using Cloudflare Durable Objects in progress.
 
 ### Collaborative Session Model
 
@@ -1078,15 +1079,482 @@ I don't have a gauge with me. Should I get one?
 Great teamwork. Bob, when you arrive, check both suction and discharge pressures.
 ```
 
+### Real-Time Infrastructure (Cloudflare Durable Objects)
+
+**Production Architecture:**
+
+The collaborative chat feature will use **Cloudflare Durable Objects** for real-time coordination and message synchronization.
+
+#### Why Durable Objects?
+
+- **Perfect session coordination**: Each diagnostic session = one Durable Object instance
+- **Strong consistency**: Single-threaded execution prevents race conditions in multi-participant chats
+- **WebSocket support**: Built-in WebSocket connections for real-time updates
+- **Edge deployment**: Low latency globally (critical for field technicians)
+- **Persistent storage**: Each object has built-in key-value storage for message history
+- **Auto-hibernation**: Cost-effective (only active when messages are being sent)
+- **Scales infinitely**: Cloudflare handles all scaling automatically
+
+#### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────┐
+│ React Native App (Technician A)                 │
+│  ├─ Local state (React Query cache)            │
+│  └─ WebSocket connection to Durable Object     │
+└─────────────────┬───────────────────────────────┘
+                  │
+                  │ WebSocket (real-time messages)
+                  ↓
+┌─────────────────────────────────────────────────┐
+│ Cloudflare Workers + Durable Objects            │
+│                                                  │
+│  ┌────────────────────────────────────────┐    │
+│  │ Durable Object (Session: abc-123)      │    │
+│  │  ├─ Participants list (in memory)      │    │
+│  │  ├─ Active WebSocket connections       │    │
+│  │  └─ Message history (persistent KV)    │    │
+│  └────────────────────────────────────────┘    │
+│                                                  │
+│  - One object per diagnostic session            │
+│  - Broadcasts messages to all connected techs   │
+│  - Handles join/leave events                    │
+│  - Persists message history                     │
+└─────────────────┬───────────────────────────────┘
+                  │
+                  │ WebSocket (receives broadcasts)
+                  ↓
+┌─────────────────────────────────────────────────┐
+│ React Native App (Technician B)                 │
+│  ├─ Local state (React Query cache)            │
+│  └─ WebSocket connection to Durable Object     │
+└─────────────────────────────────────────────────┘
+
+        ↓ HTTP API (session CRUD, AI responses)
+
+┌─────────────────────────────────────────────────┐
+│ Cloudflare Workers (API Routes)                 │
+│  ├─ POST /sessions - Create session             │
+│  ├─ GET /sessions/:id - Fetch history           │
+│  └─ POST /sessions/:id/ai - Generate response   │
+└─────────────────┬───────────────────────────────┘
+                  │
+                  ↓
+┌─────────────────────────────────────────────────┐
+│ Cloudflare D1 (SQLite) or External PostgreSQL   │
+│  - Session metadata (created, participants)     │
+│  - Full message archive (for search/analytics)  │
+│  - User/company data                            │
+└─────────────────────────────────────────────────┘
+
+        ↓ AI Inference (async)
+
+┌─────────────────────────────────────────────────┐
+│ Anthropic Claude API                            │
+│  - Generate diagnostic responses                │
+│  - Context injection from vector DB             │
+└─────────────────────────────────────────────────┘
+```
+
+#### Data Flow
+
+**1. Technician A starts a diagnostic session:**
+
+```typescript
+// React Native App
+const { sessionId } = await createSession(jobId, equipmentId);
+
+// Cloudflare Worker creates Durable Object
+const objectId = env.DIAGNOSTIC_SESSIONS.idFromName(sessionId);
+const session = env.DIAGNOSTIC_SESSIONS.get(objectId);
+await session.initialize(sessionId, technicianA);
+```
+
+**2. Technician A connects via WebSocket:**
+
+```typescript
+// React Native App
+const ws = new WebSocket(`wss://api.hvac.ai/sessions/${sessionId}/ws`);
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  // Update UI with new message
+  queryClient.setQueryData(['session', sessionId], (old) => ({
+    ...old,
+    messages: [...old.messages, message],
+  }));
+};
+```
+
+**3. Technician A invites Technician B:**
+
+```typescript
+// React Native App (Technician A)
+await inviteTechnician(sessionId, technicianB.id);
+
+// Durable Object broadcasts to all connected clients
+durableObject.broadcast({
+  type: 'participant_joined',
+  participant: technicianB,
+  systemMessage: 'Bob joined the conversation',
+});
+```
+
+**4. Technician B joins the session:**
+
+```typescript
+// React Native App (Technician B)
+const ws = new WebSocket(`wss://api.hvac.ai/sessions/${sessionId}/ws`);
+
+// Durable Object adds WebSocket to active connections
+// Sends full message history to new participant
+ws.send(
+  JSON.stringify({
+    type: 'session_state',
+    messages: await this.getMessageHistory(),
+    participants: this.activeParticipants,
+  })
+);
+```
+
+**5. Real-time message exchange:**
+
+```typescript
+// Technician A sends message
+ws.send(
+  JSON.stringify({
+    type: 'message',
+    content: 'Compressor is running but no cold air',
+    senderId: technicianA.id,
+  })
+);
+
+// Durable Object receives, persists, and broadcasts
+class DiagnosticSession {
+  async handleMessage(ws: WebSocket, data: any) {
+    const message = {
+      id: crypto.randomUUID(),
+      senderId: data.senderId,
+      senderName: data.senderName,
+      content: data.content,
+      timestamp: new Date(),
+    };
+
+    // Persist to Durable Object storage
+    await this.state.storage.put(`message:${message.id}`, message);
+
+    // Broadcast to all participants EXCEPT sender
+    this.broadcast(message, ws);
+
+    // Optionally persist to D1/PostgreSQL for search
+    await this.archiveMessage(message);
+  }
+
+  broadcast(message: any, excludeWs?: WebSocket) {
+    this.connections.forEach((conn) => {
+      if (conn !== excludeWs && conn.readyState === WebSocket.OPEN) {
+        conn.send(JSON.stringify(message));
+      }
+    });
+  }
+}
+```
+
+**6. AI response generation:**
+
+```typescript
+// Cloudflare Worker (separate from Durable Object)
+async function generateAIResponse(sessionId: string, userMessage: string) {
+  // Fetch context from Durable Object
+  const session = await getDurableObject(sessionId);
+  const messageHistory = await session.getRecentMessages(10);
+
+  // Generate response via Claude API
+  const aiResponse = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5',
+    messages: messageHistory,
+    system: HVAC_SYSTEM_PROMPT,
+  });
+
+  // Durable Object broadcasts AI response to all participants
+  await session.addMessage({
+    role: 'assistant',
+    content: aiResponse.content[0].text,
+    senderId: 'ai',
+    senderName: 'HVAC.ai',
+  });
+}
+```
+
+#### Durable Object Implementation
+
+```typescript
+// cloudflare-workers/src/diagnostic-session.ts
+export class DiagnosticSession {
+  state: DurableObjectState;
+  connections: Set<WebSocket>;
+  participants: Map<string, Participant>;
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+    this.connections = new Set();
+    this.participants = new Map();
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    // Upgrade HTTP request to WebSocket
+    if (request.headers.get('Upgrade') === 'websocket') {
+      const pair = new WebSocketPair();
+      await this.handleWebSocket(pair[1], request);
+      return new Response(null, { status: 101, webSocket: pair[0] });
+    }
+
+    // Handle REST API requests (get history, etc.)
+    const url = new URL(request.url);
+    if (url.pathname.endsWith('/messages')) {
+      return this.getMessageHistory();
+    }
+
+    return new Response('Not found', { status: 404 });
+  }
+
+  async handleWebSocket(ws: WebSocket, request: Request) {
+    ws.accept();
+
+    // Parse technicianId from URL or auth token
+    const technicianId = this.extractTechnicianId(request);
+
+    // Add to active connections
+    this.connections.add(ws);
+
+    // Load participant info from storage
+    const participant = await this.getParticipant(technicianId);
+    this.participants.set(technicianId, participant);
+
+    // Send session state to new connection
+    ws.send(
+      JSON.stringify({
+        type: 'session_state',
+        messages: await this.getRecentMessages(50),
+        participants: Array.from(this.participants.values()),
+      })
+    );
+
+    // Notify others of join
+    this.broadcast(
+      {
+        type: 'participant_joined',
+        participant,
+      },
+      ws
+    );
+
+    // Handle incoming messages
+    ws.addEventListener('message', async (event) => {
+      const data = JSON.parse(event.data);
+      await this.handleMessage(ws, data);
+    });
+
+    // Handle disconnect
+    ws.addEventListener('close', () => {
+      this.connections.delete(ws);
+      this.participants.delete(technicianId);
+      this.broadcast({
+        type: 'participant_left',
+        technicianId,
+      });
+    });
+  }
+
+  async handleMessage(ws: WebSocket, data: any) {
+    const message = {
+      id: crypto.randomUUID(),
+      senderId: data.senderId,
+      senderName: data.senderName,
+      senderRole: data.senderRole,
+      content: data.content,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Persist to Durable Object storage
+    await this.state.storage.put(`message:${message.id}`, message);
+
+    // Broadcast to all participants
+    this.broadcast(
+      {
+        type: 'new_message',
+        message,
+      },
+      ws
+    );
+  }
+
+  async getRecentMessages(limit: number): Promise<Message[]> {
+    const messages = await this.state.storage.list({ prefix: 'message:' });
+    return Array.from(messages.values())
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      .slice(-limit);
+  }
+
+  broadcast(data: any, excludeWs?: WebSocket) {
+    const payload = JSON.stringify(data);
+    this.connections.forEach((ws) => {
+      if (ws !== excludeWs && ws.readyState === WebSocket.OPEN) {
+        ws.send(payload);
+      }
+    });
+  }
+}
+```
+
+#### React Native Integration
+
+```typescript
+// features/diagnostic/hooks/useRealtimeSession.ts
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+
+export function useRealtimeSession(sessionId: string) {
+  const wsRef = useRef<WebSocket | null>(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Connect to Durable Object WebSocket
+    const ws = new WebSocket(`wss://api.hvac.ai/sessions/${sessionId}/ws`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('Connected to session:', sessionId);
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'session_state') {
+        // Initial state
+        queryClient.setQueryData(['session', sessionId], {
+          messages: data.messages,
+          participants: data.participants,
+        });
+      } else if (data.type === 'new_message') {
+        // New message from another participant
+        queryClient.setQueryData(['session', sessionId], (old: any) => ({
+          ...old,
+          messages: [...old.messages, data.message],
+        }));
+      } else if (data.type === 'participant_joined') {
+        queryClient.setQueryData(['session', sessionId], (old: any) => ({
+          ...old,
+          participants: [...old.participants, data.participant],
+        }));
+      } else if (data.type === 'participant_left') {
+        queryClient.setQueryData(['session', sessionId], (old: any) => ({
+          ...old,
+          participants: old.participants.filter((p) => p.id !== data.technicianId),
+        }));
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from session');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [sessionId, queryClient]);
+
+  const sendMessage = (content: string, senderId: string, senderName: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'message',
+          content,
+          senderId,
+          senderName,
+        })
+      );
+    }
+  };
+
+  return { sendMessage };
+}
+```
+
+#### Cost Estimate
+
+**Cloudflare Durable Objects Pricing:**
+
+- **Requests**: $0.15 per million requests
+- **Duration**: $12.50 per million GB-seconds
+- **Storage**: $0.20 per GB-month
+
+**Typical usage (100 technicians, 10 sessions/day, 20 messages/session):**
+
+- **Requests**: 100 techs × 10 sessions × 20 messages = 20,000 requests/day = 600k/month = ~$0.09/month
+- **Duration**: Avg 10 minutes per session, 1000 sessions/month = ~$0.50/month
+- **Storage**: ~1MB per session history = ~$0.01/month
+
+**Total: ~$0.60/month for 100 active technicians**
+
+(Cloudflare Workers free tier includes 100k requests/day, sufficient for MVP)
+
+#### Benefits Over Alternatives
+
+| Feature                  | Durable Objects                   | Supabase Realtime        | Firebase                | Custom WebSocket  |
+| ------------------------ | --------------------------------- | ------------------------ | ----------------------- | ----------------- |
+| **Latency**              | Edge (10-50ms)                    | Single region (50-200ms) | Multi-region (50-150ms) | Single region     |
+| **Consistency**          | Strong                            | Eventual                 | Eventual                | Depends           |
+| **Cost (100 techs)**     | ~$1/mo                            | $25/mo (Pro)             | Free tier OK            | $20-50/mo         |
+| **WebSocket native**     | ✅ Yes                            | ⚠️ Via broadcasts        | ⚠️ Via SDK              | ✅ Yes            |
+| **Session coordination** | ✅ Perfect (1 object = 1 session) | ❌ Broadcast only        | ❌ Broadcast only       | ✅ If implemented |
+| **Auto-scaling**         | ✅ Infinite                       | ⚠️ Plan-based            | ✅ Infinite             | ❌ Manual         |
+| **Maintenance**          | ✅ Zero                           | ✅ Zero                  | ✅ Zero                 | ❌ High           |
+
+#### Implementation Timeline
+
+**Phase 1: MVP (Current)** - ✅ Complete
+
+- UI fully implemented with mock real-time updates
+- Data models support collaboration
+- React Native screens and components ready
+
+**Phase 2: Cloudflare Workers Setup** - Next (1-2 weeks)
+
+- Deploy basic Cloudflare Workers API
+- Set up Durable Objects class
+- Implement WebSocket connection handling
+- Test with single session, single technician
+
+**Phase 3: Real-time Integration** - (1 week)
+
+- Connect React Native app to Cloudflare WebSocket
+- Implement message broadcasting
+- Handle participant join/leave events
+- Test with multiple technicians
+
+**Phase 4: Production Polish** - (1 week)
+
+- Add message persistence to D1/PostgreSQL
+- Implement reconnection logic
+- Add error handling and offline queuing
+- Performance testing and optimization
+
 ## Deployment Architecture
 
 - **App Distribution**: Expo EAS Build → App Stores
 - **OTA Updates**: Expo Updates for JavaScript changes
-- **Backend**: API hosted on Railway/Render/AWS
-- **Database**: PostgreSQL (Supabase or RDS)
-- **Vector DB**: Pinecone or Weaviate (cloud)
-- **File Storage**: S3 or Cloudflare R2
-- **Monitoring**: Sentry for error tracking
+- **Backend API**: Cloudflare Workers (serverless edge functions)
+- **Real-time**: Cloudflare Durable Objects (collaborative sessions)
+- **Database**: Cloudflare D1 (SQLite) or PostgreSQL (for structured data)
+- **Vector DB**: Pinecone or Weaviate (for AI context injection)
+- **File Storage**: Cloudflare R2 (S3-compatible object storage)
+- **CDN**: Cloudflare CDN (global content delivery)
+- **Monitoring**: Sentry for error tracking + Cloudflare Analytics
 
 ## Next Steps
 

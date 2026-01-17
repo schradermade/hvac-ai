@@ -22,6 +22,7 @@ This file is automatically loaded at the start of every Claude Code session.
 **Planned for Future:**
 
 - Real Claude AI API integration (currently mock responses)
+- Cloudflare Durable Objects for real-time collaborative chat (UI ready, backend in progress)
 - WatermelonDB for local-first data (currently using in-memory storage)
 - Vector DB for semantic search and context injection
 - Offline sync system with conflict resolution
