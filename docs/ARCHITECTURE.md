@@ -1550,11 +1550,15 @@ export function useRealtimeSession(sessionId: string) {
 - **OTA Updates**: Expo Updates for JavaScript changes
 - **Backend API**: Cloudflare Workers (serverless edge functions)
 - **Real-time**: Cloudflare Durable Objects (collaborative sessions)
-- **Database**: Cloudflare D1 (SQLite) or PostgreSQL (for structured data)
-- **Vector DB**: Pinecone or Weaviate (for AI context injection)
-- **File Storage**: Cloudflare R2 (S3-compatible object storage)
+- **Database**: PostgreSQL (primary) + Cloudflare D1 (edge reads)
+- **Vector DB**: Cloudflare Vectorize (semantic search for HVAC knowledge base)
+- **AI Gateway**: Cloudflare AI Gateway (Claude API proxy with 60% cost reduction via caching)
+- **File Storage**: Cloudflare R2 (S3-compatible, zero egress fees)
 - **CDN**: Cloudflare CDN (global content delivery)
+- **Session Cache**: Cloudflare KV (edge-distributed key-value storage)
 - **Monitoring**: Sentry for error tracking + Cloudflare Analytics
+
+**See [CLOUDFLARE_ARCHITECTURE.md](./CLOUDFLARE_ARCHITECTURE.md) for comprehensive implementation details, cost analysis, and migration strategy.**
 
 ## Next Steps
 

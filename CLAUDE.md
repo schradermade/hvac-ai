@@ -21,10 +21,15 @@ This file is automatically loaded at the start of every Claude Code session.
 
 **Planned for Future:**
 
-- Real Claude AI API integration (currently mock responses)
-- Cloudflare Durable Objects for real-time collaborative chat (UI ready, backend in progress)
+- **Cloudflare Backend Infrastructure** - Global edge API with 88% cost savings vs traditional stack (see @docs/CLOUDFLARE_ARCHITECTURE.md)
+  - Workers: Global API endpoints with <50ms latency worldwide
+  - AI Gateway: Claude API proxy with 60% cost reduction via intelligent caching
+  - Vectorize: Semantic search over HVAC manuals for context injection
+  - R2: File storage with zero egress fees ($10k/month savings vs S3)
+  - Durable Objects: Real-time WebSocket collaboration (UI ready, backend planned)
+  - KV: Edge session caching and company settings
+  - D1: Equipment catalog at edge for fast reads
 - WatermelonDB for local-first data (currently using in-memory storage)
-- Vector DB for semantic search and context injection
 - Offline sync system with conflict resolution
 - Push notifications for job assignments and diagnostic invitations
 
