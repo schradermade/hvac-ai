@@ -127,9 +127,11 @@ export function TodaysJobsScreen() {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
     if (!isSameDay(start, end)) {
-      return `${format(start, 'MMM d')}–${format(end, 'MMM d')}`;
+      const sameYear = start.getFullYear() === end.getFullYear();
+      const startFormat = sameYear ? 'MMM d' : 'MMM d, yyyy';
+      return `${format(start, startFormat)} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return format(start, 'MMM d');
+    return format(start, 'MMM d, yyyy');
   }, [startDate, endDate]);
 
   const isSingleDay = useMemo(
@@ -262,15 +264,16 @@ export function TodaysJobsScreen() {
                 onPress: () => setJobFilter('my'),
                 count: myJobsCount,
               },
-              {
-                id: 'date',
-                label: dateLabel,
-                active: showDateControls,
-                onPress: toggleDateControls,
-              },
-            ]}
-            contentContainerStyle={styles.filterChips}
-          />
+                  {
+                    id: 'date',
+                    label: dateLabel,
+                    active: showDateControls,
+                    onPress: toggleDateControls,
+                    labelStyle: styles.datePillText,
+                  },
+                ]}
+                contentContainerStyle={styles.filterChips}
+              />
 
           {showDateControls && (
             <View style={styles.calendarCard}>
@@ -656,5 +659,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ translateY: -2 }],
+  },
+  datePillText: {
+    fontWeight: typography.fontWeight.bold,
   },
 });

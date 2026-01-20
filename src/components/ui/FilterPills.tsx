@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ViewStyle, TextStyle } from 'react-native';
 import { colors, spacing, typography, borderRadius } from './tokens';
 
 export interface FilterPillItem {
@@ -14,6 +14,7 @@ export interface FilterPillItem {
   active: boolean;
   onPress: () => void;
   count?: number;
+  labelStyle?: TextStyle;
 }
 
 interface FilterPillsProps {
@@ -35,7 +36,7 @@ export function FilterPills({ items, contentContainerStyle }: FilterPillsProps) 
           onPress={item.onPress}
           activeOpacity={0.7}
         >
-          <Text style={[styles.chipText, item.active && styles.chipTextActive]}>
+          <Text style={[styles.chipText, item.active && styles.chipTextActive, item.labelStyle]}>
             {item.label}
           </Text>
           {typeof item.count === 'number' && item.count > 0 && (
