@@ -14,5 +14,6 @@ export { Input } from './Input';
 export { Card } from './Card';
 export { Badge } from './Badge';
 export { HeroSection } from './HeroSection';
+export { FilterPills } from './FilterPills';
 export { Heading, Body, Label, Caption } from './Typography';
 export { Spinner, EmptyState } from './Loading';

@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Spinner, Card, HeroSection } from '@/components/ui';
+import { Spinner, Card, HeroSection, FilterPills } from '@/components/ui';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { TechnicianCard } from '../components/TechnicianCard';
@@ -124,67 +124,35 @@ export function TechnicianListScreen() {
             </View>
 
             {/* Filter Chips */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterChips}
-            >
-              <TouchableOpacity
-                style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
-                onPress={() => setStatusFilter('all')}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    statusFilter === 'all' && styles.filterChipTextActive,
-                  ]}
-                >
-                  All
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.filterChip, statusFilter === 'active' && styles.filterChipActive]}
-                onPress={() => setStatusFilter('active')}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    statusFilter === 'active' && styles.filterChipTextActive,
-                  ]}
-                >
-                  Active
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.filterChip, statusFilter === 'inactive' && styles.filterChipActive]}
-                onPress={() => setStatusFilter('inactive')}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    statusFilter === 'inactive' && styles.filterChipTextActive,
-                  ]}
-                >
-                  Inactive
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.filterChip, statusFilter === 'on_leave' && styles.filterChipActive]}
-                onPress={() => setStatusFilter('on_leave')}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    statusFilter === 'on_leave' && styles.filterChipTextActive,
-                  ]}
-                >
-                  On Leave
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
+          <FilterPills
+            items={[
+              {
+                id: 'all',
+                label: 'All',
+                active: statusFilter === 'all',
+                onPress: () => setStatusFilter('all'),
+              },
+              {
+                id: 'active',
+                label: 'Active',
+                active: statusFilter === 'active',
+                onPress: () => setStatusFilter('active'),
+              },
+              {
+                id: 'inactive',
+                label: 'Inactive',
+                active: statusFilter === 'inactive',
+                onPress: () => setStatusFilter('inactive'),
+              },
+              {
+                id: 'on_leave',
+                label: 'On Leave',
+                active: statusFilter === 'on_leave',
+                onPress: () => setStatusFilter('on_leave'),
+              },
+            ]}
+            contentContainerStyle={styles.filterChips}
+          />
           </View>
         </View>
 
@@ -344,31 +312,7 @@ const styles = StyleSheet.create({
     padding: spacing[1],
   },
   filterChips: {
-    gap: spacing[3],
     paddingTop: spacing[2],
-  },
-  filterChip: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    minHeight: 40,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterChipText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textSecondary,
-  },
-  filterChipTextActive: {
-    color: colors.surface,
   },
   centerContainer: {
     flex: 1,

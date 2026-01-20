@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Button, Spinner, HeroSection } from '@/components/ui';
+import { EmptyState, Button, Spinner, HeroSection, FilterPills } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useTodaysJobs, useCreateJob } from '../hooks/useJobs';
 import { useMyJobs } from '../hooks/useJobAssignment';
@@ -30,11 +30,6 @@ export function TodaysJobsScreen() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [jobFilter, setJobFilter] = useState<'all' | 'my'>('all');
-  const [inlineActionsWidth, setInlineActionsWidth] = useState(0);
-  const [filterChipHeight, setFilterChipHeight] = useState(0);
-
-  const minPillHeight = 40;
-  const actionSize = Math.max(filterChipHeight, minPillHeight);
   const { data, isLoading } = useTodaysJobs();
   const { data: myJobsData } = useMyJobs();
   const { data: clientsData } = useClientList();
@@ -132,10 +127,7 @@ export function TodaysJobsScreen() {
                     style={styles.searchIcon}
                   />
                   <TextInput
-                    style={[
-                      styles.inlineSearchInput,
-                      { paddingRight: inlineActionsWidth + spacing[4] },
-                    ]}
+                    style={styles.inlineSearchInput}
                     placeholder="Search jobs..."
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
@@ -143,62 +135,16 @@ export function TodaysJobsScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  <View
-                    style={styles.inlineActions}
-                    onLayout={(event) => setInlineActionsWidth(event.nativeEvent.layout.width)}
-                  >
-                    {searchQuery.length > 0 && (
-                      <TouchableOpacity
-                        style={[
-                          styles.clearButton,
-                          {
-                            width: actionSize,
-                            height: actionSize,
-                          },
-                        ]}
-                        onPress={() => setSearchQuery('')}
-                        activeOpacity={0.6}
-                        hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
-                      >
-                        <Ionicons name="close" size={actionSize * 0.7} color={colors.textMuted} />
-                      </TouchableOpacity>
-                    )}
+                  {searchQuery.length > 0 && (
                     <TouchableOpacity
-                      style={[styles.filterChip, jobFilter === 'all' && styles.filterChipActive]}
-                      onPress={() => setJobFilter('all')}
-                      onLayout={(event) => setFilterChipHeight(event.nativeEvent.layout.height)}
-                      activeOpacity={0.7}
+                      style={styles.clearButton}
+                      onPress={() => setSearchQuery('')}
+                      activeOpacity={0.6}
+                      hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
                     >
-                      <Text
-                        style={[
-                          styles.filterChipText,
-                          jobFilter === 'all' && styles.filterChipTextActive,
-                        ]}
-                      >
-                        All Jobs
-                      </Text>
+                      <Ionicons name="close-circle" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.filterChip, jobFilter === 'my' && styles.filterChipActive]}
-                      onPress={() => setJobFilter('my')}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.filterChipText,
-                          jobFilter === 'my' && styles.filterChipTextActive,
-                        ]}
-                      >
-                        My Jobs
-                      </Text>
-                      {myJobsCount > 0 && (
-                        <View style={styles.filterChipBadge}>
-                          <Text style={styles.filterChipBadgeText}>{myJobsCount}</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  </View>
+                  )}
                 </View>
                 <TouchableOpacity
                   style={styles.quickFindButton}
@@ -208,6 +154,25 @@ export function TodaysJobsScreen() {
                   <Ionicons name="filter" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
+
+              <FilterPills
+                items={[
+                  {
+                    id: 'all',
+                    label: 'All Jobs',
+                    active: jobFilter === 'all',
+                    onPress: () => setJobFilter('all'),
+                  },
+                  {
+                    id: 'my',
+                    label: 'My Jobs',
+                    active: jobFilter === 'my',
+                    onPress: () => setJobFilter('my'),
+                    count: myJobsCount,
+                  },
+                ]}
+                contentContainerStyle={styles.filterChips}
+              />
             </View>
 
             {/* Scrollable Job List */}
@@ -383,25 +348,8 @@ const styles = StyleSheet.create({
     minHeight: 56,
     ...shadows.sm,
   },
-  inlineActions: {
-    position: 'absolute',
-    right: spacing[3],
-    top: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-  },
   clearButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.full,
+    padding: spacing[1],
   },
   quickFindButton: {
     width: 56,
@@ -543,42 +491,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    minHeight: 40,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: spacing[2],
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterChipText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.textPrimary,
-  },
-  filterChipTextActive: {
-    color: colors.surface,
-  },
-  filterChipBadge: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing[1],
-  },
-  filterChipBadgeText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
+  filterChips: {
+    paddingTop: spacing[2],
   },
 });
