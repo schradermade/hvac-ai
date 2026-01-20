@@ -42,8 +42,9 @@ export function TodaysJobsScreen() {
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showDateControls, setShowDateControls] = useState(false);
-  const [startDate, setStartDate] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'));
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const [startDate, setStartDate] = useState<string>(() => todayKey);
+  const [endDate, setEndDate] = useState<string>(() => todayKey);
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -133,6 +134,7 @@ export function TodaysJobsScreen() {
     }
     return format(start, 'MMM d, yyyy');
   }, [startDate, endDate]);
+
 
   const isSingleDay = useMemo(
     () => isSameDay(parseISO(startDate), parseISO(endDate)),
@@ -251,19 +253,25 @@ export function TodaysJobsScreen() {
 
           <FilterPills
             items={[
-              {
-                id: 'all',
-                label: 'All Jobs',
-                active: jobFilter === 'all',
-                onPress: () => setJobFilter('all'),
-              },
-              {
-                id: 'my',
-                label: 'My Jobs',
-                active: jobFilter === 'my',
-                onPress: () => setJobFilter('my'),
-                count: myJobsCount,
-              },
+                  {
+                    id: 'all',
+                    label: 'All Jobs',
+                    active: jobFilter === 'all' && !showDateControls,
+                    onPress: () => {
+                      setJobFilter('all');
+                      setShowDateControls(false);
+                    },
+                  },
+                  {
+                    id: 'my',
+                    label: 'My Jobs',
+                    active: jobFilter === 'my' && !showDateControls,
+                    onPress: () => {
+                      setJobFilter('my');
+                      setShowDateControls(false);
+                    },
+                    count: myJobsCount,
+                  },
                   {
                     id: 'date',
                     label: dateLabel,
@@ -276,30 +284,41 @@ export function TodaysJobsScreen() {
               />
 
           {showDateControls && (
-            <View style={styles.calendarCard}>
-              <Calendar
-                markingType="period"
-                markedDates={markedDates}
-                onDayPress={(day) => handleDayPress(day.dateString)}
-                style={styles.calendar}
-                renderArrow={(direction) => (
-                  <View style={styles.calendarArrow}>
-                    <Ionicons
-                      name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
-                      size={28}
-                      color={colors.primary}
-                    />
-                  </View>
-                )}
-                theme={{
-                  todayTextColor: colors.primary,
-                  arrowColor: colors.primary,
-                  textSectionTitleColor: colors.textSecondary,
-                  textDayFontWeight: '500',
-                  textMonthFontWeight: '600',
+            <View style={styles.calendarBlock}>
+              <View style={styles.calendarHeaderRow}>
+                <TouchableOpacity
+                  style={styles.calendarCloseButton}
+                  onPress={toggleDateControls}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.calendarCloseText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.calendarCard}>
+                <Calendar
+                  markingType="period"
+                  markedDates={markedDates}
+                  onDayPress={(day) => handleDayPress(day.dateString)}
+                  style={styles.calendar}
+                  renderArrow={(direction) => (
+                    <View style={styles.calendarArrow}>
+                      <Ionicons
+                        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+                        size={28}
+                        color={colors.primary}
+                      />
+                    </View>
+                  )}
+                  theme={{
+                    todayTextColor: colors.primary,
+                    arrowColor: colors.primary,
+                    textSectionTitleColor: colors.textSecondary,
+                    textDayFontWeight: '500',
+                    textMonthFontWeight: '600',
                   monthTextColor: colors.textPrimary,
                 }}
-              />
+                />
+              </View>
             </View>
           )}
         </View>
@@ -556,6 +575,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[3],
     backgroundColor: colors.primaryLight,
   },
+  calendarBlock: {
+    marginTop: -spacing[4],
+  },
   calendarCard: {
     marginTop: 0,
     marginHorizontal: 0,
@@ -568,6 +590,26 @@ const styles = StyleSheet.create({
   },
   calendar: {
     paddingBottom: spacing[3],
+  },
+  calendarHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: spacing[2],
+    marginTop: -spacing[4],
+  },
+  calendarCloseButton: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    transform: [{ translateY: -4 }],
+  },
+  calendarCloseText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
   },
   modalSearchInput: {
     backgroundColor: colors.surface,
