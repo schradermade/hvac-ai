@@ -31,6 +31,7 @@ export function TechnicianListScreen() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterOption>('all');
+  const [labelWidth, setLabelWidth] = useState(0);
 
   // Check if user can manage team (add/edit/delete)
   const canManageTeam = user?.role === 'admin' || user?.role === 'lead_tech';
@@ -42,7 +43,26 @@ export function TechnicianListScreen() {
   });
 
   const technicians = data?.technicians || [];
-  const activeCount = technicians.filter((t) => t.status === 'active').length;
+  const statusCounts = {
+    all: technicians.length,
+    active: technicians.filter((t) => t.status === 'active').length,
+    inactive: technicians.filter((t) => t.status === 'inactive').length,
+    on_leave: technicians.filter((t) => t.status === 'on_leave').length,
+  } as const;
+  const statusLabels: Record<FilterOption, string> = {
+    all: 'All',
+    active: 'Active',
+    inactive: 'Inactive',
+    on_leave: 'On Leave',
+  };
+  const longestLabel = Object.values(statusLabels).reduce((longest, label) =>
+    label.length > longest.length ? label : longest
+  );
+  const selectedCount = statusCounts[statusFilter];
+  const selectedLabel = statusLabels[statusFilter];
+  const handleLabelMeasure = (width: number) => {
+    setLabelWidth((prev) => (width > prev ? width : prev));
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -53,12 +73,29 @@ export function TechnicianListScreen() {
             icon="people-outline"
             title="Technicians"
             count={technicians.length}
-            metadata={{
-              icon: 'checkmark-circle-outline',
-              text: `${activeCount} active technician${activeCount !== 1 ? 's' : ''}`,
-            }}
             variant="dark"
           />
+          <Text
+            style={styles.activeBadgeMeasure}
+            onLayout={(event) => handleLabelMeasure(event.nativeEvent.layout.width)}
+          >
+            {longestLabel}
+          </Text>
+          <View style={styles.activeBadge}>
+            <View style={styles.activeBadgePill}>
+              <Text style={styles.activeBadgePillText}>{selectedCount}</Text>
+            </View>
+            <View
+              style={[
+                styles.activeBadgeLabelContainer,
+                labelWidth ? { width: labelWidth + spacing[2] } : null,
+              ]}
+            >
+              <Text style={styles.activeBadgeText} numberOfLines={1} ellipsizeMode="clip">
+                {selectedLabel}
+              </Text>
+            </View>
+          </View>
 
           {/* Search and Filter */}
           <View style={styles.searchSection}>
@@ -238,6 +275,48 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
+    position: 'relative',
+  },
+  activeBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    bottom: spacing[3],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  activeBadgeMeasure: {
+    position: 'absolute',
+    opacity: 0,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    left: -9999,
+    top: -9999,
+  },
+  activeBadgePill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.full,
+    minWidth: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeBadgePillText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: '#FFFFFF',
+  },
+  activeBadgeLabelContainer: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  activeBadgeText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: '#FFFFFF',
+    flexShrink: 0,
+    flexWrap: 'nowrap',
   },
   searchSection: {
     paddingBottom: spacing[2],
@@ -265,11 +344,15 @@ const styles = StyleSheet.create({
     padding: spacing[1],
   },
   filterChips: {
-    gap: spacing[2],
+    gap: spacing[3],
+    paddingTop: spacing[2],
   },
   filterChip: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
+    minHeight: 40,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.border,
