@@ -640,6 +640,7 @@ Audit requirements:
 
 - Capture every user message and AI response (including citations and retrieved doc IDs).
 - Timestamp every message for clear audit timelines.
+- Record technician identity and presence for multi-tech sessions (who joined/left).
 - Maintain a tamper-evident audit trail.
 - Support legal hold and long-term retention policies.
 
@@ -647,8 +648,12 @@ Recommended design:
 
 - **Append-only audit log in D1**
   - Table: `ai_chat_audit_log`
-  - Fields: `id`, `tenant_id`, `job_id`, `session_id`, `user_id`, `role`, `content`, `citations_json`, `retrieval_doc_ids_json`, `model_id`, `request_id`, `created_at`
+  - Fields: `id`, `tenant_id`, `job_id`, `session_id`, `user_id`, `technician_id`, `role`, `content`, `citations_json`, `retrieval_doc_ids_json`, `model_id`, `request_id`, `created_at`
   - No updates or deletes; insert-only for legal traceability.
+- **Session presence log in D1**
+  - Table: `ai_chat_participants`
+  - Fields: `id`, `tenant_id`, `job_id`, `session_id`, `technician_id`, `joined_at`, `left_at`, `created_by_user_id`
+  - Write a record when a tech joins; update `left_at` on leave/disconnect.
 - **Full transcript in R2**
   - Store the canonical transcript as JSON in R2 (`transcripts/{tenant_id}/{job_id}/{session_id}.json`)
   - Use R2 versioning or object lock policies where appropriate.
