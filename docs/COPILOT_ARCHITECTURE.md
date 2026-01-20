@@ -35,16 +35,27 @@ Key properties:
 ### Primary Cloudflare components
 
 - **Cloudflare Workers**: API + orchestration (chat, context building, retrieval)
+  - Example: when a tech asks “Any repeat issues?”, the Worker loads job facts from D1, retrieves notes from Vectorize, and calls the LLM.
 - **Cloudflare D1**: relational system-of-record (jobs, clients, equipment, visits)
+  - Example: the job’s client, property, and equipment details come straight from D1 tables.
 - **Cloudflare Vectorize**: embeddings / semantic retrieval for notes + history + manuals
+  - Example: “filter replacement” pulls the most relevant past notes across job history.
 - **Cloudflare R2**: file storage (photos, PDFs/manuals, attachments, transcripts)
+  - Example: service manuals and photo attachments live in R2 and are linked by IDs in D1.
 - **Cloudflare Queues**: async indexing pipelines (new notes → embed → upsert)
+  - Example: a new tech note triggers a queue job to embed and upsert into Vectorize.
 - **Cloudflare Durable Objects**: optional chat session state, rate-limit, streaming coordination
+  - Example: a DO tracks a single live session so multiple messages stream in order.
 - **Workers KV**: low-latency caching of “job context snapshots” (optional)
+  - Example: cache the latest job summary so the first AI response is instant.
 - **Cloudflare AI Gateway**: model routing, logging, retries, caching for LLM calls
+  - Example: route calls to the chosen LLM, log tokens/cost, and retry on failures.
 - **Cloudflare Access / Zero Trust** (optional): internal admin routes, back-office tooling
+  - Example: only admins can view audit logs or run re-indexing tools.
 - **Workers Analytics Engine** (optional): request telemetry + feature analytics
+  - Example: track how many AI sessions start per day and completion rates.
 - **R2 Lifecycle Rules** (optional): retention + auto-expire long chat transcripts
+  - Example: auto-delete transcripts after 90 days unless legal hold is enabled.
 
 > You can run the full experience in Workers. D1 for structured data, Vectorize for semantic retrieval, R2 for binaries, and AI Gateway for safe LLM operations.
 
@@ -141,7 +152,7 @@ Model the domain in a way that cleanly supports “job-scoped answers.”
 ### High-level flow
 
 1. Tech opens a Job → taps **Get AI Help**
-2. App creates/joins a chat session for that job
+2. App creates/joins a single ongoing chat session per job/user (no new chat creation)
 3. Tech asks a question
 4. Backend:
    - loads structured job context
@@ -153,13 +164,29 @@ Model the domain in a way that cleanly supports “job-scoped answers.”
 ### API endpoints (Workers)
 
 - `POST /api/jobs/:jobId/ai/session`
-  - Creates or returns an existing AI session for this job/user
+  - Creates or returns the single ongoing AI session for this job/user
 - `POST /api/jobs/:jobId/ai/chat`
   - Accepts message, returns AI response (streaming recommended)
 - `POST /api/jobs/:jobId/ai/feedback`
   - Stores thumbs up/down + notes (improves prompts + retrieval)
 
 > Use SSE streaming or chunked responses for a good mobile UX.
+
+---
+
+## 4.1) Follow-Up Visits (Return Jobs)
+
+When a customer calls back after a job is completed, create a **new follow-up job** rather than reopening the original. This preserves clean timelines for audit, scheduling, and billing.
+
+Guidelines:
+
+- Create a new job with `related_job_id` pointing to the original.
+- Mark billing as **no‑charge** or **warranty/return visit** if applicable.
+- Keep the original job and its chat immutable once completed.
+- The follow-up job gets its own single chat (per-job rule).
+- UI can link to prior job chats for context (“View prior chat”).
+
+This approach keeps audit history clear while still supporting free return visits.
 
 ---
 
@@ -612,6 +639,7 @@ Legal-grade auditability requires immutable, verifiable chat records tied to eac
 Audit requirements:
 
 - Capture every user message and AI response (including citations and retrieved doc IDs).
+- Timestamp every message for clear audit timelines.
 - Maintain a tamper-evident audit trail.
 - Support legal hold and long-term retention policies.
 
