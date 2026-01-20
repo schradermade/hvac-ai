@@ -42,10 +42,13 @@ export function TodaysJobsScreen() {
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showDateControls, setShowDateControls] = useState(false);
-  const [isDateSelected, setIsDateSelected] = useState(false);
+  const [isDateSelected, setIsDateSelected] = useState(true);
+  const [hasDraftSelection, setHasDraftSelection] = useState(true);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const [startDate, setStartDate] = useState<string>(() => todayKey);
-  const [endDate, setEndDate] = useState<string>(() => todayKey);
+  const [appliedStartDate, setAppliedStartDate] = useState<string>(() => todayKey);
+  const [appliedEndDate, setAppliedEndDate] = useState<string>(() => todayKey);
+  const [draftStartDate, setDraftStartDate] = useState<string>(() => todayKey);
+  const [draftEndDate, setDraftEndDate] = useState<string>(() => todayKey);
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -55,20 +58,34 @@ export function TodaysJobsScreen() {
 
   const toggleDateControls = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setShowDateControls((prev) => !prev);
+    setShowDateControls((prev) => {
+      const next = !prev;
+      if (next) {
+        if (isDateSelected) {
+          setDraftStartDate(appliedStartDate);
+          setDraftEndDate(appliedEndDate);
+          setHasDraftSelection(true);
+        } else {
+          setDraftStartDate(todayKey);
+          setDraftEndDate(todayKey);
+          setHasDraftSelection(false);
+        }
+      }
+      return next;
+    });
   };
   const [searchQuery, setSearchQuery] = useState('');
   const [jobFilter, setJobFilter] = useState<'all' | 'my'>('all');
   const rangeStart = useMemo(() => {
-    const date = parseISO(startDate);
+    const date = parseISO(appliedStartDate);
     date.setHours(0, 0, 0, 0);
     return date;
-  }, [startDate]);
+  }, [appliedStartDate]);
   const rangeEnd = useMemo(() => {
-    const date = parseISO(endDate);
+    const date = parseISO(appliedEndDate);
     date.setHours(23, 59, 59, 999);
     return date;
-  }, [endDate]);
+  }, [appliedEndDate]);
 
   const isDateFiltering = isDateSelected;
   const { data: allJobsData, isLoading: isLoadingAll, isFetching: isFetchingAll } = useJobList();
@@ -86,9 +103,12 @@ export function TodaysJobsScreen() {
   };
 
   const clearDateFilter = () => {
-    setStartDate(todayKey);
-    setEndDate(todayKey);
+    setAppliedStartDate(todayKey);
+    setAppliedEndDate(todayKey);
+    setDraftStartDate(todayKey);
+    setDraftEndDate(todayKey);
     setIsDateSelected(false);
+    setHasDraftSelection(false);
     setShowDateControls(false);
   };
 
@@ -141,28 +161,35 @@ export function TodaysJobsScreen() {
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
 
   const dateLabel = useMemo(() => {
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
+    const start = parseISO(showDateControls ? draftStartDate : appliedStartDate);
+    const end = parseISO(showDateControls ? draftEndDate : appliedEndDate);
     if (!isSameDay(start, end)) {
       const sameYear = start.getFullYear() === end.getFullYear();
       const startFormat = sameYear ? 'MMM d' : 'MMM d, yyyy';
       return `${format(start, startFormat)} - ${format(end, 'MMM d, yyyy')}`;
     }
     return format(start, 'MMM d, yyyy');
-  }, [startDate, endDate]);
+  }, [appliedStartDate, appliedEndDate, draftStartDate, draftEndDate, showDateControls]);
 
-  const isTodayRange = startDate === todayKey && endDate === todayKey;
-  const showDateClear = isDateSelected && !isTodayRange;
+  const isTodayRange = appliedStartDate === todayKey && appliedEndDate === todayKey;
+  const showDateClear = isDateSelected;
+  const hasDateChanges =
+    draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
+  const canApplyDates = hasDraftSelection && (hasDateChanges || !isDateSelected);
 
-
-  const isSingleDay = useMemo(
-    () => isSameDay(parseISO(startDate), parseISO(endDate)),
-    [startDate, endDate]
-  );
+  const isSingleDay = useMemo(() => {
+    if (!hasDraftSelection) {
+      return false;
+    }
+    return isSameDay(parseISO(draftStartDate), parseISO(draftEndDate));
+  }, [draftStartDate, draftEndDate, hasDraftSelection]);
 
   const markedDates = useMemo(() => {
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
+    if (!hasDraftSelection) {
+      return {};
+    }
+    const start = parseISO(draftStartDate);
+    const end = parseISO(draftEndDate);
     const marked: Record<
       string,
       { color?: string; textColor?: string; startingDay?: boolean; endingDay?: boolean }
@@ -192,28 +219,53 @@ export function TodaysJobsScreen() {
     }
 
     return marked;
-  }, [startDate, endDate, isSingleDay]);
+  }, [draftStartDate, draftEndDate, isSingleDay, hasDraftSelection]);
+
+  const calendarTheme = useMemo(
+    () => ({
+      todayTextColor: colors.primary,
+      arrowColor: colors.primary,
+      textSectionTitleColor: colors.textSecondary,
+      textDayFontWeight: '500',
+      textMonthFontWeight: '600',
+      monthTextColor: colors.textPrimary,
+      'stylesheet.day.period': {
+        today: {
+          borderWidth: 1,
+          borderColor: colors.primary,
+          borderRadius: 17,
+        },
+      },
+    }),
+    []
+  );
 
   const handleDayPress = (dateString: string) => {
+    if (!hasDraftSelection) {
+      setHasDraftSelection(true);
+      setDraftStartDate(dateString);
+      setDraftEndDate(dateString);
+      return;
+    }
     const selected = parseISO(dateString);
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
+    const start = parseISO(draftStartDate);
+    const end = parseISO(draftEndDate);
 
     if (isSameDay(start, end)) {
       if (isSameDay(selected, start)) {
         return;
       }
       if (isBefore(selected, start)) {
-        setStartDate(dateString);
-        setEndDate(format(start, 'yyyy-MM-dd'));
+        setDraftStartDate(dateString);
+        setDraftEndDate(format(start, 'yyyy-MM-dd'));
       } else {
-        setEndDate(dateString);
+        setDraftEndDate(dateString);
       }
       return;
     }
 
-    setStartDate(dateString);
-    setEndDate(dateString);
+    setDraftStartDate(dateString);
+    setDraftEndDate(dateString);
   };
 
   return (
@@ -295,19 +347,7 @@ export function TodaysJobsScreen() {
                     id: 'date',
                     label: dateLabel,
                     active: isDateSelected,
-                    onPress: () => {
-                      if (!isDateSelected) {
-                        setIsDateSelected(true);
-                        setShowDateControls(true);
-                        return;
-                      }
-                      if (showDateControls) {
-                        setIsDateSelected(false);
-                        setShowDateControls(false);
-                        return;
-                      }
-                      setShowDateControls(true);
-                    },
+                    onPress: toggleDateControls,
                     accessory: showDateClear ? (
                       <TouchableOpacity
                         onPress={clearDateFilter}
@@ -316,8 +356,8 @@ export function TodaysJobsScreen() {
                       >
                         <Ionicons
                           name="close"
-                          size={16}
-                          color={isDateSelected ? colors.surface : colors.textMuted}
+                          size={18}
+                          color={colors.primary}
                         />
                       </TouchableOpacity>
                     ) : null,
@@ -330,6 +370,32 @@ export function TodaysJobsScreen() {
           {showDateControls && (
             <View style={styles.calendarBlock}>
               <View style={styles.calendarHeaderRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.calendarApplyButton,
+                    !canApplyDates && styles.calendarApplyButtonDisabled,
+                  ]}
+                  onPress={() => {
+                    if (!canApplyDates) {
+                      return;
+                    }
+                    setAppliedStartDate(draftStartDate);
+                    setAppliedEndDate(draftEndDate);
+                    setIsDateSelected(true);
+                    setShowDateControls(false);
+                  }}
+                  activeOpacity={0.7}
+                  disabled={!canApplyDates}
+                >
+                  <Text
+                    style={[
+                      styles.calendarApplyText,
+                      !canApplyDates && styles.calendarApplyTextDisabled,
+                    ]}
+                  >
+                    Apply
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.calendarCloseButton}
                   onPress={() => setShowDateControls(false)}
@@ -353,14 +419,7 @@ export function TodaysJobsScreen() {
                       />
                     </View>
                   )}
-                  theme={{
-                    todayTextColor: colors.primary,
-                    arrowColor: colors.primary,
-                    textSectionTitleColor: colors.textSecondary,
-                    textDayFontWeight: '500',
-                    textMonthFontWeight: '600',
-                  monthTextColor: colors.textPrimary,
-                }}
+                  theme={calendarTheme}
                 />
               </View>
             </View>
@@ -655,9 +714,33 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
   },
+  calendarApplyButton: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+    marginRight: spacing[2],
+    transform: [{ translateY: -4 }],
+  },
+  calendarApplyText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  calendarApplyButtonDisabled: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
+  calendarApplyTextDisabled: {
+    color: colors.textMuted,
+  },
   dateClearButton: {
     marginLeft: spacing[1],
     padding: spacing[1],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
   },
   modalSearchInput: {
     backgroundColor: colors.surface,
