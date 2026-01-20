@@ -15,6 +15,7 @@ export interface FilterPillItem {
   onPress: () => void;
   count?: number;
   labelStyle?: TextStyle;
+  accessory?: React.ReactNode;
 }
 
 interface FilterPillsProps {
@@ -39,6 +40,7 @@ export function FilterPills({ items, contentContainerStyle }: FilterPillsProps) 
           <Text style={[styles.chipText, item.active && styles.chipTextActive, item.labelStyle]}>
             {item.label}
           </Text>
+          {item.accessory}
           {typeof item.count === 'number' && item.count > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{item.count}</Text>
@@ -63,18 +65,18 @@ const styles = StyleSheet.create({
     minHeight: 40,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
     gap: spacing[2],
   },
   chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.surface,
   },
   chipText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.textSecondary,
+    color: colors.surface,
   },
   chipTextActive: {
     color: colors.surface,

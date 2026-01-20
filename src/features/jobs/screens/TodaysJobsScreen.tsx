@@ -42,6 +42,7 @@ export function TodaysJobsScreen() {
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showDateControls, setShowDateControls] = useState(false);
+  const [isDateSelected, setIsDateSelected] = useState(false);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const [startDate, setStartDate] = useState<string>(() => todayKey);
   const [endDate, setEndDate] = useState<string>(() => todayKey);
@@ -69,7 +70,9 @@ export function TodaysJobsScreen() {
     return date;
   }, [endDate]);
 
-  const { data, isLoading, isFetching } = useJobList({
+  const isDateFiltering = isDateSelected;
+  const { data: allJobsData, isLoading: isLoadingAll, isFetching: isFetchingAll } = useJobList();
+  const { data: dateJobsData, isLoading: isLoadingDate, isFetching: isFetchingDate } = useJobList({
     dateRange: { startDate: rangeStart, endDate: rangeEnd },
   });
   const { data: myJobsData } = useMyJobs();
@@ -82,6 +85,13 @@ export function TodaysJobsScreen() {
     setShowForm(true);
   };
 
+  const clearDateFilter = () => {
+    setStartDate(todayKey);
+    setEndDate(todayKey);
+    setIsDateSelected(false);
+    setShowDateControls(false);
+  };
+
   const handleSubmit = async (formData: JobFormData) => {
     await createMutation.mutateAsync(formData);
     setShowForm(false);
@@ -91,11 +101,22 @@ export function TodaysJobsScreen() {
     navigation.navigate('JobDetail', { jobId: job.id });
   };
 
+  const isLoading = isDateFiltering ? isLoadingDate : isLoadingAll;
+  const isFetching = isDateFiltering ? isFetchingDate : isFetchingAll;
+  const allJobs = (isDateFiltering ? dateJobsData?.items : allJobsData?.items) || [];
+  const myJobs = useMemo(() => {
+    const items = myJobsData?.items || [];
+    if (!isDateFiltering) {
+      return items;
+    }
+    return items.filter((job) => {
+      const scheduled = job.scheduledStart;
+      return scheduled >= rangeStart && scheduled <= rangeEnd;
+    });
+  }, [myJobsData?.items, isDateFiltering, rangeStart, rangeEnd]);
+
   // Filter jobs based on filter toggle and search query
   const filteredJobs = useMemo(() => {
-    const allJobs = data?.items || [];
-    const myJobs = myJobsData?.items || [];
-
     // First apply the "All" vs "My Jobs" filter
     const jobsToShow = jobFilter === 'my' ? myJobs : allJobs;
 
@@ -113,14 +134,9 @@ export function TodaysJobsScreen() {
 
       return clientName.includes(query) || jobType.includes(query) || description.includes(query);
     });
-  }, [data?.items, myJobsData?.items, searchQuery, clients, jobFilter]);
+  }, [allJobs, myJobs, searchQuery, clients, jobFilter]);
 
   const jobs = filteredJobs;
-  const allJobs = data?.items || [];
-  const myJobs = (myJobsData?.items || []).filter((job) => {
-    const scheduled = job.scheduledStart;
-    return scheduled >= rangeStart && scheduled <= rangeEnd;
-  });
   const hasAnyJobs = allJobs.length > 0;
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
 
@@ -134,6 +150,9 @@ export function TodaysJobsScreen() {
     }
     return format(start, 'MMM d, yyyy');
   }, [startDate, endDate]);
+
+  const isTodayRange = startDate === todayKey && endDate === todayKey;
+  const showDateClear = isDateSelected && !isTodayRange;
 
 
   const isSingleDay = useMemo(
@@ -256,7 +275,7 @@ export function TodaysJobsScreen() {
                   {
                     id: 'all',
                     label: 'All Jobs',
-                    active: jobFilter === 'all' && !showDateControls,
+                    active: jobFilter === 'all',
                     onPress: () => {
                       setJobFilter('all');
                       setShowDateControls(false);
@@ -265,7 +284,7 @@ export function TodaysJobsScreen() {
                   {
                     id: 'my',
                     label: 'My Jobs',
-                    active: jobFilter === 'my' && !showDateControls,
+                    active: jobFilter === 'my',
                     onPress: () => {
                       setJobFilter('my');
                       setShowDateControls(false);
@@ -275,8 +294,33 @@ export function TodaysJobsScreen() {
                   {
                     id: 'date',
                     label: dateLabel,
-                    active: showDateControls,
-                    onPress: toggleDateControls,
+                    active: isDateSelected,
+                    onPress: () => {
+                      if (!isDateSelected) {
+                        setIsDateSelected(true);
+                        setShowDateControls(true);
+                        return;
+                      }
+                      if (showDateControls) {
+                        setIsDateSelected(false);
+                        setShowDateControls(false);
+                        return;
+                      }
+                      setShowDateControls(true);
+                    },
+                    accessory: showDateClear ? (
+                      <TouchableOpacity
+                        onPress={clearDateFilter}
+                        style={styles.dateClearButton}
+                        hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                      >
+                        <Ionicons
+                          name="close"
+                          size={16}
+                          color={isDateSelected ? colors.surface : colors.textMuted}
+                        />
+                      </TouchableOpacity>
+                    ) : null,
                     labelStyle: styles.datePillText,
                   },
                 ]}
@@ -288,7 +332,7 @@ export function TodaysJobsScreen() {
               <View style={styles.calendarHeaderRow}>
                 <TouchableOpacity
                   style={styles.calendarCloseButton}
-                  onPress={toggleDateControls}
+                  onPress={() => setShowDateControls(false)}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.calendarCloseText}>Close</Text>
@@ -610,6 +654,10 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
+  },
+  dateClearButton: {
+    marginLeft: spacing[1],
+    padding: spacing[1],
   },
   modalSearchInput: {
     backgroundColor: colors.surface,
