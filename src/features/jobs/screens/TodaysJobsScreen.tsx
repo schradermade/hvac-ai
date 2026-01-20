@@ -294,7 +294,7 @@ export function TodaysJobsScreen() {
             variant="dark"
           />
           <View style={styles.heroCountBadge}>
-            <Text style={styles.heroCountText}>{allJobs.length}</Text>
+            <Text style={styles.heroCountText}>{jobs.length}</Text>
           </View>
 
           {/* Search Row */}
