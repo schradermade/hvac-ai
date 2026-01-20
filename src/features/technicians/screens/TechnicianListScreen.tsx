@@ -44,6 +44,10 @@ export function TechnicianListScreen() {
         <SectionHeader
           icon="people-outline"
           title="Technicians"
+          metadata={{
+            icon: 'people-outline',
+            text: 'Manage your field team',
+          }}
           variant="dark"
           count={technicians.length}
         >

@@ -59,9 +59,11 @@ export function HeroSection({
             <Text style={[styles.heroTitle, { color: titleColor }]}>{title}</Text>
           </View>
           {metadata && (
-            <View style={styles.metaInline}>
-              <Ionicons name={metadata.icon} size={16} color={metaColor} />
-              <Text style={[styles.metaText, { color: metaColor }]}>{metadata.text}</Text>
+            <View style={styles.metaCenter}>
+              <View style={styles.metaInline}>
+                <Ionicons name={metadata.icon} size={16} color={metaColor} />
+                <Text style={[styles.metaText, { color: metaColor }]}>{metadata.text}</Text>
+              </View>
             </View>
           )}
         </View>
@@ -95,16 +97,20 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     position: 'relative',
     width: '100%',
   },
   titleGroup: {
-    position: 'absolute',
-    left: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
+  },
+  metaCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   heroTitle: {
     fontSize: typography.fontSize['2xl'],
