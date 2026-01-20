@@ -5,15 +5,12 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Spinner, Badge } from '@/components/ui';
+import { Spinner, Badge, SectionHeader, SearchInput, FilterPills } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useAllSessions } from '@/features/diagnostic';
 import { useClientList } from '@/features/clients';
@@ -39,9 +36,7 @@ export function HistoryScreen() {
   const { data: clientsData } = useClientList();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
 
@@ -104,122 +99,51 @@ export function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroContent}>
-            <View style={styles.titleRow}>
-              <Ionicons name="sparkles" size={28} color="#FFFFFF" />
-              <Text style={styles.heroTitle}>Copilot</Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{sessions.length}</Text>
-              </View>
-            </View>
-            <Text style={styles.subtitleText}>Diagnostic history and conversations</Text>
-          </View>
-
-          {/* Brand Header - Top Right */}
-          <View style={styles.brandHeader}>
-            <View style={styles.brandLogoContainer}>
-              <Ionicons name="snow" size={20} color="#FFFFFF" />
-            </View>
-            <Text style={styles.brandText}>HVACOps</Text>
-          </View>
-        </View>
-
+      <SectionHeader
+        icon="sparkles"
+        title="Copilot"
+        metadata={{
+          icon: 'chatbubbles-outline',
+          text: 'Diagnostic history and conversations',
+        }}
+        variant="indigo"
+        count={sessions.length}
+        style={styles.header}
+      >
         {/* Search Bar */}
         <View style={styles.searchRow}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons
-              name="search"
-              size={20}
-              color={isSearchFocused ? colors.textPrimary : '#FFFFFF'}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={[styles.inlineSearchInput, isSearchFocused && styles.inlineSearchInputFocused]}
-              placeholder="Search AI history..."
-              placeholderTextColor={isSearchFocused ? colors.textMuted : '#FFFFFF'}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={() => setSearchQuery('')}
-                activeOpacity={0.6}
-                hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
-              >
-                <Ionicons
-                  name="close-circle"
-                  size={20}
-                  color={isSearchFocused ? colors.textMuted : '#FFFFFF'}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity
-            style={styles.quickFindButton}
-            onPress={() => setShowSearchModal(true)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="filter" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search AI history..."
+          />
         </View>
 
-        {/* Filter Chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+        <FilterPills
+          items={[
+            {
+              id: 'all',
+              label: 'All',
+              active: statusFilter === 'all',
+              onPress: () => setStatusFilter('all'),
+            },
+            {
+              id: 'in_progress',
+              label: 'In Progress',
+              active: statusFilter === 'in_progress',
+              onPress: () => setStatusFilter('in_progress'),
+            },
+            {
+              id: 'completed',
+              label: 'Completed',
+              active: statusFilter === 'completed',
+              onPress: () => setStatusFilter('completed'),
+            },
+          ]}
           contentContainerStyle={styles.filterChips}
-        >
-          <TouchableOpacity
-            style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
-            onPress={() => setStatusFilter('all')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[styles.filterChipText, statusFilter === 'all' && styles.filterChipTextActive]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterChip, statusFilter === 'in_progress' && styles.filterChipActive]}
-            onPress={() => setStatusFilter('in_progress')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                statusFilter === 'in_progress' && styles.filterChipTextActive,
-              ]}
-            >
-              In Progress
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterChip, statusFilter === 'completed' && styles.filterChipActive]}
-            onPress={() => setStatusFilter('completed')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                statusFilter === 'completed' && styles.filterChipTextActive,
-              ]}
-            >
-              Completed
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+          variant="indigo"
+        />
+      </SectionHeader>
 
       <FlatList
         style={styles.flatListContainer}
@@ -337,102 +261,6 @@ export function HistoryScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Quick Find Modal */}
-      <Modal
-        visible={showSearchModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowSearchModal(false);
-          setSearchQuery('');
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => {
-                setShowSearchModal(false);
-                setSearchQuery('');
-              }}
-            >
-              <Text style={styles.modalClose}>Close</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Find AI Session</Text>
-            <View style={styles.modalPlaceholder} />
-          </View>
-          <View style={styles.modalSearchContainer}>
-            <TextInput
-              style={styles.modalSearchInput}
-              placeholder="Search by client name..."
-              placeholderTextColor={colors.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-            />
-          </View>
-          <FlatList
-            data={sessions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item: session }) => {
-              const client = clients.find((c) => c.id === session.clientId);
-              return (
-                <TouchableOpacity
-                  style={styles.sessionListItem}
-                  onPress={() => {
-                    setShowSearchModal(false);
-                    setSearchQuery('');
-                    handleSessionPress(session);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.sessionListItemContent}>
-                    <Text style={styles.sessionListItemName}>
-                      {client?.name || 'Unknown Client'}
-                    </Text>
-                    <Text style={styles.sessionListItemDetails}>
-                      {new Date(session.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}{' '}
-                      •{' '}
-                      {new Date(session.createdAt).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                    <Text style={styles.sessionListItemAddress}>
-                      {session.messages.length} message{session.messages.length === 1 ? '' : 's'}
-                      {session.jobId && ' • Linked to job'}
-                    </Text>
-                  </View>
-                  <View style={styles.sessionListItemBadge}>
-                    {session.completedAt ? (
-                      <Badge variant="success">Completed</Badge>
-                    ) : (
-                      <Badge variant="info">In Progress</Badge>
-                    )}
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
-                </TouchableOpacity>
-              );
-            }}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            contentContainerStyle={styles.modalListContent}
-            ListEmptyComponent={
-              <View style={styles.emptySearch}>
-                <Text style={styles.emptySearchText}>
-                  {searchQuery
-                    ? `No AI history matches "${searchQuery}"`
-                    : 'Start typing to search'}
-                </Text>
-              </View>
-            }
-          />
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -443,150 +271,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    paddingTop: spacing[3],
-    paddingHorizontal: spacing[4],
-    paddingBottom: spacing[3],
     backgroundColor: '#6366F1',
     borderBottomWidth: 0,
-    gap: spacing[3],
-  },
-  heroSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing[3],
-  },
-  heroContent: {
-    flex: 1,
-    gap: spacing[2],
-  },
-  brandHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  brandLogoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  heroTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
-  },
-  subtitleText: {
-    fontSize: typography.fontSize.sm,
-    color: '#FFFFFF',
-    fontWeight: typography.fontWeight.medium,
-  },
-  countBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
   },
-  searchInputContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: spacing[4],
-    top: 18,
-    zIndex: 1,
-  },
-  inlineSearchInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: borderRadius.base,
-    paddingLeft: spacing[12],
-    paddingRight: spacing[12],
-    paddingVertical: spacing[3],
-    fontSize: typography.fontSize.base,
-    color: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    minHeight: 56,
-    ...shadows.sm,
-  },
-  inlineSearchInputFocused: {
-    backgroundColor: '#FFFFFF',
-    color: colors.textPrimary,
-    borderColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  clearButton: {
-    position: 'absolute',
-    right: spacing[3],
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickFindButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.base,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.sm,
-  },
   filterChips: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    paddingTop: spacing[3],
-  },
-  filterChip: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  filterChipActive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
-  },
-  filterChipText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: '#FFFFFF',
-  },
-  filterChipTextActive: {
-    color: '#6366F1',
+    paddingTop: spacing[2],
   },
   flatListContainer: {
     backgroundColor: '#9B9EF6',
@@ -730,95 +424,5 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     lineHeight: 20,
     marginTop: spacing[1],
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#EEF2FF',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing[4],
-    borderBottomWidth: 1,
-    borderBottomColor: '#D4D7FB',
-    backgroundColor: '#EEF2FF',
-  },
-  modalClose: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: '#6366F1',
-    minWidth: 60,
-  },
-  modalTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  modalPlaceholder: {
-    width: 60,
-  },
-  modalSearchContainer: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[2],
-    backgroundColor: '#EEF2FF',
-  },
-  modalSearchInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: '#D4D7FB',
-    minHeight: 56,
-  },
-  modalListContent: {
-    paddingBottom: spacing[4],
-  },
-  sessionListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[4],
-    backgroundColor: colors.surface,
-    minHeight: 80,
-  },
-  sessionListItemContent: {
-    flex: 1,
-  },
-  sessionListItemBadge: {
-    marginRight: spacing[2],
-  },
-  sessionListItemName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing[1],
-  },
-  sessionListItemDetails: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing[1],
-  },
-  sessionListItemAddress: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#D4D7FB',
-  },
-  emptySearch: {
-    padding: spacing[8],
-    alignItems: 'center',
-  },
-  emptySearchText: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
 });
