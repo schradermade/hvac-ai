@@ -54,17 +54,17 @@ export function HeroSection({
       <View style={styles.heroContent}>
         {/* Title Row */}
         <View style={styles.titleRow}>
-          <Ionicons name={icon} size={28} color={iconColor} />
-          <Text style={[styles.heroTitle, { color: titleColor }]}>{title}</Text>
-        </View>
-
-        {/* Optional Metadata Row */}
-        {metadata && (
-          <View style={styles.metaRow}>
-            <Ionicons name={metadata.icon} size={16} color={metaColor} />
-            <Text style={[styles.metaText, { color: metaColor }]}>{metadata.text}</Text>
+          <View style={styles.titleGroup}>
+            <Ionicons name={icon} size={28} color={iconColor} />
+            <Text style={[styles.heroTitle, { color: titleColor }]}>{title}</Text>
           </View>
-        )}
+          {metadata && (
+            <View style={styles.metaInline}>
+              <Ionicons name={metadata.icon} size={16} color={metaColor} />
+              <Text style={[styles.metaText, { color: metaColor }]}>{metadata.text}</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Brand Header - Top Right */}
@@ -84,14 +84,24 @@ export function HeroSection({
 const styles = StyleSheet.create({
   heroSection: {
     flexDirection: 'column',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     gap: spacing[3],
     position: 'relative',
   },
   heroContent: {
     gap: spacing[2],
+    paddingBottom: spacing[2],
   },
   titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  titleGroup: {
+    position: 'absolute',
+    left: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
@@ -100,7 +110,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
   },
-  metaRow: {
+  metaInline: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],

@@ -31,7 +31,9 @@ export function SearchInput({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
+      <View style={styles.searchIcon}>
+        <Ionicons name="search" size={20} color={colors.textMuted} />
+      </View>
       <TextInput
         style={[styles.input, inputStyle]}
         placeholder={placeholder}
@@ -42,14 +44,16 @@ export function SearchInput({
         autoCorrect={false}
       />
       {showClear && (
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={handleClear}
-          activeOpacity={0.6}
-          hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
-        >
-          <Ionicons name="close" size={18} color={colors.primary} />
-        </TouchableOpacity>
+        <View style={styles.clearButtonContainer}>
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClear}
+            activeOpacity={0.6}
+            hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
+          >
+            <Ionicons name="close" size={18} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -63,8 +67,9 @@ const styles = StyleSheet.create({
   searchIcon: {
     position: 'absolute',
     left: spacing[4],
-    top: '50%',
-    transform: [{ translateY: -10 }],
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
     zIndex: 1,
   },
   input: {
@@ -80,11 +85,14 @@ const styles = StyleSheet.create({
     minHeight: 56,
     ...shadows.sm,
   },
-  clearButton: {
+  clearButtonContainer: {
     position: 'absolute',
     right: spacing[3],
-    top: '50%',
-    transform: [{ translateY: -18 }],
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  clearButton: {
     width: 36,
     height: 36,
     alignItems: 'center',
