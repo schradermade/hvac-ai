@@ -120,6 +120,7 @@ export function TabNavigator() {
             borderRightWidth: 0,
             borderTopWidth: 1,
             borderTopColor: colors.border,
+            backgroundColor: colors.primaryLight + '30',
           },
         }}
       />
