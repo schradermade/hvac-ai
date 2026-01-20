@@ -26,6 +26,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { useAuth } from '@/providers';
+import { useSavedAccounts } from '../hooks/useSavedAccounts';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -33,7 +34,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 const BRAND_SIZE = 32;
 
 export function LoginScreen({ navigation }: Props) {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, loginWithSavedAccount, isLoading, error, clearError } = useAuth();
+  const { accounts, isLoading: accountsLoading } = useSavedAccounts();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -70,6 +72,18 @@ export function LoginScreen({ navigation }: Props) {
     }
   };
 
+  const quickAccounts = accounts.filter((item) => item.hasSession && !item.isExpired);
+
+  const handleQuickLogin = async (accountId: string) => {
+    clearError();
+
+    try {
+      await loginWithSavedAccount(accountId);
+    } catch (err) {
+      console.error('Quick login failed:', err);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -85,12 +99,37 @@ export function LoginScreen({ navigation }: Props) {
           <View style={styles.header}>
             <View style={styles.brandRow}>
               <View style={styles.logoContainer}>
-              <Ionicons name="snow" size={BRAND_SIZE} color={colors.primary} />
+                <Ionicons name="snow" size={BRAND_SIZE} color={colors.primary} />
               </View>
               <Text style={styles.appName}>HVACOps</Text>
             </View>
             <Text style={styles.subtitle}>Welcome back</Text>
           </View>
+
+          {!accountsLoading && quickAccounts.length > 0 && (
+            <View style={styles.quickLoginSection}>
+              <Text style={styles.quickLoginTitle}>Quick sign-in</Text>
+              {quickAccounts.map((item) => (
+                <TouchableOpacity
+                  key={item.account.id}
+                  style={styles.quickLoginCard}
+                  onPress={() => handleQuickLogin(item.account.id)}
+                  disabled={isLoading}
+                >
+                  <View style={styles.quickLoginIcon}>
+                    <Ionicons name="snow" size={18} color={colors.primary} />
+                  </View>
+                  <View style={styles.quickLoginInfo}>
+                    <Text style={styles.quickLoginName}>
+                      {item.account.firstName} {item.account.lastName}
+                    </Text>
+                    <Text style={styles.quickLoginEmail}>{item.account.email}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Form */}
           <View style={styles.form}>
@@ -238,6 +277,50 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+  },
+  quickLoginSection: {
+    marginBottom: spacing[6],
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  quickLoginTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+    marginBottom: spacing[3],
+    textAlign: 'center',
+  },
+  quickLoginCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.base,
+    padding: spacing[4],
+    marginBottom: spacing[3],
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  quickLoginIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing[3],
+  },
+  quickLoginInfo: {
+    flex: 1,
+  },
+  quickLoginName: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  quickLoginEmail: {
+    fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
   },
   form: {

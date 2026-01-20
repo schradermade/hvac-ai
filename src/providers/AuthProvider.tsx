@@ -16,6 +16,8 @@ interface AuthContextValue extends AuthState {
   login: (credentials: AuthCredentials) => Promise<void>;
   // eslint-disable-next-line no-unused-vars
   signup: (data: SignupData) => Promise<void>;
+  // eslint-disable-next-line no-unused-vars
+  loginWithSavedAccount: (accountId: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -47,24 +49,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   async function initializeAuth() {
     try {
-      const [token, user, isExpired] = await Promise.all([
-        authStorage.getAuthToken(),
-        authStorage.getCurrentUser(),
-        authStorage.isTokenExpired(),
-      ]);
+      await authStorage.migrateLegacyAuth();
+      const session = await authStorage.getActiveAccountSession();
 
       // If we have a valid token and user, restore the session
-      if (token && user && !isExpired) {
+      if (session && !(await authStorage.isAccountTokenExpired(session.user.id))) {
         setState({
-          user,
+          user: session.user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
         });
       } else {
         // Token expired or missing, clear everything
-        if (token || user) {
-          await authStorage.clearAllAuthData();
+        if (session) {
+          await authStorage.clearAccountSession(session.user.id);
+          await authStorage.setActiveAccountId(null);
         }
 
         setState({
@@ -98,11 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.login(credentials);
 
       // Save auth data to storage
-      await Promise.all([
-        authStorage.saveAuthToken(response.token),
-        authStorage.saveCurrentUser(response.user),
-        authStorage.saveTokenExpiry(response.expiresAt),
-      ]);
+      await authStorage.saveAccountSession(response.user, response.token, response.expiresAt);
 
       setState({
         user: response.user,
@@ -132,14 +128,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.signup(data);
 
       // Save auth data to storage
-      await Promise.all([
-        authStorage.saveAuthToken(response.token),
-        authStorage.saveCurrentUser(response.user),
-        authStorage.saveTokenExpiry(response.expiresAt),
-      ]);
+      await authStorage.saveAccountSession(response.user, response.token, response.expiresAt);
 
       setState({
         user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const authError = error as AuthError;
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: authError,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Login with a saved account session
+   */
+  async function loginWithSavedAccount(accountId: string): Promise<void> {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const authenticated = await authStorage.authenticateBiometrics(
+        'Confirm to sign in to HVACOps'
+      );
+
+      if (!authenticated) {
+        throw {
+          type: 'unknown_error',
+          message: 'Authentication canceled',
+        } as AuthError;
+      }
+
+      const session = await authStorage.getAccountSession(accountId);
+      if (!session) {
+        throw {
+          type: 'unknown_error',
+          message: 'Saved session not found',
+        } as AuthError;
+      }
+
+      const isExpired = await authStorage.isAccountTokenExpired(accountId);
+      if (isExpired) {
+        await authStorage.clearAccountSession(accountId);
+        throw {
+          type: 'token_expired',
+          message: 'Saved session expired. Please sign in again.',
+        } as AuthError;
+      }
+
+      await authStorage.setActiveAccountId(accountId);
+
+      setState({
+        user: session.user,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -166,8 +213,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Call logout service (might invalidate token on server)
       await authService.logout();
 
-      // Clear all auth data from storage
-      await authStorage.clearAllAuthData();
+      // Keep saved session for quick sign-in, only clear active selection
+      await authStorage.setActiveAccountId(null);
 
       setState({
         user: null,
@@ -177,8 +224,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if logout fails, clear local data
-      await authStorage.clearAllAuthData();
+      // Even if logout fails, clear active selection to return to login
+      await authStorage.setActiveAccountId(null);
 
       setState({
         user: null,
@@ -200,6 +247,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ...state,
     login,
     signup,
+    loginWithSavedAccount,
     logout,
     clearError,
   };

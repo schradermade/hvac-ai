@@ -8,6 +8,7 @@
 export { LoginScreen } from './screens/LoginScreen';
 export { SignupScreen } from './screens/SignupScreen';
 export { PasswordResetScreen } from './screens/PasswordResetScreen';
+export { useSavedAccounts } from './hooks/useSavedAccounts';
 
 // Export types
 export type {

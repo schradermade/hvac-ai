@@ -93,7 +93,7 @@ export function TabNavigator() {
             borderRightColor: colors.border,
             borderTopWidth: 1,
             borderTopColor: '#D4D7FB',
-            backgroundColor: colors.primaryLight + '30',
+            backgroundColor: '#D4D7FB',
           },
           tabBarActiveBackgroundColor: '#9B9EF6',
         }}

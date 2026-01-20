@@ -17,6 +17,13 @@ export interface AuthUser {
 }
 
 /**
+ * Account metadata stored for quick login
+ */
+export interface StoredAccount extends AuthUser {
+  lastUsedAt: string;
+}
+
+/**
  * Storage keys for AsyncStorage
  */
 export enum StorageKeys {
@@ -26,4 +33,8 @@ export enum StorageKeys {
   CURRENT_USER = '@hvacops:current_user',
   // eslint-disable-next-line no-unused-vars
   TOKEN_EXPIRY = '@hvacops:token_expiry',
+  // eslint-disable-next-line no-unused-vars
+  ACCOUNTS = '@hvacops:accounts',
+  // eslint-disable-next-line no-unused-vars
+  ACTIVE_ACCOUNT_ID = '@hvacops:active_account_id',
 }
