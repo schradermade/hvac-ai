@@ -10,6 +10,10 @@ export interface HeroSectionProps {
   title: string;
   /** Count to display in badge */
   count: number;
+  /** Whether to show count badge */
+  showCount?: boolean;
+  /** Position of count badge */
+  countPlacement?: 'inline' | 'bottomRight';
   /** Optional metadata with icon and text */
   metadata?: {
     icon: keyof typeof Ionicons.glyphMap;
@@ -45,6 +49,8 @@ export function HeroSection({
   title,
   count,
   metadata,
+  showCount = true,
+  countPlacement = 'inline',
   variant = 'default',
 }: HeroSectionProps) {
   const isDarkTheme = variant === 'indigo' || variant === 'dark';
@@ -62,9 +68,11 @@ export function HeroSection({
         <View style={styles.titleRow}>
           <Ionicons name={icon} size={28} color={iconColor} />
           <Text style={[styles.heroTitle, { color: titleColor }]}>{title}</Text>
-          <View style={[styles.countBadge, { backgroundColor: countBadgeBg }]}>
-            <Text style={[styles.countBadgeText, { color: countBadgeTextColor }]}>{count}</Text>
-          </View>
+          {showCount && countPlacement === 'inline' && (
+            <View style={[styles.countBadge, { backgroundColor: countBadgeBg }]}>
+              <Text style={[styles.countBadgeText, { color: countBadgeTextColor }]}>{count}</Text>
+            </View>
+          )}
         </View>
 
         {/* Optional Metadata Row */}
@@ -85,6 +93,12 @@ export function HeroSection({
           HVACOps
         </Text>
       </View>
+
+      {showCount && countPlacement === 'bottomRight' && (
+        <View style={[styles.countBadge, styles.countBadgeBottom, { backgroundColor: countBadgeBg }]}>
+          <Text style={[styles.countBadgeText, { color: countBadgeTextColor }]}>{count}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -95,6 +109,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing[3],
+    position: 'relative',
   },
   heroContent: {
     flex: 1,
@@ -120,6 +135,11 @@ const styles = StyleSheet.create({
   countBadgeText: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
+  },
+  countBadgeBottom: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
   },
   metaRow: {
     flexDirection: 'row',

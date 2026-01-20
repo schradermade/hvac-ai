@@ -88,10 +88,7 @@ export function TodaysJobsScreen() {
   }, [appliedEndDate]);
 
   const isDateFiltering = isDateSelected;
-  const { data: allJobsData, isLoading: isLoadingAll, isFetching: isFetchingAll } = useJobList();
-  const { data: dateJobsData, isLoading: isLoadingDate, isFetching: isFetchingDate } = useJobList({
-    dateRange: { startDate: rangeStart, endDate: rangeEnd },
-  });
+  const { data: allJobsData, isLoading, isFetching } = useJobList();
   const { data: myJobsData } = useMyJobs();
   const { data: clientsData } = useClientList();
   const createMutation = useCreateJob();
@@ -121,9 +118,16 @@ export function TodaysJobsScreen() {
     navigation.navigate('JobDetail', { jobId: job.id });
   };
 
-  const isLoading = isDateFiltering ? isLoadingDate : isLoadingAll;
-  const isFetching = isDateFiltering ? isFetchingDate : isFetchingAll;
-  const allJobs = (isDateFiltering ? dateJobsData?.items : allJobsData?.items) || [];
+  const allJobs = useMemo(() => {
+    const items = allJobsData?.items || [];
+    if (!isDateFiltering) {
+      return items;
+    }
+    return items.filter((job) => {
+      const scheduled = job.scheduledStart;
+      return scheduled >= rangeStart && scheduled <= rangeEnd;
+    });
+  }, [allJobsData?.items, isDateFiltering, rangeStart, rangeEnd]);
   const myJobs = useMemo(() => {
     const items = myJobsData?.items || [];
     if (!isDateFiltering) {
@@ -276,8 +280,9 @@ export function TodaysJobsScreen() {
           {/* Hero Section with Brand */}
           <HeroSection
             icon="calendar"
-            title="Today's Schedule"
+            title="Jobs"
             count={allJobs.length}
+            showCount={false}
             metadata={{
               icon: 'time-outline',
               text: new Date().toLocaleDateString('en-US', {
@@ -288,6 +293,9 @@ export function TodaysJobsScreen() {
             }}
             variant="dark"
           />
+          <View style={styles.heroCountBadge}>
+            <Text style={styles.heroCountText}>{allJobs.length}</Text>
+          </View>
 
           {/* Search Row */}
           <View style={styles.searchRow}>
@@ -581,6 +589,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
     paddingTop: spacing[4],
+    position: 'relative',
   },
   searchRow: {
     flexDirection: 'row',
@@ -713,6 +722,23 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
+  },
+  heroCountBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    bottom: spacing[3],
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroCountText: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.surface,
   },
   calendarApplyButton: {
     paddingHorizontal: spacing[4],
