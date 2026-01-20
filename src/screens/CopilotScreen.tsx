@@ -440,7 +440,7 @@ export function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.background,
   },
   header: {
     paddingTop: spacing[3],

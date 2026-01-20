@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Spinner, Card } from '@/components/ui';
+import { Spinner, Card, HeroSection } from '@/components/ui';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { TechnicianCard } from '../components/TechnicianCard';
@@ -45,165 +45,165 @@ export function TechnicianListScreen() {
   const activeCount = technicians.filter((t) => t.status === 'active').length;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Hero Section - Always Visible */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroHeader}>
-            <Ionicons name="people-outline" size={32} color="#FFFFFF" />
-            <View style={styles.heroTitleContainer}>
-              <Text style={styles.heroTitle}>Technicians</Text>
-              {!isLoading && (
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{technicians.length}</Text>
-                </View>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <View style={styles.content}>
+        {/* Fixed Header */}
+        <View style={styles.fixedHeader}>
+          <HeroSection
+            icon="people-outline"
+            title="Technicians"
+            count={technicians.length}
+            metadata={{
+              icon: 'checkmark-circle-outline',
+              text: `${activeCount} active technician${activeCount !== 1 ? 's' : ''}`,
+            }}
+            variant="dark"
+          />
+
+          {/* Search and Filter */}
+          <View style={styles.searchSection}>
+            {/* Search Input */}
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search-outline"
+                size={20}
+                color={colors.textMuted}
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search technicians..."
+                placeholderTextColor={colors.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+                  <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+                </TouchableOpacity>
               )}
             </View>
-          </View>
-          <Text style={styles.heroSubtitle}>
-            {activeCount} active technician{activeCount !== 1 ? 's' : ''}
-          </Text>
-        </View>
 
-        {/* Search and Filter */}
-        <View style={styles.searchSection}>
-          {/* Search Input */}
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color={colors.textMuted}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search technicians..."
-              placeholderTextColor={colors.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-                <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+            {/* Filter Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterChips}
+            >
+              <TouchableOpacity
+                style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('all')}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    statusFilter === 'all' && styles.filterChipTextActive,
+                  ]}
+                >
+                  All
+                </Text>
               </TouchableOpacity>
-            )}
+
+              <TouchableOpacity
+                style={[styles.filterChip, statusFilter === 'active' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('active')}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    statusFilter === 'active' && styles.filterChipTextActive,
+                  ]}
+                >
+                  Active
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.filterChip, statusFilter === 'inactive' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('inactive')}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    statusFilter === 'inactive' && styles.filterChipTextActive,
+                  ]}
+                >
+                  Inactive
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.filterChip, statusFilter === 'on_leave' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('on_leave')}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    statusFilter === 'on_leave' && styles.filterChipTextActive,
+                  ]}
+                >
+                  On Leave
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-
-          {/* Filter Chips */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterChips}
-          >
-            <TouchableOpacity
-              style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
-              onPress={() => setStatusFilter('all')}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  statusFilter === 'all' && styles.filterChipTextActive,
-                ]}
-              >
-                All
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, statusFilter === 'active' && styles.filterChipActive]}
-              onPress={() => setStatusFilter('active')}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  statusFilter === 'active' && styles.filterChipTextActive,
-                ]}
-              >
-                Active
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, statusFilter === 'inactive' && styles.filterChipActive]}
-              onPress={() => setStatusFilter('inactive')}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  statusFilter === 'inactive' && styles.filterChipTextActive,
-                ]}
-              >
-                Inactive
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, statusFilter === 'on_leave' && styles.filterChipActive]}
-              onPress={() => setStatusFilter('on_leave')}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  statusFilter === 'on_leave' && styles.filterChipTextActive,
-                ]}
-              >
-                On Leave
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
         </View>
 
-        {/* Loading State */}
-        {isLoading && (
-          <View style={styles.centerContainer}>
-            <Spinner />
-          </View>
-        )}
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Loading State */}
+          {isLoading && (
+            <View style={styles.centerContainer}>
+              <Spinner />
+            </View>
+          )}
 
-        {/* Error State */}
-        {error && (
-          <Card style={styles.errorCard}>
-            <Ionicons name="alert-circle" size={48} color={colors.error} />
-            <Text style={styles.errorTitle}>Failed to Load Technicians</Text>
-            <Text style={styles.errorMessage}>
-              {error instanceof Error ? error.message : 'Unknown error'}
-            </Text>
-          </Card>
-        )}
+          {/* Error State */}
+          {error && (
+            <Card style={styles.errorCard}>
+              <Ionicons name="alert-circle" size={48} color={colors.error} />
+              <Text style={styles.errorTitle}>Failed to Load Technicians</Text>
+              <Text style={styles.errorMessage}>
+                {error instanceof Error ? error.message : 'Unknown error'}
+              </Text>
+            </Card>
+          )}
 
-        {/* Empty State */}
-        {!isLoading && !error && technicians.length === 0 && (
-          <Card style={styles.emptyCard}>
-            <Ionicons name="people-outline" size={48} color={colors.textMuted} />
-            <Text style={styles.emptyTitle}>No Technicians Found</Text>
-            <Text style={styles.emptyHint}>
-              {searchQuery ? 'Try a different search term' : 'Add technicians to manage your team'}
-            </Text>
-          </Card>
-        )}
+          {/* Empty State */}
+          {!isLoading && !error && technicians.length === 0 && (
+            <Card style={styles.emptyCard}>
+              <Ionicons name="people-outline" size={48} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>No Technicians Found</Text>
+              <Text style={styles.emptyHint}>
+                {searchQuery
+                  ? 'Try a different search term'
+                  : 'Add technicians to manage your team'}
+              </Text>
+            </Card>
+          )}
 
-        {/* Technician List */}
-        {!isLoading && !error && technicians.length > 0 && (
-          <View style={styles.listContainer}>
-            {technicians.map((technician) => (
-              <TechnicianCard
-                key={technician.id}
-                technician={technician}
-                onPress={(tech) =>
-                  navigation.navigate('TechnicianDetail', {
-                    technicianId: tech.id,
-                  })
-                }
-              />
-            ))}
-          </View>
-        )}
+          {/* Technician List */}
+          {!isLoading && !error && technicians.length > 0 && (
+            <View style={styles.listContainer}>
+              {technicians.map((technician) => (
+                <TechnicianCard
+                  key={technician.id}
+                  technician={technician}
+                  onPress={(tech) =>
+                    navigation.navigate('TechnicianDetail', {
+                      technicianId: tech.id,
+                    })
+                  }
+                />
+              ))}
+            </View>
+          )}
 
-        {/* Bottom Spacer */}
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
+          {/* Bottom Spacer */}
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </View>
 
       {/* Floating Action Button - Only for admins/lead_techs */}
       {canManageTeam && (
@@ -224,51 +224,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  content: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   scrollContent: {
     flexGrow: 1,
   },
-  heroSection: {
+  fixedHeader: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
-    paddingBottom: spacing[5],
+    paddingBottom: spacing[3],
     backgroundColor: colors.primaryPressed,
-  },
-  heroHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing[2],
-  },
-  heroTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginLeft: spacing[3],
-  },
-  heroTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
-    marginRight: spacing[3],
-  },
-  countBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
-    borderRadius: borderRadius.full,
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: '#FFFFFF',
-  },
-  heroSubtitle: {
-    fontSize: typography.fontSize.base,
-    color: '#FFFFFF',
-    marginLeft: 44, // Icon (32px) + gap (12px)
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primaryPressed,
+    gap: spacing[3],
   },
   searchSection: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[4],
+    paddingBottom: spacing[2],
   },
   searchContainer: {
     flexDirection: 'row',

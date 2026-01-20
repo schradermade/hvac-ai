@@ -340,7 +340,7 @@ export function TodaysJobsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -353,8 +353,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.primaryPressed,
     gap: spacing[3],
-    marginTop: -100,
-    paddingTop: 100 + spacing[3],
+    paddingTop: spacing[4],
   },
   searchRow: {
     flexDirection: 'row',
