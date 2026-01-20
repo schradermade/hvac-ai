@@ -42,6 +42,7 @@ export function useJobList(filters?: JobFilters) {
   return useQuery({
     queryKey: jobKeys.list(user?.companyId || '', filters || {}),
     queryFn: () => jobService.getAll(user!.companyId, filters),
+    keepPreviousData: true,
     enabled: !!user?.companyId,
   });
 }

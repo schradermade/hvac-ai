@@ -517,6 +517,28 @@ class JobService {
       items = items.filter((job) => job.type === filters.type);
     }
 
+    if (filters?.dateRange) {
+      const rangeStart = new Date(filters.dateRange.startDate);
+      rangeStart.setHours(0, 0, 0, 0);
+      const rangeEnd = new Date(filters.dateRange.endDate);
+      rangeEnd.setHours(23, 59, 59, 999);
+
+      items = items.filter((job) => {
+        const scheduled = job.scheduledStart;
+        return scheduled >= rangeStart && scheduled <= rangeEnd;
+      });
+    } else if (filters?.date) {
+      const startOfDay = new Date(filters.date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(filters.date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      items = items.filter((job) => {
+        const scheduled = job.scheduledStart;
+        return scheduled >= startOfDay && scheduled <= endOfDay;
+      });
+    }
+
     // Sort by scheduled start time
     items.sort((a, b) => a.scheduledStart.getTime() - b.scheduledStart.getTime());
 

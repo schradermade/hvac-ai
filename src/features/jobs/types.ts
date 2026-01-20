@@ -82,6 +82,10 @@ export interface JobFilters {
   status?: AppointmentStatus;
   type?: JobType;
   date?: Date;
+  dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  };
 }
 
 /**
