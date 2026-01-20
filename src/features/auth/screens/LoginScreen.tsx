@@ -30,6 +30,8 @@ import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+const BRAND_SIZE = 32;
+
 export function LoginScreen({ navigation }: Props) {
   const { login, isLoading, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
@@ -81,10 +83,12 @@ export function LoginScreen({ navigation }: Props) {
         >
           {/* Logo and Branding */}
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="construct" size={64} color={colors.primary} />
+            <View style={styles.brandRow}>
+              <View style={styles.logoContainer}>
+              <Ionicons name="snow" size={BRAND_SIZE} color={colors.primary} />
+              </View>
+              <Text style={styles.appName}>HVACOps</Text>
             </View>
-            <Text style={styles.appName}>HVACOps</Text>
             <Text style={styles.subtitle}>Welcome back</Text>
           </View>
 
@@ -213,20 +217,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing[8],
   },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing[2],
+  },
   logoContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: BRAND_SIZE,
+    height: BRAND_SIZE,
+    borderRadius: BRAND_SIZE / 2,
     backgroundColor: colors.primaryLight + '20',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing[4],
+    marginRight: spacing[2],
   },
   appName: {
-    fontSize: typography.fontSize['2xl'],
+    fontSize: BRAND_SIZE,
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
-    marginBottom: spacing[2],
   },
   subtitle: {
     fontSize: typography.fontSize.base,
