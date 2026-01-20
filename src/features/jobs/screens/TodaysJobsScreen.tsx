@@ -273,31 +273,30 @@ export function TodaysJobsScreen() {
           />
 
           {showDateControls && (
-            <View style={styles.dateControls}>
-              <View style={styles.calendarCard}>
-                <Calendar
-                  markingType="period"
-                  markedDates={markedDates}
-                  onDayPress={(day) => handleDayPress(day.dateString)}
-                  renderArrow={(direction) => (
-                    <View style={styles.calendarArrow}>
-                      <Ionicons
-                        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
-                        size={28}
-                        color={colors.primary}
-                      />
-                    </View>
-                  )}
-                  theme={{
-                    todayTextColor: colors.primary,
-                    arrowColor: colors.primary,
-                    textSectionTitleColor: colors.textSecondary,
-                    textDayFontWeight: '500',
-                    textMonthFontWeight: '600',
-                    monthTextColor: colors.textPrimary,
-                  }}
-                />
-              </View>
+            <View style={styles.calendarCard}>
+              <Calendar
+                markingType="period"
+                markedDates={markedDates}
+                onDayPress={(day) => handleDayPress(day.dateString)}
+                style={styles.calendar}
+                renderArrow={(direction) => (
+                  <View style={styles.calendarArrow}>
+                    <Ionicons
+                      name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+                      size={28}
+                      color={colors.primary}
+                    />
+                  </View>
+                )}
+                theme={{
+                  todayTextColor: colors.primary,
+                  arrowColor: colors.primary,
+                  textSectionTitleColor: colors.textSecondary,
+                  textDayFontWeight: '500',
+                  textMonthFontWeight: '600',
+                  monthTextColor: colors.textPrimary,
+                }}
+              />
             </View>
           )}
         </View>
@@ -551,18 +550,21 @@ const styles = StyleSheet.create({
   modalSearchContainer: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
-    paddingBottom: spacing[2],
+    paddingBottom: spacing[3],
     backgroundColor: colors.primaryLight,
   },
   calendarCard: {
-    marginTop: spacing[4],
-    marginHorizontal: spacing[4],
+    marginTop: 0,
+    marginHorizontal: 0,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing[3],
+    overflow: 'hidden',
     ...shadows.sm,
+  },
+  calendar: {
+    paddingBottom: spacing[3],
   },
   modalSearchInput: {
     backgroundColor: colors.surface,
@@ -644,13 +646,6 @@ const styles = StyleSheet.create({
   },
   filterChips: {
     paddingTop: spacing[2],
-  },
-  dateControls: {
-    marginTop: spacing[3],
-    backgroundColor: colors.primaryLight,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[3],
   },
   calendarArrow: {
     width: 52,
