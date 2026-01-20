@@ -33,7 +33,7 @@ export function FilterPills({ items, contentContainerStyle }: FilterPillsProps) 
       {items.map((item) => (
         <TouchableOpacity
           key={item.id}
-          style={[styles.chip, item.active && styles.chipActive]}
+          style={styles.chip}
           onPress={item.onPress}
           activeOpacity={0.7}
         >
@@ -46,6 +46,7 @@ export function FilterPills({ items, contentContainerStyle }: FilterPillsProps) 
               <Text style={styles.badgeText}>{item.count}</Text>
             </View>
           )}
+          {item.active && <View pointerEvents="none" style={styles.chipActiveOutline} />}
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -63,13 +64,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
     minHeight: 40,
+    height: 40,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: colors.primary,
     gap: spacing[2],
+    position: 'relative',
   },
-  chipActive: {
+  chipActiveOutline: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: borderRadius.full,
     borderWidth: 3,
     borderColor: colors.surface,
   },
