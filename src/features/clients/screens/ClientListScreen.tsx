@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, FlatList, Modal, TextInput, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, Modal, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Button, Spinner, HeroSection } from '@/components/ui';
-import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
+import { EmptyState, Button, Spinner, SectionHeader, SearchInput, FilterPills } from '@/components/ui';
+import { colors, spacing, typography } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
 import { ClientCard } from '../components/ClientCard';
 import { ClientForm } from '../components/ClientForm';
@@ -23,7 +23,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export function ClientListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [showForm, setShowForm] = useState(false);
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { data, isLoading } = useClientList();
   const createMutation = useCreateClient();
@@ -91,57 +90,36 @@ export function ClientListScreen() {
         ) : (
           <>
             {/* Professional Header */}
-            <View style={styles.fixedHeader}>
-              {/* Hero Section with Brand */}
-              <HeroSection
-                icon="people"
-                title="Clients"
-                count={allClients.length}
-                metadata={{
-                  icon: 'briefcase-outline',
-                  text: 'Manage your customer base',
-                }}
-                variant="dark"
-              />
-
+            <SectionHeader
+              icon="people"
+              title="Clients"
+              metadata={{
+                icon: 'briefcase-outline',
+                text: 'Manage your customer base',
+              }}
+              variant="dark"
+              count={allClients.length}
+            >
               {/* Search Row */}
               <View style={styles.searchRow}>
-                <View style={styles.searchInputContainer}>
-                  <Ionicons
-                    name="search"
-                    size={20}
-                    color={colors.textMuted}
-                    style={styles.searchIcon}
-                  />
-                  <TextInput
-                    style={styles.inlineSearchInput}
-                    placeholder="Search clients..."
-                    placeholderTextColor={colors.textMuted}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity
-                      style={styles.clearButton}
-                      onPress={() => setSearchQuery('')}
-                      activeOpacity={0.6}
-                      hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
-                    >
-                      <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={styles.quickFindButton}
-                  onPress={() => setShowSearchModal(true)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="filter" size={20} color={colors.primary} />
-                </TouchableOpacity>
+                <SearchInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder="Search clients..."
+                />
               </View>
-            </View>
+              <FilterPills
+                items={[
+                  {
+                    id: 'all',
+                    label: 'All Clients',
+                    active: true,
+                    onPress: () => {},
+                  },
+                ]}
+                contentContainerStyle={styles.filterChips}
+              />
+            </SectionHeader>
 
             {/* Scrollable Client List */}
             <FlatList
@@ -183,76 +161,6 @@ export function ClientListScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* Quick Find Modal */}
-      <Modal
-        visible={showSearchModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowSearchModal(false);
-          setSearchQuery('');
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => {
-                setShowSearchModal(false);
-                setSearchQuery('');
-              }}
-            >
-              <Text style={styles.modalClose}>Close</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Find Client</Text>
-            <View style={styles.modalPlaceholder} />
-          </View>
-          <View style={styles.modalSearchContainer}>
-            <TextInput
-              style={styles.modalSearchInput}
-              placeholder="Search by name, phone, address, or email..."
-              placeholderTextColor={colors.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-            />
-          </View>
-          <FlatList
-            data={filteredClients}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.clientListItem}
-                onPress={() => {
-                  setShowSearchModal(false);
-                  setSearchQuery('');
-                  handleClientPress(item);
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={styles.clientListItemContent}>
-                  <Text style={styles.clientListItemName}>{item.name}</Text>
-                  <Text style={styles.clientListItemDetails}>
-                    {item.phone} • {item.city}
-                  </Text>
-                  <Text style={styles.clientListItemAddress}>{item.address}</Text>
-                </View>
-                <Text style={styles.chevron}>›</Text>
-              </TouchableOpacity>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            contentContainerStyle={styles.modalListContent}
-            ListEmptyComponent={
-              <View style={styles.emptySearch}>
-                <Text style={styles.emptySearchText}>
-                  {searchQuery ? `No clients match "${searchQuery}"` : 'Start typing to search'}
-                </Text>
-              </View>
-            }
-          />
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -266,23 +174,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryLight,
   },
-  fixedHeader: {
-    paddingHorizontal: spacing[4],
-    paddingBottom: spacing[3],
-    backgroundColor: colors.primaryPressed,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primaryPressed,
-    gap: spacing[3],
-    paddingTop: spacing[4],
-  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
   },
-  searchInputContainer: {
-    flex: 1,
-    position: 'relative',
+  filterChips: {
+    paddingTop: spacing[2],
   },
   fab: {
     position: 'absolute',
@@ -300,47 +198,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
   },
-  searchIcon: {
-    position: 'absolute',
-    left: spacing[4],
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    zIndex: 1,
-  },
-  inlineSearchInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
-    paddingLeft: spacing[12],
-    paddingRight: spacing[12],
-    paddingVertical: spacing[3],
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 56,
-    ...shadows.sm,
-  },
-  clearButton: {
-    position: 'absolute',
-    right: spacing[3],
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickFindButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.base,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.sm,
-  },
   list: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
@@ -349,94 +206,6 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: colors.primaryLight,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing[4],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.primaryLight,
-  },
-  modalClose: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
-    minWidth: 60,
-  },
-  modalTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  modalPlaceholder: {
-    width: 60,
-  },
-  modalSearchContainer: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[2],
-    backgroundColor: colors.primaryLight,
-  },
-  modalSearchInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 56,
-  },
-  modalListContent: {
-    paddingBottom: spacing[4],
-  },
-  clientListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[4],
-    backgroundColor: colors.surface,
-    minHeight: 80,
-  },
-  clientListItemContent: {
-    flex: 1,
-  },
-  clientListItemName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing[1],
-  },
-  clientListItemDetails: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing[1],
-  },
-  clientListItemAddress: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-  },
-  chevron: {
-    fontSize: 24,
-    color: colors.textMuted,
-    marginLeft: spacing[2],
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  emptySearch: {
-    padding: spacing[8],
-    alignItems: 'center',
-  },
-  emptySearchText: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
   emptyResults: {
     padding: spacing[8],

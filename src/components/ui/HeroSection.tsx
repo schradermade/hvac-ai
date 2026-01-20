@@ -8,12 +8,6 @@ export interface HeroSectionProps {
   icon: keyof typeof Ionicons.glyphMap;
   /** Main title text */
   title: string;
-  /** Count to display in badge */
-  count: number;
-  /** Whether to show count badge */
-  showCount?: boolean;
-  /** Position of count badge */
-  countPlacement?: 'inline' | 'bottomRight';
   /** Optional metadata with icon and text */
   metadata?: {
     icon: keyof typeof Ionicons.glyphMap;
@@ -37,7 +31,6 @@ export interface HeroSectionProps {
  * <HeroSection
  *   icon="calendar"
  *   title="Today's Schedule"
- *   count={5}
  *   metadata={{
  *     icon: "time-outline",
  *     text: "Monday, January 13, 2025"
@@ -47,18 +40,13 @@ export interface HeroSectionProps {
 export function HeroSection({
   icon,
   title,
-  count,
   metadata,
-  showCount = true,
-  countPlacement = 'inline',
   variant = 'default',
 }: HeroSectionProps) {
   const isDarkTheme = variant === 'indigo' || variant === 'dark';
   const iconColor = isDarkTheme ? '#FFFFFF' : colors.primary;
   const titleColor = isDarkTheme ? '#FFFFFF' : colors.textPrimary;
   const metaColor = isDarkTheme ? '#FFFFFF' : colors.textSecondary;
-  const countBadgeBg = isDarkTheme ? 'rgba(255, 255, 255, 0.2)' : colors.primary + '20';
-  const countBadgeTextColor = isDarkTheme ? '#FFFFFF' : colors.primary;
   const brandColor = isDarkTheme ? '#FFFFFF' : colors.primary;
 
   return (
@@ -68,11 +56,6 @@ export function HeroSection({
         <View style={styles.titleRow}>
           <Ionicons name={icon} size={28} color={iconColor} />
           <Text style={[styles.heroTitle, { color: titleColor }]}>{title}</Text>
-          {showCount && countPlacement === 'inline' && (
-            <View style={[styles.countBadge, { backgroundColor: countBadgeBg }]}>
-              <Text style={[styles.countBadgeText, { color: countBadgeTextColor }]}>{count}</Text>
-            </View>
-          )}
         </View>
 
         {/* Optional Metadata Row */}
@@ -94,25 +77,18 @@ export function HeroSection({
         </Text>
       </View>
 
-      {showCount && countPlacement === 'bottomRight' && (
-        <View style={[styles.countBadge, styles.countBadgeBottom, { backgroundColor: countBadgeBg }]}>
-          <Text style={[styles.countBadgeText, { color: countBadgeTextColor }]}>{count}</Text>
-        </View>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   heroSection: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
     gap: spacing[3],
     position: 'relative',
   },
   heroContent: {
-    flex: 1,
     gap: spacing[2],
   },
   titleRow: {
@@ -124,23 +100,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
   },
-  countBadge: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-  },
-  countBadgeBottom: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -151,6 +110,9 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
   },
   brandHeader: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],

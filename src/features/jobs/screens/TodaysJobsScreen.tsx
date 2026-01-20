@@ -4,7 +4,6 @@ import {
   StyleSheet,
   FlatList,
   Modal,
-  TextInput,
   Text,
   TouchableOpacity,
   LayoutAnimation,
@@ -17,7 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { addDays, format, isBefore, isSameDay, parseISO } from 'date-fns';
-import { EmptyState, Button, Spinner, HeroSection, FilterPills } from '@/components/ui';
+import { EmptyState, Button, Spinner, SectionHeader, FilterPills, SearchInput } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJobList, useCreateJob } from '../hooks/useJobs';
 import { useMyJobs } from '../hooks/useJobAssignment';
@@ -40,7 +39,6 @@ export function TodaysJobsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [showDateControls, setShowDateControls] = useState(false);
   const [isDateSelected, setIsDateSelected] = useState(true);
   const [hasDraftSelection, setHasDraftSelection] = useState(true);
@@ -276,104 +274,73 @@ export function TodaysJobsScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.content}>
         {/* Professional Header */}
-        <View style={styles.fixedHeader}>
-          {/* Hero Section with Brand */}
-          <HeroSection
-            icon="calendar"
-            title="Jobs"
-            count={allJobs.length}
-            showCount={false}
-            metadata={{
-              icon: 'time-outline',
-              text: new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              }),
-            }}
-            variant="dark"
-          />
-          <View style={styles.heroCountBadge}>
-            <Text style={styles.heroCountText}>{jobs.length}</Text>
-          </View>
-
+        <SectionHeader
+          icon="calendar"
+          title="Jobs"
+          metadata={{
+            icon: 'time-outline',
+            text: new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+            }),
+          }}
+          variant="dark"
+          count={jobs.length}
+        >
           {/* Search Row */}
           <View style={styles.searchRow}>
-            <View style={styles.searchInputContainer}>
-              <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
-              <TextInput
-                style={styles.inlineSearchInput}
-                placeholder="Search jobs..."
-                placeholderTextColor={colors.textMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={() => setSearchQuery('')}
-                  activeOpacity={0.6}
-                  hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
-                >
-                  <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity
-              style={styles.quickFindButton}
-              onPress={() => setShowSearchModal(true)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="filter" size={20} color={colors.primary} />
-            </TouchableOpacity>
+            <SearchInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search jobs..."
+            />
           </View>
 
           <FilterPills
             items={[
-                  {
-                    id: 'all',
-                    label: 'All Jobs',
-                    active: jobFilter === 'all',
-                    onPress: () => {
-                      setJobFilter('all');
-                      setShowDateControls(false);
-                    },
-                  },
-                  {
-                    id: 'my',
-                    label: 'My Jobs',
-                    active: jobFilter === 'my',
-                    onPress: () => {
-                      setJobFilter('my');
-                      setShowDateControls(false);
-                    },
-                    count: myJobsCount,
-                  },
-                  {
-                    id: 'date',
-                    label: dateLabel,
-                    active: isDateSelected,
-                    onPress: toggleDateControls,
-                    accessory: showDateClear ? (
-                      <TouchableOpacity
-                        onPress={clearDateFilter}
-                        style={styles.dateClearButton}
-                        hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
-                      >
-                        <Ionicons
-                          name="close"
-                          size={18}
-                          color={colors.primary}
-                        />
-                      </TouchableOpacity>
-                    ) : null,
-                    labelStyle: styles.datePillText,
-                  },
-                ]}
-                contentContainerStyle={styles.filterChips}
-              />
+              {
+                id: 'all',
+                label: 'All Jobs',
+                active: jobFilter === 'all',
+                onPress: () => {
+                  setJobFilter('all');
+                  setShowDateControls(false);
+                },
+              },
+              {
+                id: 'my',
+                label: 'My Jobs',
+                active: jobFilter === 'my',
+                onPress: () => {
+                  setJobFilter('my');
+                  setShowDateControls(false);
+                },
+                count: myJobsCount,
+              },
+              {
+                id: 'date',
+                label: dateLabel,
+                active: isDateSelected,
+                onPress: toggleDateControls,
+                accessory: showDateClear ? (
+                  <TouchableOpacity
+                    onPress={clearDateFilter}
+                    style={styles.dateClearButton}
+                    hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                ) : null,
+                labelStyle: styles.datePillText,
+              },
+            ]}
+            contentContainerStyle={styles.filterChips}
+          />
 
           {showDateControls && (
             <View style={styles.calendarBlock}>
@@ -432,7 +399,7 @@ export function TodaysJobsScreen() {
               </View>
             </View>
           )}
-        </View>
+        </SectionHeader>
 
         {/* Scrollable Job List */}
         <FlatList
@@ -484,90 +451,6 @@ export function TodaysJobsScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* Quick Find Modal */}
-      <Modal
-        visible={showSearchModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowSearchModal(false);
-          setSearchQuery('');
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => {
-                setShowSearchModal(false);
-                setSearchQuery('');
-              }}
-            >
-              <Text style={styles.modalClose}>Close</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Find Job</Text>
-            <View style={styles.modalPlaceholder} />
-          </View>
-          <View style={styles.modalSearchContainer}>
-            <TextInput
-              style={styles.modalSearchInput}
-              placeholder="Search by client, job type, or description..."
-              placeholderTextColor={colors.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-            />
-          </View>
-          <FlatList
-            data={filteredJobs}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const client = clients.find((c) => c.id === item.clientId);
-              return (
-                <TouchableOpacity
-                  style={styles.jobListItem}
-                  onPress={() => {
-                    setShowSearchModal(false);
-                    setSearchQuery('');
-                    handleJobPress(item);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.jobListItemContent}>
-                    <Text style={styles.jobListItemName}>
-                      {item.type.toUpperCase()} - {client?.name || 'Unknown Client'}
-                    </Text>
-                    <Text style={styles.jobListItemDetails}>
-                      {new Date(item.scheduledStart).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}{' '}
-                      -{' '}
-                      {new Date(item.scheduledEnd).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                    <Text style={styles.jobListItemAddress}>{item.description}</Text>
-                  </View>
-                  <Text style={styles.chevron}>›</Text>
-                </TouchableOpacity>
-              );
-            }}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            contentContainerStyle={styles.modalListContent}
-            ListEmptyComponent={
-              <View style={styles.emptySearch}>
-                <Text style={styles.emptySearchText}>
-                  {searchQuery ? `No jobs match "${searchQuery}"` : 'Start typing to search'}
-                </Text>
-              </View>
-            }
-          />
-        </SafeAreaView>
-      </Modal>
-
     </SafeAreaView>
   );
 }
@@ -581,57 +464,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryLight,
   },
-  fixedHeader: {
-    paddingHorizontal: spacing[4],
-    paddingBottom: spacing[3],
-    backgroundColor: colors.primaryPressed,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primaryPressed,
-    gap: spacing[3],
-    paddingTop: spacing[4],
-    position: 'relative',
-  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-  },
-  searchInputContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: spacing[4],
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    zIndex: 1,
-  },
-  inlineSearchInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
-    paddingLeft: spacing[12],
-    paddingVertical: spacing[3],
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 56,
-    ...shadows.sm,
-  },
-  clearButton: {
-    padding: spacing[1],
-  },
-  quickFindButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.base,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.sm,
   },
   list: {
     paddingHorizontal: spacing[4],
@@ -656,35 +492,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.primaryLight,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing[4],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.primaryLight,
-  },
-  modalClose: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
-    minWidth: 60,
-  },
-  modalTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  modalPlaceholder: {
-    width: 60,
-  },
-  modalSearchContainer: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[3],
     backgroundColor: colors.primaryLight,
   },
   calendarBlock: {
@@ -723,23 +530,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
   },
-  heroCountBadge: {
-    position: 'absolute',
-    right: spacing[4],
-    bottom: spacing[3],
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroCountText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.surface,
-  },
   calendarApplyButton: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
@@ -767,65 +557,6 @@ const styles = StyleSheet.create({
     padding: spacing[1],
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
-  },
-  modalSearchInput: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 56,
-  },
-  modalListContent: {
-    paddingBottom: spacing[4],
-  },
-  jobListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[4],
-    backgroundColor: colors.surface,
-    minHeight: 80,
-  },
-  jobListItemContent: {
-    flex: 1,
-  },
-  jobListItemName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing[1],
-  },
-  jobListItemDetails: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing[1],
-  },
-  jobListItemAddress: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-  },
-  chevron: {
-    fontSize: 24,
-    color: colors.textMuted,
-    marginLeft: spacing[2],
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  emptySearch: {
-    padding: spacing[8],
-    alignItems: 'center',
-  },
-  emptySearchText: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
   emptyResults: {
     padding: spacing[8],
