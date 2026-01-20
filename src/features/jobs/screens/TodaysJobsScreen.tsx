@@ -274,30 +274,25 @@ export function TodaysJobsScreen() {
 
           {showDateControls && (
             <View style={styles.dateControls}>
-              <View style={styles.dateSummary}>
-                <Text style={styles.dateSummaryLabel}>Selected</Text>
-                <View style={styles.dateSummaryPill}>
-                  <Text style={styles.dateSummaryText}>
-                    {!isSameDay(parseISO(startDate), parseISO(endDate))
-                      ? `${format(parseISO(startDate), 'MMM d, yyyy')} – ${format(
-                          parseISO(endDate),
-                          'MMM d, yyyy'
-                        )}`
-                      : format(parseISO(startDate), 'MMM d, yyyy')}
-                  </Text>
-                </View>
-              </View>
-
-                  <View style={styles.calendarCard}>
-                    <Calendar
-                      markingType="period"
-                      markedDates={markedDates}
-                      onDayPress={(day) => handleDayPress(day.dateString)}
-                      theme={{
-                        todayTextColor: colors.primary,
-                        arrowColor: colors.primary,
-                        textSectionTitleColor: colors.textSecondary,
-                        textDayFontWeight: '500',
+              <View style={styles.calendarCard}>
+                <Calendar
+                  markingType="period"
+                  markedDates={markedDates}
+                  onDayPress={(day) => handleDayPress(day.dateString)}
+                  renderArrow={(direction) => (
+                    <View style={styles.calendarArrow}>
+                      <Ionicons
+                        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+                        size={28}
+                        color={colors.primary}
+                      />
+                    </View>
+                  )}
+                  theme={{
+                    todayTextColor: colors.primary,
+                    arrowColor: colors.primary,
+                    textSectionTitleColor: colors.textSecondary,
+                    textDayFontWeight: '500',
                     textMonthFontWeight: '600',
                     monthTextColor: colors.textPrimary,
                   }}
@@ -559,29 +554,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[2],
     backgroundColor: colors.primaryLight,
   },
-  dateSummary: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    gap: spacing[2],
-  },
-  dateSummaryLabel: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textSecondary,
-  },
-  dateSummaryPill: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-  },
-  dateSummaryText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
   calendarCard: {
     marginTop: spacing[4],
     marginHorizontal: spacing[4],
@@ -679,5 +651,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[3],
+  },
+  calendarArrow: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ translateY: -2 }],
   },
 });
