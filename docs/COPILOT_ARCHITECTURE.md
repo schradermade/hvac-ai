@@ -605,6 +605,44 @@ Retention:
 - Support redaction of sensitive notes on request
 - Apply R2 lifecycle rules to auto-expire transcript objects
 
+### H) Audit Logging & Legal Hold (Security and Compliance)
+
+Legal-grade auditability requires immutable, verifiable chat records tied to each job.
+
+Audit requirements:
+
+- Capture every user message and AI response (including citations and retrieved doc IDs).
+- Maintain a tamper-evident audit trail.
+- Support legal hold and long-term retention policies.
+
+Recommended design:
+
+- **Append-only audit log in D1**
+  - Table: `ai_chat_audit_log`
+  - Fields: `id`, `tenant_id`, `job_id`, `session_id`, `user_id`, `role`, `content`, `citations_json`, `retrieval_doc_ids_json`, `model_id`, `request_id`, `created_at`
+  - No updates or deletes; insert-only for legal traceability.
+- **Full transcript in R2**
+  - Store the canonical transcript as JSON in R2 (`transcripts/{tenant_id}/{job_id}/{session_id}.json`)
+  - Use R2 versioning or object lock policies where appropriate.
+- **Integrity proof**
+  - Compute a SHA-256 hash of each full transcript on write.
+  - Store the hash in D1 with the transcript metadata.
+  - Optionally log the hash to an append-only audit ledger table.
+- **Legal hold**
+  - Add a `legal_hold` flag in D1 for transcript records.
+  - When enabled, skip TTL deletion and prevent redaction or modification.
+- **Access control**
+  - Gate audit endpoints using Cloudflare Access / Zero Trust.
+  - Require elevated roles for viewing or exporting audit logs.
+
+Cloudflare-specific usage:
+
+- **Workers** enforce append-only writes and audit logging policy.
+- **D1** stores immutable audit metadata and hashes.
+- **R2** stores full transcripts with lifecycle rules for retention.
+- **AI Gateway** provides request IDs, model metadata, and logging for correlation.
+- **Analytics Engine** tracks audit access events for compliance monitoring.
+
 ### G) Testing & QA
 
 Before launch:
