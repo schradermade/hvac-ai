@@ -50,7 +50,7 @@ export function TechnicianListScreen() {
         {/* Hero Section - Always Visible */}
         <View style={styles.heroSection}>
           <View style={styles.heroHeader}>
-            <Ionicons name="people-outline" size={32} color={colors.primary} />
+            <Ionicons name="people-outline" size={32} color="#FFFFFF" />
             <View style={styles.heroTitleContainer}>
               <Text style={styles.heroTitle}>Technicians</Text>
               {!isLoading && (
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
     paddingBottom: spacing[5],
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryPressed,
   },
   heroHeader: {
     flexDirection: 'row',
@@ -247,11 +247,11 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     marginRight: spacing[3],
   },
   countBadge: {
-    backgroundColor: colors.primary + '20',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[1],
     borderRadius: borderRadius.full,
@@ -259,11 +259,11 @@ const styles = StyleSheet.create({
   countBadgeText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
+    color: '#FFFFFF',
   },
   heroSubtitle: {
     fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
+    color: '#FFFFFF',
     marginLeft: 44, // Icon (32px) + gap (12px)
   },
   searchSection: {

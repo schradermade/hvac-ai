@@ -103,7 +103,7 @@ export function TabNavigator() {
         component={TechnicianListScreen}
         options={{
           title: 'Technicians',
-          tabBarLabel: 'Team',
+          tabBarLabel: 'Techs',
           tabBarIcon: ({ color }) => (
             <Ionicons name="people-circle-outline" size={22} color={color} />
           ),
