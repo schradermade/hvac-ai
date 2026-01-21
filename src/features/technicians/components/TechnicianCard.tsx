@@ -120,6 +120,7 @@ export function TechnicianCard({ technician, onPress }: TechnicianCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
+    padding: spacing[3],
   },
   container: {
     flexDirection: 'row',

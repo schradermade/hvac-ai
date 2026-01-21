@@ -91,7 +91,7 @@ export function ClientCard({ client, onPress }: ClientCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
-    padding: spacing[4],
+    padding: spacing[3],
     ...shadows.sm,
   },
   container: {
