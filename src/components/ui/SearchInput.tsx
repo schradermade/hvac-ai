@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import type { TextInputProps, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { borderRadius, colors, spacing, typography, shadows } from './tokens';
 
 interface SearchInputProps {
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText: NonNullable<TextInputProps['onChangeText']>;
   placeholder?: string;
   onClear?: () => void;
   containerStyle?: ViewStyle;
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
 });

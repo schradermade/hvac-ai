@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import { View, StyleSheet, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -260,7 +254,6 @@ export function HistoryScreen() {
         contentContainerStyle={sessions.length === 0 ? styles.emptyListContent : styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-
     </SafeAreaView>
   );
 }
@@ -280,7 +273,7 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   filterChips: {
-    paddingTop: spacing[2],
+    paddingTop: 0,
   },
   flatListContainer: {
     backgroundColor: '#9B9EF6',

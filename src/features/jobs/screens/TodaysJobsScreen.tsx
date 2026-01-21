@@ -16,7 +16,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { addDays, format, isBefore, isSameDay, parseISO } from 'date-fns';
-import { EmptyState, Button, Spinner, SectionHeader, FilterPills, SearchInput } from '@/components/ui';
+import {
+  EmptyState,
+  Button,
+  Spinner,
+  SectionHeader,
+  FilterPills,
+  SearchInput,
+} from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJobList, useCreateJob } from '../hooks/useJobs';
 import { useMyJobs } from '../hooks/useJobAssignment';
@@ -173,10 +180,8 @@ export function TodaysJobsScreen() {
     return format(start, 'MMM d, yyyy');
   }, [appliedStartDate, appliedEndDate, draftStartDate, draftEndDate, showDateControls]);
 
-  const isTodayRange = appliedStartDate === todayKey && appliedEndDate === todayKey;
   const showDateClear = isDateSelected;
-  const hasDateChanges =
-    draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
+  const hasDateChanges = draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
   const canApplyDates = hasDraftSelection && (hasDateChanges || !isDateSelected);
 
   const isSingleDay = useMemo(() => {
@@ -332,7 +337,8 @@ export function TodaysJobsScreen() {
                     <Ionicons
                       name="close"
                       size={18}
-                      color={colors.primary}
+                      color={colors.surface}
+                      style={styles.dateClearIcon}
                     />
                   </TouchableOpacity>
                 ) : null,
@@ -450,7 +456,6 @@ export function TodaysJobsScreen() {
           />
         </SafeAreaView>
       </Modal>
-
     </SafeAreaView>
   );
 }
@@ -554,9 +559,17 @@ const styles = StyleSheet.create({
   },
   dateClearButton: {
     marginLeft: spacing[1],
-    padding: spacing[1],
+    width: 24,
+    height: 24,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  dateClearIcon: {
+    marginTop: 1,
   },
   emptyResults: {
     padding: spacing[8],
@@ -578,7 +591,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   filterChips: {
-    paddingTop: spacing[2],
+    paddingTop: 0,
   },
   calendarArrow: {
     width: 52,

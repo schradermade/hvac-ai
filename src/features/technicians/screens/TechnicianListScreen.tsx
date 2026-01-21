@@ -73,7 +73,10 @@ export function TechnicianListScreen() {
           />
         </SectionHeader>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Loading State */}
           {isLoading && (
             <View style={styles.centerContainer}>
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   filterChips: {
-    paddingTop: spacing[2],
+    paddingTop: 0,
   },
   centerContainer: {
     flex: 1,
@@ -203,6 +206,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
   },
   bottomSpacer: {
     height: spacing[8],

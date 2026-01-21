@@ -5,7 +5,15 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ViewStyle, TextStyle } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { colors, spacing, typography, borderRadius } from './tokens';
 
 export interface FilterPillItem {
@@ -24,7 +32,11 @@ interface FilterPillsProps {
   variant?: 'default' | 'indigo';
 }
 
-export function FilterPills({ items, contentContainerStyle, variant = 'default' }: FilterPillsProps) {
+export function FilterPills({
+  items,
+  contentContainerStyle,
+  variant = 'default',
+}: FilterPillsProps) {
   const palette =
     variant === 'indigo'
       ? {
@@ -105,8 +117,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
-    minHeight: 40,
-    height: 40,
+    minHeight: 44,
+    height: 44,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.primary,

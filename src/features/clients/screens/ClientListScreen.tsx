@@ -4,7 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { EmptyState, Button, Spinner, SectionHeader, SearchInput, FilterPills } from '@/components/ui';
+import {
+  EmptyState,
+  Button,
+  Spinner,
+  SectionHeader,
+  SearchInput,
+  FilterPills,
+} from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
 import { ClientCard } from '../components/ClientCard';
@@ -160,7 +167,6 @@ export function ClientListScreen() {
           />
         </SafeAreaView>
       </Modal>
-
     </SafeAreaView>
   );
 }
@@ -180,7 +186,7 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   filterChips: {
-    paddingTop: spacing[2],
+    paddingTop: 0,
   },
   fab: {
     position: 'absolute',
