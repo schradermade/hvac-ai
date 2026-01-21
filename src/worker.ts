@@ -1,4 +1,5 @@
 import { getJobContextSnapshot } from '@/server/copilot/jobContext';
+import { getJobEvidence } from '@/server/copilot/jobEvidence';
 
 interface Env {
   D1_DB: D1Database;
@@ -53,6 +54,7 @@ function buildSystemPrompt() {
     'Only answer using the provided structured context.',
     'If you do not see evidence, say you do not see it in the job history.',
     'Be concise and field-oriented.',
+    'Citations must reference the provided evidence with doc_id, date, type, snippet.',
     'Return ONLY raw JSON with keys: answer, citations, follow_ups.',
   ].join(' ');
 }
@@ -147,7 +149,9 @@ export default {
       return jsonResponse({ error: 'Missing message' }, { status: 400 });
     }
 
-    const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, chatRoute?.jobId ?? '');
+    const jobId = chatRoute?.jobId ?? '';
+    const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, jobId);
+    const evidence = await getJobEvidence(env.D1_DB, tenantId, jobId, 6);
 
     const openAiPayload = {
       model: 'gpt-4o-mini',
@@ -156,7 +160,9 @@ export default {
         { role: 'system', content: buildSystemPrompt() },
         {
           role: 'user',
-          content: `Structured context:\\n${JSON.stringify(snapshot)}\\n\\nUser question:\\n${message}`,
+          content: `Structured context:\\n${JSON.stringify(snapshot)}\\n\\nEvidence:\\n${JSON.stringify(
+            evidence
+          )}\\n\\nUser question:\\n${message}`,
         },
       ],
     };
