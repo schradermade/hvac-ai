@@ -1,0 +1,185 @@
+import { getJobContextSnapshot } from '@/server/copilot/jobContext';
+
+interface Env {
+  D1_DB: D1Database;
+  OPENAI_API_KEY: string;
+}
+
+function jsonResponse(data: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      ...init.headers,
+    },
+  });
+}
+
+function parseJobContextPath(pathname: string) {
+  const match = pathname.match(/^\/api\/jobs\/([^/]+)\/ai\/context\/?$/);
+  if (!match) {
+    return null;
+  }
+  return { jobId: match[1] };
+}
+
+function parseJobSessionPath(pathname: string) {
+  const match = pathname.match(/^\/api\/jobs\/([^/]+)\/ai\/session\/?$/);
+  if (!match) {
+    return null;
+  }
+  return { jobId: match[1] };
+}
+
+function parseJobChatPath(pathname: string) {
+  const match = pathname.match(/^\/api\/jobs\/([^/]+)\/ai\/chat\/?$/);
+  if (!match) {
+    return null;
+  }
+  return { jobId: match[1] };
+}
+
+async function readJson(request: Request) {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+function buildSystemPrompt() {
+  return [
+    'You are HVACOps Copilot helping a technician on a specific job.',
+    'Only answer using the provided structured context.',
+    'If you do not see evidence, say you do not see it in the job history.',
+    'Be concise and field-oriented.',
+    'Return ONLY raw JSON with keys: answer, citations, follow_ups.',
+  ].join(' ');
+}
+
+function extractJsonPayload(content: string) {
+  const trimmed = content.trim();
+  if (trimmed.startsWith('```')) {
+    const fenced = trimmed.replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '');
+    const withoutFence = fenced.replace(/```\\s*$/, '');
+    return withoutFence.trim();
+  }
+  return trimmed;
+}
+
+async function callOpenAI(apiKey: string, payload: unknown) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI error: ${response.status} ${errorText}`);
+  }
+
+  return response.json() as Promise<{
+    choices: Array<{ message?: { content?: string } }>;
+  }>;
+}
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const url = new URL(request.url);
+    const contextRoute = parseJobContextPath(url.pathname);
+    const sessionRoute = parseJobSessionPath(url.pathname);
+    const chatRoute = parseJobChatPath(url.pathname);
+
+    if (!contextRoute && !sessionRoute && !chatRoute) {
+      return jsonResponse({ error: 'Not found' }, { status: 404 });
+    }
+
+    const tenantId = request.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return jsonResponse({ error: 'Missing x-tenant-id header' }, { status: 400 });
+    }
+
+    if (contextRoute) {
+      if (request.method !== 'GET') {
+        return jsonResponse({ error: 'Method not allowed' }, { status: 405 });
+      }
+
+      try {
+        const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, contextRoute.jobId);
+        return jsonResponse(snapshot, { status: 200 });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return jsonResponse({ error: message }, { status: 500 });
+      }
+    }
+
+    if (sessionRoute) {
+      if (request.method !== 'POST') {
+        return jsonResponse({ error: 'Method not allowed' }, { status: 405 });
+      }
+
+      return jsonResponse(
+        {
+          sessionId: `session_${sessionRoute.jobId}`,
+          jobId: sessionRoute.jobId,
+          tenantId,
+          status: 'active',
+        },
+        { status: 200 }
+      );
+    }
+
+    if (request.method !== 'POST') {
+      return jsonResponse({ error: 'Method not allowed' }, { status: 405 });
+    }
+
+    if (!env.OPENAI_API_KEY) {
+      return jsonResponse({ error: 'Missing OpenAI API key' }, { status: 500 });
+    }
+
+    const body = await readJson(request);
+    const message = body?.message;
+    if (typeof message !== 'string' || message.trim().length === 0) {
+      return jsonResponse({ error: 'Missing message' }, { status: 400 });
+    }
+
+    const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, chatRoute?.jobId ?? '');
+
+    const openAiPayload = {
+      model: 'gpt-4o-mini',
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: buildSystemPrompt() },
+        {
+          role: 'user',
+          content: `Structured context:\\n${JSON.stringify(snapshot)}\\n\\nUser question:\\n${message}`,
+        },
+      ],
+    };
+
+    const aiResponse = await callOpenAI(env.OPENAI_API_KEY, openAiPayload);
+    const content = aiResponse.choices[0]?.message?.content ?? '';
+    const payloadText = extractJsonPayload(content);
+    let parsedResponse: { answer?: string; citations?: unknown[]; follow_ups?: unknown[] } | null =
+      null;
+
+    try {
+      parsedResponse = JSON.parse(payloadText);
+    } catch {
+      parsedResponse = null;
+    }
+
+    return jsonResponse(
+      {
+        answer: parsedResponse?.answer ?? content,
+        citations: parsedResponse?.citations ?? [],
+        follow_ups: parsedResponse?.follow_ups ?? [],
+      },
+      { status: 200 }
+    );
+  },
+};

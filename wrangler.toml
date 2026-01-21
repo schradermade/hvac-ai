@@ -1,0 +1,8 @@
+name = "hvac-ai"
+main = "src/worker.ts"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "D1_DB"
+database_name = "hvacops"
+database_id = "1f5a8f59-194d-4598-8347-fa4f8afa0d21"
