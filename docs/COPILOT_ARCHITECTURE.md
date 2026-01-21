@@ -684,3 +684,52 @@ Before launch:
 - Retrieval hit-rate validation
 - Hallucination checks (should say “not found”)
 - Manual review workflow for flagged answers
+
+### I) Call Recording & Transcription (Future Phase)
+
+Goal: capture customer calls (scheduling, follow-ups, escalations), transcribe them, and make them searchable for the job copilot.
+
+Scope:
+
+- Record inbound/outbound calls with consent.
+- Store audio in R2 and transcripts in D1/R2.
+- Embed transcript chunks into Vectorize for semantic retrieval.
+
+Call capture & consent:
+
+- Require explicit consent in applicable jurisdictions.
+- Store consent status and call metadata in D1.
+- Provide opt-out and retention controls per tenant.
+
+Ingestion pipeline:
+
+1. Call is recorded and uploaded to R2 (`calls/{tenant_id}/{call_id}.mp3`)
+2. Worker enqueues a transcription job to Queues
+3. Transcription worker generates text + timestamps
+4. Store transcript metadata in D1 and full transcript in R2
+5. Chunk transcript by time window or speaker turns
+6. Embed chunks and upsert to Vectorize with metadata filters
+
+Data model additions (D1):
+
+- `calls`: `id`, `tenant_id`, `job_id` (nullable), `client_id`, `started_at`, `ended_at`, `direction`, `phone_numbers`, `consent_status`, `r2_audio_key`
+- `call_transcripts`: `id`, `call_id`, `tenant_id`, `r2_transcript_key`, `summary`, `created_at`
+- `call_transcript_chunks`: `id`, `call_id`, `chunk_index`, `start_ms`, `end_ms`, `speaker_label`, `text`, `vector_id`
+
+Retrieval strategy:
+
+- Prefer job-linked calls first (`job_id`)
+- Expand to client-level calls when needed
+- Use speaker labels and timestamps for precise citations
+
+UX implications:
+
+- Show “Call History” as a tab or link in the job context.
+- AI answers should cite call snippets with time ranges and date.
+- Provide a “Play audio at timestamp” action from citations.
+
+Security & compliance:
+
+- Store call audio in R2 with strict access controls.
+- Apply retention policies and legal hold.
+- Log transcript access in Analytics Engine.
