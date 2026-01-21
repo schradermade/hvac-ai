@@ -36,6 +36,10 @@ yarn-error.*
 
 # Cloudflare local state
 .wrangler/
+.dev.vars
+
+# Cloudflare local state
+.wrangler/
 
 # typescript
 *.tsbuildinfo
