@@ -8,13 +8,13 @@ export interface VectorizeQueryResponse {
   matches?: VectorizeMatch[];
 }
 
+/* eslint-disable no-unused-vars */
 export interface VectorizeIndex {
-  // eslint-disable-next-line no-unused-vars
   query: (
-    _vector: number[],
-    _options?: { topK?: number; filter?: Record<string, unknown> }
+    ..._args: [number[], { topK?: number; filter?: Record<string, unknown> }?]
   ) => Promise<VectorizeQueryResponse>;
 }
+/* eslint-enable no-unused-vars */
 
 export interface OpenAIEmbeddingResponse {
   data: Array<{ embedding: number[] }>;

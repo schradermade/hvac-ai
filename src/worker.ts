@@ -1,20 +1,19 @@
 import { getJobContextSnapshot } from '@/server/copilot/jobContext';
 import { getJobEvidence } from '@/server/copilot/jobEvidence';
 import { fetchOpenAIEmbedding, queryVectorize, toEvidenceChunks } from '@/server/copilot/vectorize';
+import { reindexJobEvidence } from '@/server/copilot/indexing';
 
+/* eslint-disable no-unused-vars */
 interface Env {
   D1_DB: D1Database;
   OPENAI_API_KEY: string;
   VECTORIZE_INDEX?: {
-    // eslint-disable-next-line no-unused-vars
-    query: (
-      _vector: number[],
-      _options?: { topK?: number; filter?: Record<string, unknown> }
-    ) => Promise<{
+    query: (..._args: [number[], { topK?: number; filter?: Record<string, unknown> }?]) => Promise<{
       matches?: Array<{ id: string; score: number; metadata?: Record<string, unknown> }>;
     }>;
   };
 }
+/* eslint-enable no-unused-vars */
 
 function jsonResponse(data: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(data), {
@@ -44,6 +43,14 @@ function parseJobSessionPath(pathname: string) {
 
 function parseJobChatPath(pathname: string) {
   const match = pathname.match(/^\/api\/jobs\/([^/]+)\/ai\/chat\/?$/);
+  if (!match) {
+    return null;
+  }
+  return { jobId: match[1] };
+}
+
+function parseJobReindexPath(pathname: string) {
+  const match = pathname.match(/^\/api\/vectorize\/reindex\/job\/([^/]+)\/?$/);
   if (!match) {
     return null;
   }
@@ -105,8 +112,9 @@ export default {
     const contextRoute = parseJobContextPath(url.pathname);
     const sessionRoute = parseJobSessionPath(url.pathname);
     const chatRoute = parseJobChatPath(url.pathname);
+    const reindexRoute = parseJobReindexPath(url.pathname);
 
-    if (!contextRoute && !sessionRoute && !chatRoute) {
+    if (!contextRoute && !sessionRoute && !chatRoute && !reindexRoute) {
       return jsonResponse({ error: 'Not found' }, { status: 404 });
     }
 
@@ -143,6 +151,35 @@ export default {
         },
         { status: 200 }
       );
+    }
+
+    if (reindexRoute) {
+      if (request.method !== 'POST') {
+        return jsonResponse({ error: 'Method not allowed' }, { status: 405 });
+      }
+
+      if (!env.VECTORIZE_INDEX) {
+        return jsonResponse({ error: 'Vectorize index not configured' }, { status: 500 });
+      }
+
+      if (!env.OPENAI_API_KEY) {
+        return jsonResponse({ error: 'Missing OpenAI API key' }, { status: 500 });
+      }
+
+      const apiKeyHeader = request.headers.get('x-api-key');
+      if (!apiKeyHeader || apiKeyHeader !== env.OPENAI_API_KEY) {
+        return jsonResponse({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const result = await reindexJobEvidence({
+        db: env.D1_DB,
+        vectorize: env.VECTORIZE_INDEX,
+        openAiApiKey: env.OPENAI_API_KEY,
+        tenantId,
+        jobId: reindexRoute.jobId,
+      });
+
+      return jsonResponse({ status: 'ok', ...result }, { status: 200 });
     }
 
     if (request.method !== 'POST') {
