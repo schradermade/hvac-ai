@@ -1,9 +1,19 @@
 import { getJobContextSnapshot } from '@/server/copilot/jobContext';
 import { getJobEvidence } from '@/server/copilot/jobEvidence';
+import { fetchOpenAIEmbedding, queryVectorize, toEvidenceChunks } from '@/server/copilot/vectorize';
 
 interface Env {
   D1_DB: D1Database;
   OPENAI_API_KEY: string;
+  VECTORIZE_INDEX?: {
+    // eslint-disable-next-line no-unused-vars
+    query: (
+      _vector: number[],
+      _options?: { topK?: number; filter?: Record<string, unknown> }
+    ) => Promise<{
+      matches?: Array<{ id: string; score: number; metadata?: Record<string, unknown> }>;
+    }>;
+  };
 }
 
 function jsonResponse(data: unknown, init: ResponseInit = {}) {
@@ -152,6 +162,23 @@ export default {
     const jobId = chatRoute?.jobId ?? '';
     const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, jobId);
     const evidence = await getJobEvidence(env.D1_DB, tenantId, jobId, 6);
+    let vectorEvidence: ReturnType<typeof toEvidenceChunks> = [];
+
+    if (env.VECTORIZE_INDEX) {
+      const embeddingResponse = await fetchOpenAIEmbedding(env.OPENAI_API_KEY, message);
+      const embedding = embeddingResponse.data[0]?.embedding;
+
+      if (embedding) {
+        const matches = await queryVectorize(env.VECTORIZE_INDEX, embedding, {
+          topK: 6,
+          filter: {
+            tenant_id: tenantId,
+            job_id: jobId,
+          },
+        });
+        vectorEvidence = toEvidenceChunks(matches);
+      }
+    }
 
     const openAiPayload = {
       model: 'gpt-4o-mini',
@@ -161,7 +188,7 @@ export default {
         {
           role: 'user',
           content: `Structured context:\\n${JSON.stringify(snapshot)}\\n\\nEvidence:\\n${JSON.stringify(
-            evidence
+            [...evidence, ...vectorEvidence]
           )}\\n\\nUser question:\\n${message}`,
         },
       ],
