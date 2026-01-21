@@ -201,10 +201,21 @@ export default {
     const snapshot = await getJobContextSnapshot(env.D1_DB, tenantId, jobId);
     const evidence = await getJobEvidence(env.D1_DB, tenantId, jobId, 6);
     let vectorEvidence: ReturnType<typeof toEvidenceChunks> = [];
+    let vectorMatchCount = 0;
+    const vectorizeEnabled = Boolean(env.VECTORIZE_INDEX);
+    let embeddingVector: number[] | null = null;
+    let unfilteredMatches: Array<{
+      id: string;
+      score: number;
+      metadata?: Record<string, unknown>;
+    }> = [];
+    let vectorMetadata: Array<{ id: string; metadata?: Record<string, unknown> }> = [];
+    let vectorFilterFallbackUsed = false;
 
     if (env.VECTORIZE_INDEX) {
       const embeddingResponse = await fetchOpenAIEmbedding(env.OPENAI_API_KEY, message);
       const embedding = embeddingResponse.data[0]?.embedding;
+      embeddingVector = embedding ?? null;
 
       if (embedding) {
         const matches = await queryVectorize(env.VECTORIZE_INDEX, embedding, {
@@ -215,6 +226,52 @@ export default {
           },
         });
         vectorEvidence = toEvidenceChunks(matches);
+        vectorMatchCount = matches.length;
+
+        if (vectorMatchCount === 0) {
+          const fallbackMatches = await queryVectorize(env.VECTORIZE_INDEX, embedding, {
+            topK: 10,
+            filter: {},
+          });
+          const filteredFallback = fallbackMatches.filter(
+            (match) => match.metadata?.tenant_id === tenantId && match.metadata?.job_id === jobId
+          );
+          if (filteredFallback.length > 0) {
+            vectorFilterFallbackUsed = true;
+            vectorEvidence = toEvidenceChunks(filteredFallback);
+            vectorMatchCount = filteredFallback.length;
+          }
+        }
+      }
+    }
+
+    const debugEnabled = request.headers.get('x-debug') === '1';
+
+    if (debugEnabled && env.VECTORIZE_INDEX && embeddingVector) {
+      const matches = await queryVectorize(env.VECTORIZE_INDEX, embeddingVector, {
+        topK: 3,
+        filter: {},
+      });
+      unfilteredMatches = matches.map((match) => ({
+        id: match.id,
+        score: match.score,
+        metadata: match.metadata,
+      }));
+
+      const indexWithGet = env.VECTORIZE_INDEX as unknown as {
+        // eslint-disable-next-line no-unused-vars
+        get?: (ids: string[]) => Promise<{
+          vectors?: Array<{ id: string; metadata?: Record<string, unknown> }>;
+        }>;
+      };
+
+      if (indexWithGet.get) {
+        try {
+          const result = await indexWithGet.get(unfilteredMatches.map((match) => match.id));
+          vectorMetadata = result.vectors ?? [];
+        } catch {
+          vectorMetadata = [];
+        }
       }
     }
 
@@ -249,6 +306,17 @@ export default {
         answer: parsedResponse?.answer ?? content,
         citations: parsedResponse?.citations ?? [],
         follow_ups: parsedResponse?.follow_ups ?? [],
+        debug: debugEnabled
+          ? {
+              vectorizeEnabled,
+              vectorMatches: vectorMatchCount,
+              evidenceCount: evidence.length,
+              vectorFilter: { tenant_id: tenantId, job_id: jobId },
+              unfilteredMatches,
+              vectorMetadata,
+              vectorFilterFallbackUsed,
+            }
+          : undefined,
       },
       { status: 200 }
     );

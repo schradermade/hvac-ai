@@ -54,7 +54,11 @@ export async function queryVectorize(
   embedding: number[],
   options: { topK: number; filter: Record<string, unknown> }
 ): Promise<VectorizeMatch[]> {
-  const response = await index.query(embedding, { topK: options.topK, filter: options.filter });
+  const response = await index.query(embedding, {
+    topK: options.topK,
+    filter: options.filter,
+    returnMetadata: true,
+  });
   return response.matches ?? [];
 }
 
