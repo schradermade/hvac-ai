@@ -7,6 +7,7 @@ import { reindexJobEvidence } from '@/server/copilot/indexing';
 interface Env {
   D1_DB: D1Database;
   OPENAI_API_KEY: string;
+  VECTORIZE_ADMIN_TOKEN?: string;
   VECTORIZE_INDEX?: {
     query: (..._args: [number[], { topK?: number; filter?: Record<string, unknown> }?]) => Promise<{
       matches?: Array<{ id: string; score: number; metadata?: Record<string, unknown> }>;
@@ -167,7 +168,7 @@ export default {
       }
 
       const apiKeyHeader = request.headers.get('x-api-key');
-      if (!apiKeyHeader || apiKeyHeader !== env.OPENAI_API_KEY) {
+      if (!env.VECTORIZE_ADMIN_TOKEN || apiKeyHeader !== env.VECTORIZE_ADMIN_TOKEN) {
         return jsonResponse({ error: 'Unauthorized' }, { status: 401 });
       }
 

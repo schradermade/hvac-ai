@@ -15,11 +15,11 @@ function loadLocalSecret() {
   const devVarsPath = path.join(process.cwd(), '.dev.vars');
   try {
     const raw = readFileSync(devVarsPath, 'utf-8');
-    const line = raw.split('\n').find((entry) => entry.startsWith('OPENAI_API_KEY='));
+    const line = raw.split('\n').find((entry) => entry.startsWith('VECTORIZE_ADMIN_TOKEN='));
     if (!line) {
       return undefined;
     }
-    return line.replace('OPENAI_API_KEY=', '').trim();
+    return line.replace('VECTORIZE_ADMIN_TOKEN=', '').trim();
   } catch {
     return undefined;
   }
