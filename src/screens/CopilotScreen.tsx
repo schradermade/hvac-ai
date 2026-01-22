@@ -4,7 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Spinner, Badge, SectionHeader, SearchInput, FilterPills } from '@/components/ui';
+import {
+  Spinner,
+  Badge,
+  SectionHeader,
+  SearchInput,
+  FilterPills,
+  ListCountBadge,
+} from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useAllSessions } from '@/features/diagnostic';
 import { useClientList } from '@/features/clients';
@@ -102,6 +109,7 @@ export function HistoryScreen() {
         }}
         variant="indigo"
         count={sessions.length}
+        showCount={false}
         style={styles.header}
       >
         {/* Search Bar */}
@@ -139,121 +147,126 @@ export function HistoryScreen() {
         />
       </SectionHeader>
 
-      <FlatList
-        style={styles.flatListContainer}
-        data={Object.entries(groupedSessions)}
-        keyExtractor={([clientId]) => clientId}
-        renderItem={({ item: [clientId, clientSessions] }) => {
-          const client = clients.find((c) => c.id === clientId);
+      <View style={styles.listContainer}>
+        <ListCountBadge count={sessions.length} style={styles.listCountBadge} />
+        <FlatList
+          style={styles.flatListContainer}
+          data={Object.entries(groupedSessions)}
+          keyExtractor={([clientId]) => clientId}
+          renderItem={({ item: [clientId, clientSessions] }) => {
+            const client = clients.find((c) => c.id === clientId);
 
-          return (
-            <View style={styles.clientGroup}>
-              <View style={styles.clientHeader}>
-                <Text style={styles.clientName}>{client?.name || 'Unknown Client'}</Text>
-                <View style={styles.clientCountBadge}>
-                  <Text style={styles.clientCountBadgeText}>{String(clientSessions.length)}</Text>
-                </View>
-              </View>
-
-              {clientSessions.map((session) => (
-                <TouchableOpacity
-                  key={session.id}
-                  style={styles.sessionCard}
-                  onPress={() => handleSessionPress(session)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.sessionCardContent}>
-                    {/* Icon Container */}
-                    <View style={styles.sessionIconContainer}>
-                      <Ionicons name="chatbubbles" size={24} color="#6366F1" />
-                    </View>
-
-                    {/* Session Content */}
-                    <View style={styles.sessionContent}>
-                      <Text style={styles.sessionDate}>
-                        {new Date(session.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}{' '}
-                        •{' '}
-                        {new Date(session.createdAt).toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-
-                      <View style={styles.sessionMetaContainer}>
-                        {session.jobId && (
-                          <View style={styles.sessionMetaRow}>
-                            <Ionicons
-                              name="document-text-outline"
-                              size={14}
-                              color={colors.textSecondary}
-                            />
-                            <Text style={styles.sessionMeta}>Linked to job</Text>
-                          </View>
-                        )}
-                        {session.equipmentId && (
-                          <View style={styles.sessionMetaRow}>
-                            <Ionicons
-                              name="construct-outline"
-                              size={14}
-                              color={colors.textSecondary}
-                            />
-                            <Text style={styles.sessionMeta}>Equipment diagnostic</Text>
-                          </View>
-                        )}
-                      </View>
-
-                      <View style={styles.sessionFooter}>
-                        <Text style={styles.messageCount}>
-                          {session.messages.length} message
-                          {session.messages.length === 1 ? '' : 's'}
-                        </Text>
-                      </View>
-
-                      {session.summary && (
-                        <Text style={styles.summary} numberOfLines={2}>
-                          {session.summary}
-                        </Text>
-                      )}
-                    </View>
-
-                    {/* Right Side: Badge at top, Chevron centered */}
-                    <View style={styles.sessionRightSide}>
-                      {session.completedAt ? (
-                        <Badge variant="success">Completed</Badge>
-                      ) : (
-                        <Badge variant="info">In Progress</Badge>
-                      )}
-                      <View style={styles.chevronContainer}>
-                        <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
-                      </View>
-                    </View>
+            return (
+              <View style={styles.clientGroup}>
+                <View style={styles.clientHeader}>
+                  <Text style={styles.clientName}>{client?.name || 'Unknown Client'}</Text>
+                  <View style={styles.clientCountBadge}>
+                    <Text style={styles.clientCountBadgeText}>{String(clientSessions.length)}</Text>
                   </View>
-                </TouchableOpacity>
-              ))}
+                </View>
+
+                {clientSessions.map((session) => (
+                  <TouchableOpacity
+                    key={session.id}
+                    style={styles.sessionCard}
+                    onPress={() => handleSessionPress(session)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.sessionCardContent}>
+                      {/* Icon Container */}
+                      <View style={styles.sessionIconContainer}>
+                        <Ionicons name="chatbubbles" size={24} color="#6366F1" />
+                      </View>
+
+                      {/* Session Content */}
+                      <View style={styles.sessionContent}>
+                        <Text style={styles.sessionDate}>
+                          {new Date(session.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}{' '}
+                          •{' '}
+                          {new Date(session.createdAt).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+
+                        <View style={styles.sessionMetaContainer}>
+                          {session.jobId && (
+                            <View style={styles.sessionMetaRow}>
+                              <Ionicons
+                                name="document-text-outline"
+                                size={14}
+                                color={colors.textSecondary}
+                              />
+                              <Text style={styles.sessionMeta}>Linked to job</Text>
+                            </View>
+                          )}
+                          {session.equipmentId && (
+                            <View style={styles.sessionMetaRow}>
+                              <Ionicons
+                                name="construct-outline"
+                                size={14}
+                                color={colors.textSecondary}
+                              />
+                              <Text style={styles.sessionMeta}>Equipment diagnostic</Text>
+                            </View>
+                          )}
+                        </View>
+
+                        <View style={styles.sessionFooter}>
+                          <Text style={styles.messageCount}>
+                            {session.messages.length} message
+                            {session.messages.length === 1 ? '' : 's'}
+                          </Text>
+                        </View>
+
+                        {session.summary && (
+                          <Text style={styles.summary} numberOfLines={2}>
+                            {session.summary}
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* Right Side: Badge at top, Chevron centered */}
+                      <View style={styles.sessionRightSide}>
+                        {session.completedAt ? (
+                          <Badge variant="success">Completed</Badge>
+                        ) : (
+                          <Badge variant="info">In Progress</Badge>
+                        )}
+                        <View style={styles.chevronContainer}>
+                          <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+                        </View>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            );
+          }}
+          ListEmptyComponent={
+            <View style={styles.emptyResults}>
+              <Text style={styles.emptyResultsTitle}>
+                {!hasAnySessions ? 'No diagnostic history' : 'No AI history found'}
+              </Text>
+              <Text style={styles.emptyResultsText}>
+                {!hasAnySessions
+                  ? 'Your past diagnostics and conversations will appear here for easy reference'
+                  : searchQuery
+                    ? `No AI history matches "${searchQuery}"`
+                    : 'Try adjusting your filters'}
+              </Text>
             </View>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.emptyResults}>
-            <Text style={styles.emptyResultsTitle}>
-              {!hasAnySessions ? 'No diagnostic history' : 'No AI history found'}
-            </Text>
-            <Text style={styles.emptyResultsText}>
-              {!hasAnySessions
-                ? 'Your past diagnostics and conversations will appear here for easy reference'
-                : searchQuery
-                  ? `No AI history matches "${searchQuery}"`
-                  : 'Try adjusting your filters'}
-            </Text>
-          </View>
-        }
-        contentContainerStyle={sessions.length === 0 ? styles.emptyListContent : styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+          }
+          contentContainerStyle={
+            sessions.length === 0 ? styles.emptyListContent : styles.listContent
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -277,6 +290,17 @@ const styles = StyleSheet.create({
   },
   flatListContainer: {
     backgroundColor: '#9B9EF6',
+  },
+  listContainer: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#9B9EF6',
+  },
+  listCountBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    top: spacing[2],
+    zIndex: 2,
   },
   listContent: {
     paddingHorizontal: spacing[4],

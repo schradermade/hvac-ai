@@ -5,15 +5,7 @@
  */
 
 import React from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-  TextStyle,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle, TextStyle } from 'react-native';
 import { colors, spacing, typography, borderRadius } from './tokens';
 
 export interface FilterPillItem {
@@ -63,11 +55,7 @@ export function FilterPills({
         };
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.container, contentContainerStyle]}
-    >
+    <View style={[styles.container, contentContainerStyle]}>
       {items.map((item) => (
         <TouchableOpacity
           key={item.id}
@@ -90,7 +78,7 @@ export function FilterPills({
             {item.label}
           </Text>
           {item.accessory}
-          {typeof item.count === 'number' && item.count > 0 && (
+          {typeof item.count === 'number' && (
             <View style={[styles.badge, { backgroundColor: palette.badgeBg }]}>
               <Text style={[styles.badgeText, { color: palette.badgeText }]}>{item.count}</Text>
             </View>
@@ -103,12 +91,14 @@ export function FilterPills({
           )}
         </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing[3],
   },
   chip: {

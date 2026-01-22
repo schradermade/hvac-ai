@@ -551,11 +551,33 @@ class ClientService {
       },
     ];
 
+    for (let i = 0; i < 324; i += 1) {
+      const index = i + 23;
+      testClients.push({
+        id: `client_test_${index}`,
+        companyId: 'company_test_1',
+        name: `Client ${index}`,
+        phone: `555-300-${String(index).padStart(4, '0')}`,
+        address: `${100 + i} Elm Street`,
+        city: i % 2 === 0 ? 'Springfield' : 'Chicago',
+        state: 'IL',
+        zipCode: i % 2 === 0 ? '62701' : '60614',
+        email: `client${index}@example.com`,
+        serviceNotes: 'Auto-generated client for list testing',
+        createdBy: 'tech_test_admin',
+        createdByName: 'Test Admin',
+        createdAt: new Date('2024-04-01'),
+        modifiedBy: 'tech_test_admin',
+        modifiedByName: 'Test Admin',
+        updatedAt: new Date('2024-04-01'),
+      });
+    }
+
     testClients.forEach((client) => {
       this.clients.set(client.id, client);
     });
 
-    this.idCounter = 22; // Set counter to 22 since we used client_test_1 through client_test_22
+    this.idCounter = 346; // Set counter since we used client_test_1 through client_test_346
   }
 
   /**

@@ -5,7 +5,7 @@
  * Matches ClientListScreen quality standards
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useTechnicians } from '../hooks/useTechnicians';
+import type { TechnicianStatus } from '../types';
 import { TechnicianCard } from '../components/TechnicianCard';
 import { useAuth } from '@/providers';
 import type { RootStackParamList } from '@/navigation/types';
@@ -33,6 +34,7 @@ export function TechnicianListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | TechnicianStatus>('all');
 
   // Check if user can manage team (add/edit/delete)
   const canManageTeam = user?.role === 'admin' || user?.role === 'lead_tech';
@@ -40,9 +42,25 @@ export function TechnicianListScreen() {
   // Fetch technicians with filters
   const { data, isLoading, error } = useTechnicians({
     search: searchQuery,
+    status: statusFilter === 'all' ? undefined : statusFilter,
   });
+  const { data: allTechsData } = useTechnicians();
 
   const technicians = data?.technicians || [];
+  const statusCounts = useMemo(() => {
+    const counts = {
+      total: 0,
+      active: 0,
+      inactive: 0,
+      on_leave: 0,
+    };
+    const allTechs = allTechsData?.technicians || [];
+    counts.total = allTechs.length;
+    allTechs.forEach((tech) => {
+      counts[tech.status] += 1;
+    });
+    return counts;
+  }, [allTechsData?.technicians]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -73,8 +91,30 @@ export function TechnicianListScreen() {
               {
                 id: 'all',
                 label: 'All Techs',
-                active: true,
-                onPress: () => {},
+                active: statusFilter === 'all',
+                onPress: () => setStatusFilter('all'),
+                count: statusCounts.total,
+              },
+              {
+                id: 'active',
+                label: 'Active',
+                active: statusFilter === 'active',
+                onPress: () => setStatusFilter('active'),
+                count: statusCounts.active,
+              },
+              {
+                id: 'on-leave',
+                label: 'On Leave',
+                active: statusFilter === 'on_leave',
+                onPress: () => setStatusFilter('on_leave'),
+                count: statusCounts.on_leave,
+              },
+              {
+                id: 'inactive',
+                label: 'Inactive',
+                active: statusFilter === 'inactive',
+                onPress: () => setStatusFilter('inactive'),
+                count: statusCounts.inactive,
               },
             ]}
             contentContainerStyle={styles.filterChips}

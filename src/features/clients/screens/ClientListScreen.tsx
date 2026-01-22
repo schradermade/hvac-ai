@@ -146,6 +146,7 @@ export function ClientListScreen() {
                     label: 'All Clients',
                     active: clientFilter === 'all',
                     onPress: () => setClientFilter('all'),
+                    count: allClients.length,
                   },
                   {
                     id: 'open',

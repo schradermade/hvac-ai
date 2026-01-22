@@ -171,8 +171,9 @@ export function TodaysJobsScreen() {
     [navigation]
   );
 
+  const allJobsDataItems = useMemo(() => allJobsData?.items || [], [allJobsData?.items]);
   const allJobs = useMemo(() => {
-    const items = allJobsData?.items || [];
+    const items = allJobsDataItems;
     if (!isDateFiltering) {
       return items;
     }
@@ -180,7 +181,7 @@ export function TodaysJobsScreen() {
       const scheduled = job.scheduledStart;
       return scheduled >= rangeStart && scheduled <= rangeEnd;
     });
-  }, [allJobsData?.items, isDateFiltering, rangeStart, rangeEnd]);
+  }, [allJobsDataItems, isDateFiltering, rangeStart, rangeEnd]);
   const myJobs = useMemo(() => {
     const items = myJobsData?.items || [];
     if (!isDateFiltering) {
@@ -215,6 +216,28 @@ export function TodaysJobsScreen() {
   const jobs = filteredJobs;
   const hasAnyJobs = allJobs.length > 0;
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
+  const jobsForDateCounts = useMemo(
+    () => (jobFilter === 'my' ? myJobs : allJobsDataItems),
+    [jobFilter, myJobs, allJobsDataItems]
+  );
+  const todayCount = useMemo(() => {
+    const start = parseISO(todayKey);
+    start.setHours(0, 0, 0, 0);
+    const end = parseISO(todayKey);
+    end.setHours(23, 59, 59, 999);
+    return jobsForDateCounts.filter(
+      (job) => job.scheduledStart >= start && job.scheduledStart <= end
+    ).length;
+  }, [jobsForDateCounts, todayKey]);
+  const weekCount = useMemo(() => {
+    const start = parseISO(weekStartKey);
+    start.setHours(0, 0, 0, 0);
+    const end = parseISO(weekEndKey);
+    end.setHours(23, 59, 59, 999);
+    return jobsForDateCounts.filter(
+      (job) => job.scheduledStart >= start && job.scheduledStart <= end
+    ).length;
+  }, [jobsForDateCounts, weekEndKey, weekStartKey]);
 
   const dateLabel = useMemo(() => {
     const start = parseISO(showDateControls ? draftStartDate : appliedStartDate);
@@ -505,7 +528,11 @@ export function TodaysJobsScreen() {
                   setShowDateControls(false);
                 }}
                 activeOpacity={0.7}
-                style={[styles.scopeSegment, jobFilter === 'all' && styles.scopeSegmentActive]}
+                style={[
+                  styles.scopeSegment,
+                  styles.scopeSegmentLeft,
+                  jobFilter === 'all' && styles.scopeSegmentActive,
+                ]}
               >
                 <Text
                   style={[
@@ -515,6 +542,21 @@ export function TodaysJobsScreen() {
                 >
                   All Jobs
                 </Text>
+                <View
+                  style={[
+                    styles.scopeCountBadge,
+                    jobFilter === 'all' && styles.scopeCountBadgeActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.scopeCountText,
+                      jobFilter === 'all' && styles.scopeCountTextActive,
+                    ]}
+                  >
+                    {allJobs.length}
+                  </Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -522,7 +564,11 @@ export function TodaysJobsScreen() {
                   setShowDateControls(false);
                 }}
                 activeOpacity={0.7}
-                style={[styles.scopeSegment, jobFilter === 'my' && styles.scopeSegmentActive]}
+                style={[
+                  styles.scopeSegment,
+                  styles.scopeSegmentRight,
+                  jobFilter === 'my' && styles.scopeSegmentActive,
+                ]}
               >
                 <Text
                   style={[
@@ -532,40 +578,99 @@ export function TodaysJobsScreen() {
                 >
                   My Jobs
                 </Text>
-                <View style={styles.scopeCountBadge}>
-                  <Text style={styles.scopeCountText}>{myJobsCount}</Text>
+                <View
+                  style={[
+                    styles.scopeCountBadge,
+                    jobFilter === 'my' && styles.scopeCountBadgeActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.scopeCountText,
+                      jobFilter === 'my' && styles.scopeCountTextActive,
+                    ]}
+                  >
+                    {myJobsCount}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
 
             <View style={styles.filterRow}>
+              <View style={styles.dateToggleRow}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isTodayApplied) {
+                      clearDateConstraint();
+                      return;
+                    }
+                    applyTodayFilter();
+                  }}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateSegment,
+                    styles.dateSegmentLeft,
+                    isTodayApplied && styles.dateSegmentActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.dateSegmentText, isTodayApplied && styles.dateSegmentTextActive]}
+                  >
+                    Today
+                  </Text>
+                  <View
+                    style={[styles.dateCountBadge, isTodayApplied && styles.dateCountBadgeActive]}
+                  >
+                    <Text
+                      style={[styles.dateCountText, isTodayApplied && styles.dateCountTextActive]}
+                    >
+                      {todayCount}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isThisWeekApplied) {
+                      clearDateConstraint();
+                      return;
+                    }
+                    applyThisWeekFilter();
+                  }}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateSegment,
+                    styles.dateSegmentRight,
+                    isThisWeekApplied && styles.dateSegmentActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.dateSegmentText,
+                      isThisWeekApplied && styles.dateSegmentTextActive,
+                    ]}
+                  >
+                    This Week
+                  </Text>
+                  <View
+                    style={[
+                      styles.dateCountBadge,
+                      isThisWeekApplied && styles.dateCountBadgeActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.dateCountText,
+                        isThisWeekApplied && styles.dateCountTextActive,
+                      ]}
+                    >
+                      {weekCount}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
               <View style={styles.filterRowEdge}>
                 <FilterPills
                   items={[
-                    {
-                      id: 'today',
-                      label: 'Today',
-                      active: isTodayApplied,
-                      onPress: () => {
-                        if (isTodayApplied) {
-                          clearDateConstraint();
-                          return;
-                        }
-                        applyTodayFilter();
-                      },
-                    },
-                    {
-                      id: 'this-week',
-                      label: 'This Week',
-                      active: isThisWeekApplied,
-                      onPress: () => {
-                        if (isThisWeekApplied) {
-                          clearDateConstraint();
-                          return;
-                        }
-                        applyThisWeekFilter();
-                      },
-                    },
                     {
                       id: 'date',
                       label: dateLabel,
@@ -586,7 +691,14 @@ export function TodaysJobsScreen() {
                             style={styles.dateClearIcon}
                           />
                         </TouchableOpacity>
-                      ) : null,
+                      ) : (
+                        <Ionicons
+                          name={showDateControls ? 'chevron-up' : 'chevron-down'}
+                          size={18}
+                          color={colors.surface}
+                          style={styles.dateChevronIcon}
+                        />
+                      ),
                       labelStyle: styles.datePillText,
                     },
                   ]}
@@ -739,10 +851,8 @@ const styles = StyleSheet.create({
   scopeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing[1],
-    gap: spacing[1],
+    padding: 0,
     flexShrink: 0,
   },
   scopeSegment: {
@@ -753,10 +863,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    height: 44,
+    minHeight: 44,
+  },
+  scopeSegmentLeft: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRightWidth: 0,
+  },
+  scopeSegmentRight: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.surface,
   },
   scopeSegmentActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryHover,
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
   scopeSegmentText: {
     fontSize: typography.fontSize.sm,
@@ -775,10 +902,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scopeCountBadgeActive: {
+    backgroundColor: colors.surface,
+  },
   scopeCountText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
     color: colors.surface,
+  },
+  scopeCountTextActive: {
+    color: colors.primary,
   },
   list: {
     paddingHorizontal: spacing[4],
@@ -909,6 +1042,9 @@ const styles = StyleSheet.create({
   dateClearIcon: {
     marginTop: 1,
   },
+  dateChevronIcon: {
+    marginLeft: spacing[1],
+  },
   emptyResults: {
     padding: spacing[8],
     alignItems: 'center',
@@ -949,9 +1085,78 @@ const styles = StyleSheet.create({
   filterRow: {
     position: 'relative',
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
   },
   filterRowEdge: {
     marginHorizontal: -spacing[4],
+    height: 44,
+    justifyContent: 'center',
+  },
+  dateToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: borderRadius.full,
+    flexShrink: 0,
+  },
+  dateSegment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    height: 44,
+    minHeight: 44,
+  },
+  dateSegmentLeft: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRightWidth: 0,
+  },
+  dateSegmentRight: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.surface,
+  },
+  dateSegmentActive: {
+    backgroundColor: colors.primaryHover,
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  dateSegmentText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+  },
+  dateSegmentTextActive: {
+    color: colors.surface,
+  },
+  dateCountBadge: {
+    minWidth: 24,
+    paddingHorizontal: spacing[1],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryPressed,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateCountBadgeActive: {
+    backgroundColor: colors.surface,
+  },
+  dateCountText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.surface,
+  },
+  dateCountTextActive: {
+    color: colors.primary,
   },
   sortInlineContainer: {
     paddingHorizontal: spacing[2],
