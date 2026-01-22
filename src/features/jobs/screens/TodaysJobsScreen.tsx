@@ -197,6 +197,7 @@ export function TodaysJobsScreen() {
   const jobs = filteredJobs;
   const hasAnyJobs = allJobs.length > 0;
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
+  const [sortOverlayWidth, setSortOverlayWidth] = useState(0);
 
   const dateLabel = useMemo(() => {
     const start = parseISO(showDateControls ? draftStartDate : appliedStartDate);
@@ -374,82 +375,90 @@ export function TodaysJobsScreen() {
           </View>
 
           <View style={styles.filterRow}>
-            <FilterPills
-              items={[
-                {
-                  id: 'all',
-                  label: 'All Jobs',
-                  active: jobFilter === 'all',
-                  onPress: () => {
-                    setJobFilter('all');
-                    setShowDateControls(false);
+            <View style={styles.filterRowEdge}>
+              <FilterPills
+                items={[
+                  {
+                    id: 'all',
+                    label: 'All Jobs',
+                    active: jobFilter === 'all',
+                    onPress: () => {
+                      setJobFilter('all');
+                      setShowDateControls(false);
+                    },
                   },
-                },
-                {
-                  id: 'my',
-                  label: 'My Jobs',
-                  active: jobFilter === 'my',
-                  onPress: () => {
-                    setJobFilter('my');
-                    setShowDateControls(false);
+                  {
+                    id: 'my',
+                    label: 'My Jobs',
+                    active: jobFilter === 'my',
+                    onPress: () => {
+                      setJobFilter('my');
+                      setShowDateControls(false);
+                    },
+                    count: myJobsCount,
                   },
-                  count: myJobsCount,
-                },
-                {
-                  id: 'today',
-                  label: 'Today',
-                  active: isTodayApplied,
-                  onPress: () => {
-                    if (isTodayApplied) {
-                      clearDateConstraint();
-                      return;
-                    }
-                    applyTodayFilter();
+                  {
+                    id: 'today',
+                    label: 'Today',
+                    active: isTodayApplied,
+                    onPress: () => {
+                      if (isTodayApplied) {
+                        clearDateConstraint();
+                        return;
+                      }
+                      applyTodayFilter();
+                    },
                   },
-                },
-                {
-                  id: 'this-week',
-                  label: 'This Week',
-                  active: isThisWeekApplied,
-                  onPress: () => {
-                    if (isThisWeekApplied) {
-                      clearDateConstraint();
-                      return;
-                    }
-                    applyThisWeekFilter();
+                  {
+                    id: 'this-week',
+                    label: 'This Week',
+                    active: isThisWeekApplied,
+                    onPress: () => {
+                      if (isThisWeekApplied) {
+                        clearDateConstraint();
+                        return;
+                      }
+                      applyThisWeekFilter();
+                    },
                   },
-                },
-                {
-                  id: 'date',
-                  label: dateLabel,
-                  active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
-                  onPress: () => {
-                    if (isDateSelected && !isTodayApplied && !isThisWeekApplied) {
-                      clearDateConstraint();
-                      return;
-                    }
-                    toggleDateControls();
+                  {
+                    id: 'date',
+                    label: dateLabel,
+                    active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
+                    onPress: () => {
+                      if (isDateSelected && !isTodayApplied && !isThisWeekApplied) {
+                        clearDateConstraint();
+                        return;
+                      }
+                      toggleDateControls();
+                    },
+                    accessory: showDateClear ? (
+                      <TouchableOpacity
+                        onPress={clearDateFilter}
+                        style={styles.dateClearButton}
+                        hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                      >
+                        <Ionicons
+                          name="close"
+                          size={18}
+                          color={colors.surface}
+                          style={styles.dateClearIcon}
+                        />
+                      </TouchableOpacity>
+                    ) : null,
+                    labelStyle: styles.datePillText,
                   },
-                  accessory: showDateClear ? (
-                    <TouchableOpacity
-                      onPress={clearDateFilter}
-                      style={styles.dateClearButton}
-                      hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
-                    >
-                      <Ionicons
-                        name="close"
-                        size={18}
-                        color={colors.surface}
-                        style={styles.dateClearIcon}
-                      />
-                    </TouchableOpacity>
-                  ) : null,
-                  labelStyle: styles.datePillText,
-                },
-              ]}
-              contentContainerStyle={styles.filterChips}
-            />
-            <View style={styles.sortCountOverlay}>
+                ]}
+                contentContainerStyle={[
+                  styles.filterChips,
+                  { paddingRight: sortOverlayWidth + spacing[10] },
+                ]}
+              />
+            </View>
+            <View
+              style={styles.sortCountOverlay}
+              onLayout={(event) => setSortOverlayWidth(event.nativeEvent.layout.width)}
+            >
               <TouchableOpacity
                 onPress={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
                 activeOpacity={0.7}
@@ -736,7 +745,8 @@ const styles = StyleSheet.create({
   },
   filterChips: {
     paddingTop: 0,
-    paddingRight: spacing[12],
+    paddingLeft: spacing[4],
+    paddingHorizontal: spacing[4],
   },
   calendarArrow: {
     width: 52,
@@ -753,6 +763,9 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     position: 'relative',
+  },
+  filterRowEdge: {
+    marginHorizontal: -spacing[4],
   },
   sortCountOverlay: {
     position: 'absolute',
