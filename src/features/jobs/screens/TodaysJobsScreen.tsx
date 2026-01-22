@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
-  SectionList,
+  FlatList,
   Modal,
   Text,
   TouchableOpacity,
@@ -36,6 +36,14 @@ import { useClientList } from '@/features/clients';
 import { useAuth } from '@/providers';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type ListRow =
+  | { key: string; type: 'header'; title: string }
+  | { key: string; type: 'empty' }
+  | { key: string; type: 'job'; job: Job };
+
+const JOB_ROW_HEIGHT = 164;
+const DATE_HEADER_HEIGHT = 32;
+const EMPTY_ROW_HEIGHT = 72;
 
 /**
  * TodaysJobsScreen
@@ -156,9 +164,12 @@ export function TodaysJobsScreen() {
     setShowForm(false);
   };
 
-  const handleJobPress = (job: Job) => {
-    navigation.navigate('JobDetail', { jobId: job.id });
-  };
+  const handleJobPress = useCallback(
+    (job: Job) => {
+      navigation.navigate('JobDetail', { jobId: job.id });
+    },
+    [navigation]
+  );
 
   const allJobs = useMemo(() => {
     const items = allJobsData?.items || [];
@@ -204,7 +215,6 @@ export function TodaysJobsScreen() {
   const jobs = filteredJobs;
   const hasAnyJobs = allJobs.length > 0;
   const myJobsCount = myJobs.filter((job) => job.assignment?.technicianId === user?.id).length;
-  const [sortOverlayWidth, setSortOverlayWidth] = useState(0);
 
   const dateLabel = useMemo(() => {
     const start = parseISO(showDateControls ? draftStartDate : appliedStartDate);
@@ -325,6 +335,73 @@ export function TodaysJobsScreen() {
     return sections;
   }, [isDateFiltering, jobsByDateMap, rangeEnd, rangeStart, sortOrder, sortedJobs]);
 
+  const listRows = useMemo<ListRow[]>(() => {
+    const rows: ListRow[] = [];
+    jobsByDateSections.forEach((section) => {
+      rows.push({
+        key: `header-${section.dateKey}`,
+        type: 'header',
+        title: section.title,
+      });
+      if (section.data.length === 0) {
+        rows.push({ key: `empty-${section.dateKey}`, type: 'empty' });
+        return;
+      }
+      section.data.forEach((job) => {
+        rows.push({ key: job.id, type: 'job', job });
+      });
+    });
+    return rows;
+  }, [jobsByDateSections]);
+
+  const listRowMetrics = useMemo(() => {
+    const offsets: number[] = [];
+    const lengths: number[] = [];
+    let offset = 0;
+    listRows.forEach((row, index) => {
+      const length =
+        row.type === 'job'
+          ? JOB_ROW_HEIGHT
+          : row.type === 'header'
+            ? DATE_HEADER_HEIGHT
+            : EMPTY_ROW_HEIGHT;
+      offsets[index] = offset;
+      lengths[index] = length;
+      offset += length;
+    });
+    return { offsets, lengths };
+  }, [listRows]);
+
+  const renderListRow = useCallback(
+    ({ item }: { item: ListRow }) => {
+      if (item.type === 'header') {
+        return (
+          <View style={styles.dateHeaderRow}>
+            <Text style={styles.dateHeaderText}>{item.title}</Text>
+          </View>
+        );
+      }
+      if (item.type === 'empty') {
+        return (
+          <View style={styles.emptyDayRow}>
+            <Text style={styles.emptyDayText}>No jobs</Text>
+          </View>
+        );
+      }
+      return <JobCard job={item.job} onPress={handleJobPress} />;
+    },
+    [handleJobPress]
+  );
+
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<ListRow> | null | undefined, index: number) => {
+      const length = listRowMetrics.lengths[index] ?? EMPTY_ROW_HEIGHT;
+      const offset = listRowMetrics.offsets[index] ?? 0;
+      return { length, offset, index };
+    },
+    [listRowMetrics]
+  );
+
   const calendarTheme = useMemo(
     () => ({
       todayTextColor: colors.primary,
@@ -398,6 +475,27 @@ export function TodaysJobsScreen() {
               onChangeText={setSearchQuery}
               placeholder="Search jobs..."
             />
+            <View style={styles.sortInlineContainer}>
+              <TouchableOpacity
+                onPress={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                activeOpacity={0.7}
+                style={styles.sortIconButton}
+                hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+              >
+                <View style={styles.sortIconStack}>
+                  <Ionicons
+                    name="arrow-up"
+                    size={sortOrder === 'asc' ? 26 : 20}
+                    color={sortOrder === 'asc' ? colors.surface : 'rgba(255, 255, 255, 0.45)'}
+                  />
+                  <Ionicons
+                    name="arrow-down"
+                    size={sortOrder === 'desc' ? 26 : 20}
+                    color={sortOrder === 'desc' ? colors.surface : 'rgba(255, 255, 255, 0.45)'}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.filterBarRow}>
             <View style={styles.scopeRow}>
@@ -492,24 +590,8 @@ export function TodaysJobsScreen() {
                       labelStyle: styles.datePillText,
                     },
                   ]}
-                  contentContainerStyle={[
-                    styles.filterChips,
-                    { paddingRight: sortOverlayWidth + spacing[10] },
-                  ]}
+                  contentContainerStyle={styles.filterChips}
                 />
-              </View>
-              <View
-                style={styles.sortCountOverlay}
-                onLayout={(event) => setSortOverlayWidth(event.nativeEvent.layout.width)}
-              >
-                <TouchableOpacity
-                  onPress={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-                  activeOpacity={0.7}
-                  style={styles.sortIconButton}
-                  hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
-                >
-                  <Ionicons name="swap-vertical" size={24} color={colors.surface} />
-                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -576,22 +658,17 @@ export function TodaysJobsScreen() {
         {/* Scrollable Job List */}
         <View style={styles.listContainer}>
           <ListCountBadge count={jobs.length} style={styles.listCountBadge} />
-          <SectionList
-            sections={jobsByDateSections}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <JobCard job={item} onPress={handleJobPress} />}
-            renderSectionHeader={({ section }) => (
-              <Text style={styles.dateHeader}>{section.title}</Text>
-            )}
-            renderSectionFooter={({ section }) =>
-              section.data.length === 0 ? (
-                <View style={styles.emptyDayRow}>
-                  <Text style={styles.emptyDayText}>No jobs</Text>
-                </View>
-              ) : null
-            }
+          <FlatList
+            data={listRows}
+            keyExtractor={(item) => item.key}
+            renderItem={renderListRow}
             contentContainerStyle={styles.list}
-            stickySectionHeadersEnabled={false}
+            initialNumToRender={12}
+            maxToRenderPerBatch={12}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            removeClippedSubviews
+            getItemLayout={getItemLayout}
             ListEmptyComponent={
               isLoading || isFetching ? (
                 <View style={styles.listLoading}>
@@ -718,21 +795,23 @@ const styles = StyleSheet.create({
     top: spacing[2],
     zIndex: 2,
   },
-  dateHeader: {
+  dateHeaderRow: {
+    height: DATE_HEADER_HEIGHT,
+    justifyContent: 'center',
+  },
+  dateHeaderText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
-    marginBottom: spacing[2],
-    marginTop: spacing[2],
   },
   emptyDayRow: {
-    paddingVertical: spacing[3],
+    height: EMPTY_ROW_HEIGHT,
     paddingHorizontal: spacing[3],
     borderRadius: borderRadius.base,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    marginBottom: spacing[3],
+    justifyContent: 'center',
   },
   emptyDayText: {
     fontSize: typography.fontSize.sm,
@@ -874,18 +953,12 @@ const styles = StyleSheet.create({
   filterRowEdge: {
     marginHorizontal: -spacing[4],
   },
-  sortCountOverlay: {
-    position: 'absolute',
-    right: spacing[4],
-    top: 0,
-    bottom: 0,
+  sortInlineContainer: {
     paddingHorizontal: spacing[2],
     borderRadius: 0,
     backgroundColor: colors.primaryPressed,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
   },
   sortIconButton: {
     width: 36,
@@ -894,5 +967,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primaryPressed,
+  },
+  sortIconStack: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
   },
 });

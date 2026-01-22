@@ -27,7 +27,7 @@ interface JobCardProps {
  * - Description (truncated)
  * - Chevron indicator for tappability
  */
-export function JobCard({ job, onPress }: JobCardProps) {
+function JobCardComponent({ job, onPress }: JobCardProps) {
   const { data: client } = useClient(job.clientId);
 
   // Format time
@@ -131,16 +131,20 @@ export function JobCard({ job, onPress }: JobCardProps) {
   );
 }
 
+export const JobCard = React.memo(JobCardComponent);
+
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing[3],
     padding: spacing[3],
+    height: 152,
     ...shadows.sm,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing[2],
+    minHeight: 140,
   },
   iconContainer: {
     width: 48,
