@@ -103,6 +103,13 @@ export function TodaysJobsScreen() {
   const createMutation = useCreateJob();
 
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
+  const clientNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    clients.forEach((client) => {
+      map.set(client.id, client.name.toLowerCase());
+    });
+    return map;
+  }, [clients]);
 
   const handleAdd = () => {
     setShowForm(true);
@@ -186,14 +193,13 @@ export function TodaysJobsScreen() {
 
     const query = searchQuery.toLowerCase();
     return jobsToShow.filter((job) => {
-      const client = clients.find((c) => c.id === job.clientId);
-      const clientName = client?.name.toLowerCase() || '';
+      const clientName = clientNameById.get(job.clientId) || '';
       const jobType = job.type.toLowerCase();
       const description = job.description.toLowerCase();
 
       return clientName.includes(query) || jobType.includes(query) || description.includes(query);
     });
-  }, [allJobs, myJobs, searchQuery, clients, jobFilter]);
+  }, [allJobs, myJobs, searchQuery, clientNameById, jobFilter]);
 
   const jobs = filteredJobs;
   const hasAnyJobs = allJobs.length > 0;
@@ -217,7 +223,7 @@ export function TodaysJobsScreen() {
   const isThisWeekApplied =
     isDateSelected && appliedStartDate === weekStartKey && appliedEndDate === weekEndKey;
   const hasDateChanges = draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
-  const canApplyDates = hasDraftSelection && (hasDateChanges || !isDateSelected);
+  const canApplyDates = hasDraftSelection && hasDateChanges;
 
   const isSingleDay = useMemo(() => {
     if (!hasDraftSelection) {
@@ -263,42 +269,61 @@ export function TodaysJobsScreen() {
     return marked;
   }, [draftStartDate, draftEndDate, isSingleDay, hasDraftSelection]);
 
-  const jobsByDateSections = useMemo(() => {
-    const sorted = [...jobs].sort((a, b) =>
+  const sortedJobs = useMemo(() => {
+    return [...jobs].sort((a, b) =>
       sortOrder === 'desc'
         ? b.scheduledStart.getTime() - a.scheduledStart.getTime()
         : a.scheduledStart.getTime() - b.scheduledStart.getTime()
     );
+  }, [jobs, sortOrder]);
 
+  const jobsByDateMap = useMemo(() => {
+    const map = new Map<string, Job[]>();
+    sortedJobs.forEach((job) => {
+      const dateKey = format(job.scheduledStart, 'yyyy-MM-dd');
+      const bucket = map.get(dateKey);
+      if (bucket) {
+        bucket.push(job);
+      } else {
+        map.set(dateKey, [job]);
+      }
+    });
+    return map;
+  }, [sortedJobs]);
+
+  const jobsByDateSections = useMemo(() => {
     if (isDateFiltering) {
       const sections: Array<{ title: string; dateKey: string; data: Job[] }> = [];
-      let cursor = new Date(rangeStart);
-      while (cursor <= rangeEnd) {
+      const step = sortOrder === 'desc' ? -1 : 1;
+      let cursor =
+        sortOrder === 'desc' ? new Date(rangeEnd.getTime()) : new Date(rangeStart.getTime());
+
+      while (sortOrder === 'desc' ? cursor >= rangeStart : cursor <= rangeEnd) {
         const dateKey = format(cursor, 'yyyy-MM-dd');
         const title = format(cursor, 'EEEE, MMMM d');
         sections.push({
           title,
           dateKey,
-          data: sorted.filter((job) => format(job.scheduledStart, 'yyyy-MM-dd') === dateKey),
+          data: jobsByDateMap.get(dateKey) || [],
         });
-        cursor = addDays(cursor, 1);
+        cursor = addDays(cursor, step);
       }
-      return sortOrder === 'desc' ? sections.reverse() : sections;
+      return sections;
     }
 
     const sections: Array<{ title: string; dateKey: string; data: Job[] }> = [];
-    sorted.forEach((job) => {
+    sortedJobs.forEach((job) => {
       const dateKey = format(job.scheduledStart, 'yyyy-MM-dd');
       const title = format(job.scheduledStart, 'EEEE, MMMM d');
-      const existing = sections.find((section) => section.dateKey === dateKey);
-      if (existing) {
-        existing.data.push(job);
+      const last = sections[sections.length - 1];
+      if (last && last.dateKey === dateKey) {
+        last.data.push(job);
       } else {
         sections.push({ title, dateKey, data: [job] });
       }
     });
     return sections;
-  }, [isDateFiltering, jobs, rangeEnd, rangeStart, sortOrder]);
+  }, [isDateFiltering, jobsByDateMap, rangeEnd, rangeStart, sortOrder, sortedJobs]);
 
   const calendarTheme = useMemo(
     () => ({
@@ -448,10 +473,6 @@ export function TodaysJobsScreen() {
                       label: dateLabel,
                       active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
                       onPress: () => {
-                        if (isDateSelected && !isTodayApplied && !isThisWeekApplied) {
-                          clearDateConstraint();
-                          return;
-                        }
                         toggleDateControls();
                       },
                       accessory: showDateClear ? (
@@ -778,21 +799,22 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primary,
     marginRight: spacing[2],
     transform: [{ translateY: -4 }],
   },
   calendarApplyText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    color: colors.surface,
   },
   calendarApplyButtonDisabled: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
+    opacity: 0.6,
   },
   calendarApplyTextDisabled: {
-    color: colors.textMuted,
+    color: colors.textTertiary,
   },
   dateClearButton: {
     marginLeft: spacing[1],
