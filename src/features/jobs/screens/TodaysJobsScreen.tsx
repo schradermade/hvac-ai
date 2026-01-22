@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
+  SectionList,
   Modal,
   Text,
   TouchableOpacity,
@@ -252,6 +252,41 @@ export function TodaysJobsScreen() {
     return marked;
   }, [draftStartDate, draftEndDate, isSingleDay, hasDraftSelection]);
 
+  const jobsByDateSections = useMemo(() => {
+    const sorted = [...jobs].sort(
+      (a, b) => b.scheduledStart.getTime() - a.scheduledStart.getTime()
+    );
+
+    if (isDateFiltering) {
+      const sections: Array<{ title: string; dateKey: string; data: Job[] }> = [];
+      let cursor = new Date(rangeStart);
+      while (cursor <= rangeEnd) {
+        const dateKey = format(cursor, 'yyyy-MM-dd');
+        const title = format(cursor, 'EEEE, MMMM d');
+        sections.push({
+          title,
+          dateKey,
+          data: sorted.filter((job) => format(job.scheduledStart, 'yyyy-MM-dd') === dateKey),
+        });
+        cursor = addDays(cursor, 1);
+      }
+      return sections.reverse(); // newest first
+    }
+
+    const sections: Array<{ title: string; dateKey: string; data: Job[] }> = [];
+    sorted.forEach((job) => {
+      const dateKey = format(job.scheduledStart, 'yyyy-MM-dd');
+      const title = format(job.scheduledStart, 'EEEE, MMMM d');
+      const existing = sections.find((section) => section.dateKey === dateKey);
+      if (existing) {
+        existing.data.push(job);
+      } else {
+        sections.push({ title, dateKey, data: [job] });
+      }
+    });
+    return sections;
+  }, [jobs, isDateFiltering, rangeEnd, rangeStart]);
+
   const calendarTheme = useMemo(
     () => ({
       todayTextColor: colors.primary,
@@ -445,11 +480,22 @@ export function TodaysJobsScreen() {
         </SectionHeader>
 
         {/* Scrollable Job List */}
-        <FlatList
-          data={jobs}
+        <SectionList
+          sections={jobsByDateSections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <JobCard job={item} onPress={handleJobPress} />}
+          renderSectionHeader={({ section }) => (
+            <Text style={styles.dateHeader}>{section.title}</Text>
+          )}
+          renderSectionFooter={({ section }) =>
+            section.data.length === 0 ? (
+              <View style={styles.emptyDayRow}>
+                <Text style={styles.emptyDayText}>No jobs</Text>
+              </View>
+            ) : null
+          }
           contentContainerStyle={styles.list}
+          stickySectionHeadersEnabled={false}
           ListEmptyComponent={
             isLoading || isFetching ? (
               <View style={styles.listLoading}>
@@ -515,6 +561,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
     paddingBottom: spacing[20],
+  },
+  dateHeader: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+    marginBottom: spacing[2],
+    marginTop: spacing[3],
+  },
+  emptyDayRow: {
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    marginBottom: spacing[3],
+  },
+  emptyDayText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
   fab: {
     position: 'absolute',
