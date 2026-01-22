@@ -15,6 +15,7 @@ export { Card } from './Card';
 export { Badge } from './Badge';
 export { HeroSection } from './HeroSection';
 export { HeroCountBadge } from './HeroCountBadge';
+export { ListCountBadge } from './ListCountBadge';
 export { SectionHeader } from './SectionHeader';
 export { FilterPills } from './FilterPills';
 export { SearchInput } from './SearchInput';

@@ -488,9 +488,10 @@ class JobService {
         today.getTime() + dayOffset * 24 * 60 * 60 * 1000 + hourOffset * 60 * 60 * 1000
       );
       const scheduledEnd = new Date(scheduledStart.getTime() + 90 * 60 * 1000);
-      const status = jobStatuses[i % jobStatuses.length];
+      const status = i % 12 === 0 ? 'assigned' : jobStatuses[i % jobStatuses.length];
       const type = jobTypes[i % jobTypes.length];
       const clientIndex = (i % 30) + 1;
+      const assignedToAlice = i % 12 === 0;
 
       testJobs.push({
         companyId: 'company_test_1',
@@ -502,6 +503,15 @@ class JobService {
         scheduledEnd,
         description: `${type} visit for client ${clientIndex}`,
         notes: 'Auto-generated job for list testing',
+        assignment: assignedToAlice
+          ? {
+              technicianId: 'tech_test_alice',
+              technicianName: 'Alice Johnson',
+              assignedAt: new Date(),
+              assignedBy: 'tech_test_admin',
+              assignedByName: 'Test Admin',
+            }
+          : undefined,
         createdBy: 'tech_test_admin',
         createdByName: 'Test Admin',
         createdAt: new Date(),

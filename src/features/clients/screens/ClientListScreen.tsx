@@ -11,6 +11,7 @@ import {
   SectionHeader,
   SearchInput,
   FilterPills,
+  ListCountBadge,
 } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
@@ -128,6 +129,7 @@ export function ClientListScreen() {
               }}
               variant="dark"
               count={clients.length}
+              showCount={false}
             >
               {/* Search Row */}
               <View style={styles.searchRow}>
@@ -158,18 +160,21 @@ export function ClientListScreen() {
             </SectionHeader>
 
             {/* Scrollable Client List */}
-            <FlatList
-              data={clients}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ClientCard client={item} onPress={handleClientPress} />}
-              contentContainerStyle={styles.list}
-              ListEmptyComponent={
-                <View style={styles.emptyResults}>
-                  <Text style={styles.emptyResultsText}>No clients match "{searchQuery}"</Text>
-                  <Text style={styles.emptyResultsHint}>Try a different search term</Text>
-                </View>
-              }
-            />
+            <View style={styles.listContainer}>
+              <ListCountBadge count={clients.length} style={styles.listCountBadge} />
+              <FlatList
+                data={clients}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => <ClientCard client={item} onPress={handleClientPress} />}
+                contentContainerStyle={styles.list}
+                ListEmptyComponent={
+                  <View style={styles.emptyResults}>
+                    <Text style={styles.emptyResultsText}>No clients match "{searchQuery}"</Text>
+                    <Text style={styles.emptyResultsHint}>Try a different search term</Text>
+                  </View>
+                }
+              />
+            </View>
           </>
         )}
       </View>
@@ -235,8 +240,18 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
+    paddingTop: spacing[12],
     paddingBottom: spacing[20],
+  },
+  listContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  listCountBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    top: spacing[2],
+    zIndex: 2,
   },
   modalContainer: {
     flex: 1,

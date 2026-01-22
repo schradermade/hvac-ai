@@ -11,7 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Spinner, Card, SectionHeader, FilterPills, SearchInput } from '@/components/ui';
+import {
+  Spinner,
+  Card,
+  SectionHeader,
+  FilterPills,
+  SearchInput,
+  ListCountBadge,
+} from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { TechnicianCard } from '../components/TechnicianCard';
@@ -50,6 +57,7 @@ export function TechnicianListScreen() {
           }}
           variant="dark"
           count={technicians.length}
+          showCount={false}
         >
           {/* Search Row */}
           <View style={styles.searchRow}>
@@ -111,6 +119,7 @@ export function TechnicianListScreen() {
           {/* Technician List */}
           {!isLoading && !error && technicians.length > 0 && (
             <View style={styles.listContainer}>
+              <ListCountBadge count={technicians.length} style={styles.listCountBadge} />
               {technicians.map((technician) => (
                 <TechnicianCard
                   key={technician.id}
@@ -151,7 +160,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
   },
   scrollContent: {
     flexGrow: 1,
@@ -206,7 +215,14 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
+    paddingTop: spacing[12],
+    position: 'relative',
+  },
+  listCountBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    top: spacing[2],
+    zIndex: 2,
   },
   bottomSpacer: {
     height: spacing[8],

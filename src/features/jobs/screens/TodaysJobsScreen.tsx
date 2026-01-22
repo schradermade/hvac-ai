@@ -23,6 +23,7 @@ import {
   SectionHeader,
   FilterPills,
   SearchInput,
+  ListCountBadge,
 } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJobList, useCreateJob } from '../hooks/useJobs';
@@ -373,101 +374,122 @@ export function TodaysJobsScreen() {
               placeholder="Search jobs..."
             />
           </View>
-
-          <View style={styles.filterRow}>
-            <View style={styles.filterRowEdge}>
-              <FilterPills
-                items={[
-                  {
-                    id: 'all',
-                    label: 'All Jobs',
-                    active: jobFilter === 'all',
-                    onPress: () => {
-                      setJobFilter('all');
-                      setShowDateControls(false);
-                    },
-                  },
-                  {
-                    id: 'my',
-                    label: 'My Jobs',
-                    active: jobFilter === 'my',
-                    onPress: () => {
-                      setJobFilter('my');
-                      setShowDateControls(false);
-                    },
-                    count: myJobsCount,
-                  },
-                  {
-                    id: 'today',
-                    label: 'Today',
-                    active: isTodayApplied,
-                    onPress: () => {
-                      if (isTodayApplied) {
-                        clearDateConstraint();
-                        return;
-                      }
-                      applyTodayFilter();
-                    },
-                  },
-                  {
-                    id: 'this-week',
-                    label: 'This Week',
-                    active: isThisWeekApplied,
-                    onPress: () => {
-                      if (isThisWeekApplied) {
-                        clearDateConstraint();
-                        return;
-                      }
-                      applyThisWeekFilter();
-                    },
-                  },
-                  {
-                    id: 'date',
-                    label: dateLabel,
-                    active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
-                    onPress: () => {
-                      if (isDateSelected && !isTodayApplied && !isThisWeekApplied) {
-                        clearDateConstraint();
-                        return;
-                      }
-                      toggleDateControls();
-                    },
-                    accessory: showDateClear ? (
-                      <TouchableOpacity
-                        onPress={clearDateFilter}
-                        style={styles.dateClearButton}
-                        hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
-                      >
-                        <Ionicons
-                          name="close"
-                          size={18}
-                          color={colors.surface}
-                          style={styles.dateClearIcon}
-                        />
-                      </TouchableOpacity>
-                    ) : null,
-                    labelStyle: styles.datePillText,
-                  },
-                ]}
-                contentContainerStyle={[
-                  styles.filterChips,
-                  { paddingRight: sortOverlayWidth + spacing[10] },
-                ]}
-              />
-            </View>
-            <View
-              style={styles.sortCountOverlay}
-              onLayout={(event) => setSortOverlayWidth(event.nativeEvent.layout.width)}
-            >
+          <View style={styles.filterBarRow}>
+            <View style={styles.scopeRow}>
               <TouchableOpacity
-                onPress={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                onPress={() => {
+                  setJobFilter('all');
+                  setShowDateControls(false);
+                }}
                 activeOpacity={0.7}
-                style={styles.sortIconButton}
-                hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                style={[styles.scopeSegment, jobFilter === 'all' && styles.scopeSegmentActive]}
               >
-                <Ionicons name="swap-vertical" size={24} color={colors.surface} />
+                <Text
+                  style={[
+                    styles.scopeSegmentText,
+                    jobFilter === 'all' && styles.scopeSegmentTextActive,
+                  ]}
+                >
+                  All Jobs
+                </Text>
               </TouchableOpacity>
-              <Text style={styles.sortCountText}>{jobs.length}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setJobFilter('my');
+                  setShowDateControls(false);
+                }}
+                activeOpacity={0.7}
+                style={[styles.scopeSegment, jobFilter === 'my' && styles.scopeSegmentActive]}
+              >
+                <Text
+                  style={[
+                    styles.scopeSegmentText,
+                    jobFilter === 'my' && styles.scopeSegmentTextActive,
+                  ]}
+                >
+                  My Jobs
+                </Text>
+                <View style={styles.scopeCountBadge}>
+                  <Text style={styles.scopeCountText}>{myJobsCount}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.filterRow}>
+              <View style={styles.filterRowEdge}>
+                <FilterPills
+                  items={[
+                    {
+                      id: 'today',
+                      label: 'Today',
+                      active: isTodayApplied,
+                      onPress: () => {
+                        if (isTodayApplied) {
+                          clearDateConstraint();
+                          return;
+                        }
+                        applyTodayFilter();
+                      },
+                    },
+                    {
+                      id: 'this-week',
+                      label: 'This Week',
+                      active: isThisWeekApplied,
+                      onPress: () => {
+                        if (isThisWeekApplied) {
+                          clearDateConstraint();
+                          return;
+                        }
+                        applyThisWeekFilter();
+                      },
+                    },
+                    {
+                      id: 'date',
+                      label: dateLabel,
+                      active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
+                      onPress: () => {
+                        if (isDateSelected && !isTodayApplied && !isThisWeekApplied) {
+                          clearDateConstraint();
+                          return;
+                        }
+                        toggleDateControls();
+                      },
+                      accessory: showDateClear ? (
+                        <TouchableOpacity
+                          onPress={clearDateFilter}
+                          style={styles.dateClearButton}
+                          hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                        >
+                          <Ionicons
+                            name="close"
+                            size={18}
+                            color={colors.surface}
+                            style={styles.dateClearIcon}
+                          />
+                        </TouchableOpacity>
+                      ) : null,
+                      labelStyle: styles.datePillText,
+                    },
+                  ]}
+                  contentContainerStyle={[
+                    styles.filterChips,
+                    { paddingRight: sortOverlayWidth + spacing[10] },
+                  ]}
+                />
+              </View>
+              <View
+                style={styles.sortCountOverlay}
+                onLayout={(event) => setSortOverlayWidth(event.nativeEvent.layout.width)}
+              >
+                <TouchableOpacity
+                  onPress={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                  activeOpacity={0.7}
+                  style={styles.sortIconButton}
+                  hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                >
+                  <Ionicons name="swap-vertical" size={24} color={colors.surface} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           {showDateControls && (
@@ -531,41 +553,44 @@ export function TodaysJobsScreen() {
         </SectionHeader>
 
         {/* Scrollable Job List */}
-        <SectionList
-          sections={jobsByDateSections}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <JobCard job={item} onPress={handleJobPress} />}
-          renderSectionHeader={({ section }) => (
-            <Text style={styles.dateHeader}>{section.title}</Text>
-          )}
-          renderSectionFooter={({ section }) =>
-            section.data.length === 0 ? (
-              <View style={styles.emptyDayRow}>
-                <Text style={styles.emptyDayText}>No jobs</Text>
-              </View>
-            ) : null
-          }
-          contentContainerStyle={styles.list}
-          stickySectionHeadersEnabled={false}
-          ListEmptyComponent={
-            isLoading || isFetching ? (
-              <View style={styles.listLoading}>
-                <Spinner message="Loading jobs..." />
-              </View>
-            ) : !hasAnyJobs ? (
-              <EmptyState
-                title="No jobs scheduled for today"
-                description="Create a job to get started"
-                action={<Button onPress={handleAdd}>Create Job</Button>}
-              />
-            ) : (
-              <View style={styles.emptyResults}>
-                <Text style={styles.emptyResultsText}>No jobs match "{searchQuery}"</Text>
-                <Text style={styles.emptyResultsHint}>Try a different search term</Text>
-              </View>
-            )
-          }
-        />
+        <View style={styles.listContainer}>
+          <ListCountBadge count={jobs.length} style={styles.listCountBadge} />
+          <SectionList
+            sections={jobsByDateSections}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <JobCard job={item} onPress={handleJobPress} />}
+            renderSectionHeader={({ section }) => (
+              <Text style={styles.dateHeader}>{section.title}</Text>
+            )}
+            renderSectionFooter={({ section }) =>
+              section.data.length === 0 ? (
+                <View style={styles.emptyDayRow}>
+                  <Text style={styles.emptyDayText}>No jobs</Text>
+                </View>
+              ) : null
+            }
+            contentContainerStyle={styles.list}
+            stickySectionHeadersEnabled={false}
+            ListEmptyComponent={
+              isLoading || isFetching ? (
+                <View style={styles.listLoading}>
+                  <Spinner message="Loading jobs..." />
+                </View>
+              ) : !hasAnyJobs ? (
+                <EmptyState
+                  title="No jobs scheduled for today"
+                  description="Create a job to get started"
+                  action={<Button onPress={handleAdd}>Create Job</Button>}
+                />
+              ) : (
+                <View style={styles.emptyResults}>
+                  <Text style={styles.emptyResultsText}>No jobs match "{searchQuery}"</Text>
+                  <Text style={styles.emptyResultsHint}>Try a different search term</Text>
+                </View>
+              )
+            }
+          />
+        </View>
       </View>
 
       {/* Floating Action Button */}
@@ -608,17 +633,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[2],
   },
+  filterBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  scopeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing[1],
+    gap: spacing[1],
+    flexShrink: 0,
+  },
+  scopeSegment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+  },
+  scopeSegmentActive: {
+    backgroundColor: colors.primary,
+  },
+  scopeSegmentText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+  },
+  scopeSegmentTextActive: {
+    color: colors.surface,
+  },
+  scopeCountBadge: {
+    minWidth: 24,
+    paddingHorizontal: spacing[1],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primaryPressed,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scopeCountText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.surface,
+  },
   list: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
+    paddingTop: spacing[3],
     paddingBottom: spacing[20],
+  },
+  listContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  listCountBadge: {
+    position: 'absolute',
+    right: spacing[4],
+    top: spacing[2],
+    zIndex: 2,
   },
   dateHeader: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
     marginBottom: spacing[2],
-    marginTop: spacing[3],
+    marginTop: spacing[2],
   },
   emptyDayRow: {
     paddingVertical: spacing[3],
@@ -763,22 +847,22 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     position: 'relative',
+    flex: 1,
   },
   filterRowEdge: {
     marginHorizontal: -spacing[4],
   },
   sortCountOverlay: {
     position: 'absolute',
-    right: -spacing[4],
+    right: spacing[4],
     top: 0,
     bottom: 0,
-    minWidth: 140,
-    paddingHorizontal: spacing[4],
+    paddingHorizontal: spacing[2],
     borderRadius: 0,
     backgroundColor: colors.primaryPressed,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     zIndex: 2,
   },
   sortIconButton: {
@@ -788,10 +872,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primaryPressed,
-  },
-  sortCountText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.surface,
   },
 });
