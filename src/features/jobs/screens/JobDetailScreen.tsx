@@ -128,6 +128,11 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
   const handleStatusUpdate = async (newStatus: AppointmentStatus) => {
     try {
+      if (newStatus === 'in_progress' && job.status !== 'accepted') {
+        Alert.alert('Cannot start job', 'Job must be accepted by a technician before starting.');
+        return;
+      }
+
       setUpdatingStatus(true);
       const updates: { status: AppointmentStatus; actualStart?: Date; actualEnd?: Date } = {
         status: newStatus,
@@ -187,7 +192,8 @@ export function JobDetailScreen({ route, navigation }: Props) {
     isAssignedToUser && (job.status === 'assigned' || job.status === 'unassigned');
 
   const statusColor = getStatusColor(job.status);
-  const canStartJob = job.status === 'scheduled' || job.status === 'accepted';
+  const canStartJob = job.status === 'accepted';
+  const showStartJob = !['in_progress', 'completed', 'cancelled'].includes(job.status);
   const canCompleteJob = job.status === 'in_progress';
 
   return (
@@ -211,22 +217,32 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
         {/* Job Status Actions */}
         <View style={styles.quickActionsSection}>
-          {canStartJob && (
-            <TouchableOpacity
-              style={[styles.primaryAction, updatingStatus && styles.primaryActionDisabled]}
-              onPress={() => handleStatusUpdate('in_progress')}
-              disabled={updatingStatus}
-              activeOpacity={0.8}
-            >
-              {updatingStatus ? (
-                <ActivityIndicator size="small" color={colors.surface} />
-              ) : (
-                <>
-                  <Ionicons name="play-circle" size={20} color={colors.surface} />
-                  <Text style={styles.primaryActionText}>Start Job</Text>
-                </>
+          {showStartJob && (
+            <View>
+              <TouchableOpacity
+                style={[
+                  styles.primaryAction,
+                  (!canStartJob || updatingStatus) && styles.primaryActionDisabled,
+                ]}
+                onPress={() => handleStatusUpdate('in_progress')}
+                disabled={!canStartJob || updatingStatus}
+                activeOpacity={0.8}
+              >
+                {updatingStatus ? (
+                  <ActivityIndicator size="small" color={colors.surface} />
+                ) : (
+                  <>
+                    <Ionicons name="play-circle" size={20} color={colors.surface} />
+                    <Text style={styles.primaryActionText}>Start Job</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              {!canStartJob && (
+                <Text style={styles.primaryActionHint}>
+                  Assign and accept this job before starting.
+                </Text>
               )}
-            </TouchableOpacity>
+            </View>
           )}
           {canCompleteJob && (
             <TouchableOpacity
@@ -650,6 +666,11 @@ const styles = StyleSheet.create({
   },
   primaryActionDisabled: {
     opacity: 0.6,
+  },
+  primaryActionHint: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing[2],
   },
   aiHelpButton: {
     flexDirection: 'row',
