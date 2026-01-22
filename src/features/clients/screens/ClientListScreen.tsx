@@ -105,7 +105,7 @@ export function ClientListScreen() {
                 text: 'Manage your customer base',
               }}
               variant="dark"
-              count={allClients.length}
+              count={clients.length}
             >
               {/* Search Row */}
               <View style={styles.searchRow}>
