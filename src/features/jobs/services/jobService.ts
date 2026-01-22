@@ -466,11 +466,56 @@ class JobService {
       },
     ];
 
+    const jobTypes: Job['type'][] = [
+      'maintenance',
+      'repair',
+      'installation',
+      'inspection',
+      'emergency',
+    ];
+    const jobStatuses: Job['status'][] = [
+      'scheduled',
+      'in_progress',
+      'completed',
+      'cancelled',
+      'rescheduled',
+    ];
+
+    for (let i = 0; i < 150; i += 1) {
+      const dayOffset = (i % 30) - 10;
+      const hourOffset = 8 + (i % 8);
+      const scheduledStart = new Date(
+        today.getTime() + dayOffset * 24 * 60 * 60 * 1000 + hourOffset * 60 * 60 * 1000
+      );
+      const scheduledEnd = new Date(scheduledStart.getTime() + 90 * 60 * 1000);
+      const status = jobStatuses[i % jobStatuses.length];
+      const type = jobTypes[i % jobTypes.length];
+      const clientIndex = (i % 30) + 1;
+
+      testJobs.push({
+        companyId: 'company_test_1',
+        id: `job_seed_${i + 22}`,
+        clientId: `client_test_${clientIndex}`,
+        type,
+        status,
+        scheduledStart,
+        scheduledEnd,
+        description: `${type} visit for client ${clientIndex}`,
+        notes: 'Auto-generated job for list testing',
+        createdBy: 'tech_test_admin',
+        createdByName: 'Test Admin',
+        createdAt: new Date(),
+        modifiedBy: 'tech_test_admin',
+        modifiedByName: 'Test Admin',
+        updatedAt: new Date(),
+      });
+    }
+
     testJobs.forEach((job) => {
       this.jobs.set(job.id, job);
     });
 
-    this.idCounter = 21; // Set counter since we used job_test_1 through job_test_21
+    this.idCounter = 171; // Set counter since we used job_test_1 through job_seed_171
   }
 
   /**

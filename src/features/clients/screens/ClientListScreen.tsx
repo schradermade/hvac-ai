@@ -14,6 +14,7 @@ import {
 } from '@/components/ui';
 import { colors, spacing, typography } from '@/components/ui';
 import { useClientList, useCreateClient } from '../hooks/useClients';
+import { useJobList } from '@/features/jobs';
 import { ClientCard } from '../components/ClientCard';
 import { ClientForm } from '../components/ClientForm';
 import type { ClientFormData, Client } from '../types';
@@ -31,7 +32,9 @@ export function ClientListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [clientFilter, setClientFilter] = useState<'all' | 'open'>('all');
   const { data, isLoading } = useClientList();
+  const { data: jobsData } = useJobList();
   const createMutation = useCreateClient();
 
   const handleAdd = () => {
@@ -50,13 +53,23 @@ export function ClientListScreen() {
   // Filter clients based on search query
   const filteredClients = useMemo(() => {
     const allClients = data?.items || [];
+    const openClientIds = new Set(
+      (jobsData?.items || [])
+        .filter((job) => job.status !== 'completed' && job.status !== 'cancelled')
+        .map((job) => job.clientId)
+    );
+
+    const clientsToFilter =
+      clientFilter === 'open'
+        ? allClients.filter((client) => openClientIds.has(client.id))
+        : allClients;
 
     if (!searchQuery.trim()) {
-      return allClients;
+      return clientsToFilter;
     }
 
     const query = searchQuery.toLowerCase();
-    return allClients.filter((client) => {
+    return clientsToFilter.filter((client) => {
       const name = client.name.toLowerCase();
       const phone = client.phone.toLowerCase();
       const address = client.address.toLowerCase();
@@ -71,7 +84,16 @@ export function ClientListScreen() {
         email.includes(query)
       );
     });
-  }, [data?.items, searchQuery]);
+  }, [clientFilter, data?.items, jobsData?.items, searchQuery]);
+
+  const openClientsCount = useMemo(() => {
+    const openClientIds = new Set(
+      (jobsData?.items || [])
+        .filter((job) => job.status !== 'completed' && job.status !== 'cancelled')
+        .map((job) => job.clientId)
+    );
+    return openClientIds.size;
+  }, [jobsData?.items]);
 
   if (isLoading) {
     return (
@@ -120,8 +142,15 @@ export function ClientListScreen() {
                   {
                     id: 'all',
                     label: 'All Clients',
-                    active: true,
-                    onPress: () => {},
+                    active: clientFilter === 'all',
+                    onPress: () => setClientFilter('all'),
+                  },
+                  {
+                    id: 'open',
+                    label: 'Open Jobs',
+                    active: clientFilter === 'open',
+                    onPress: () => setClientFilter('open'),
+                    count: openClientsCount,
                   },
                 ]}
                 contentContainerStyle={styles.filterChips}

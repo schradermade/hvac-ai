@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers';
 import { jobService } from '../services/jobService';
-import type { JobFormData, JobFilters } from '../types';
+import type { JobFormData, JobFilters, JobListResponse } from '../types';
 
 /**
  * Query keys for job-related queries
@@ -102,8 +102,19 @@ export function useUpdateJob() {
       id: string;
       data: Partial<Omit<import('../types').Job, 'id' | 'createdAt'>>;
     }) => jobService.update(id, user!.id, `${user!.firstName} ${user!.lastName}`, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: jobKeys.detail(variables.id) });
+    onSuccess: (updated) => {
+      queryClient.setQueryData(jobKeys.detail(updated.id), updated);
+      queryClient.setQueriesData({ queryKey: jobKeys.lists() }, (data) => {
+        const list = data as JobListResponse | undefined;
+        if (!list?.items) {
+          return data;
+        }
+        return {
+          ...list,
+          items: list.items.map((job) => (job.id === updated.id ? { ...job, ...updated } : job)),
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: jobKeys.detail(updated.id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
     },
   });
