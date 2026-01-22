@@ -15,6 +15,10 @@ export interface FilterPillItem {
   onPress: () => void;
   count?: number;
   labelStyle?: TextStyle;
+  inactiveLabelStyle?: TextStyle;
+  activeLabelStyle?: TextStyle;
+  inactiveStyle?: ViewStyle;
+  activeStyle?: ViewStyle;
   accessory?: React.ReactNode;
 }
 
@@ -63,6 +67,7 @@ export function FilterPills({
             styles.chip,
             { backgroundColor: palette.chipBg, borderColor: palette.chipBorder },
             item.active && { backgroundColor: palette.activeBg, borderColor: palette.activeBorder },
+            item.active ? item.activeStyle : item.inactiveStyle,
           ]}
           onPress={item.onPress}
           activeOpacity={0.7}
@@ -73,6 +78,7 @@ export function FilterPills({
               { color: palette.text },
               item.active && { color: palette.activeText },
               item.labelStyle,
+              item.active ? item.activeLabelStyle : item.inactiveLabelStyle,
             ]}
           >
             {item.label}

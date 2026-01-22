@@ -21,7 +21,6 @@ import {
   Button,
   Spinner,
   SectionHeader,
-  FilterPills,
   SearchInput,
   ListCountBadge,
 } from '@/components/ui';
@@ -239,22 +238,26 @@ export function TodaysJobsScreen() {
     ).length;
   }, [jobsForDateCounts, weekEndKey, weekStartKey]);
 
+  const showDateClear = isDateSelected;
+  const isTodayApplied =
+    isDateSelected && appliedStartDate === todayKey && appliedEndDate === todayKey;
+  const isThisWeekApplied =
+    isDateSelected && appliedStartDate === weekStartKey && appliedEndDate === weekEndKey;
+  const isCustomDateActive = isDateSelected && !isTodayApplied && !isThisWeekApplied;
+
   const dateLabel = useMemo(() => {
-    const start = parseISO(showDateControls ? draftStartDate : appliedStartDate);
-    const end = parseISO(showDateControls ? draftEndDate : appliedEndDate);
+    if (!isDateSelected) {
+      return 'Select dates';
+    }
+    const start = parseISO(appliedStartDate);
+    const end = parseISO(appliedEndDate);
     if (!isSameDay(start, end)) {
       const sameYear = start.getFullYear() === end.getFullYear();
       const startFormat = sameYear ? 'MMM d' : 'MMM d, yyyy';
       return `${format(start, startFormat)} - ${format(end, 'MMM d, yyyy')}`;
     }
     return format(start, 'MMM d, yyyy');
-  }, [appliedStartDate, appliedEndDate, draftStartDate, draftEndDate, showDateControls]);
-
-  const showDateClear = isDateSelected;
-  const isTodayApplied =
-    isDateSelected && appliedStartDate === todayKey && appliedEndDate === todayKey;
-  const isThisWeekApplied =
-    isDateSelected && appliedStartDate === weekStartKey && appliedEndDate === weekEndKey;
+  }, [appliedStartDate, appliedEndDate, isDateSelected]);
   const hasDateChanges = draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
   const canApplyDates = hasDraftSelection && hasDateChanges;
 
@@ -613,6 +616,7 @@ export function TodaysJobsScreen() {
                     isTodayApplied && styles.dateSegmentActive,
                   ]}
                 >
+                  {!isTodayApplied && !isThisWeekApplied && <View style={styles.dateDivider} />}
                   <Text
                     style={[styles.dateSegmentText, isTodayApplied && styles.dateSegmentTextActive]}
                   >
@@ -639,10 +643,11 @@ export function TodaysJobsScreen() {
                   activeOpacity={0.7}
                   style={[
                     styles.dateSegment,
-                    styles.dateSegmentRight,
+                    styles.dateSegmentMiddle,
                     isThisWeekApplied && styles.dateSegmentActive,
                   ]}
                 >
+                  {!isThisWeekApplied && !isCustomDateActive && <View style={styles.dateDivider} />}
                   <Text
                     style={[
                       styles.dateSegmentText,
@@ -667,43 +672,52 @@ export function TodaysJobsScreen() {
                     </Text>
                   </View>
                 </TouchableOpacity>
-              </View>
-              <View style={styles.filterRowEdge}>
-                <FilterPills
-                  items={[
-                    {
-                      id: 'date',
-                      label: dateLabel,
-                      active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
-                      onPress: () => {
-                        toggleDateControls();
-                      },
-                      accessory: showDateClear ? (
-                        <TouchableOpacity
-                          onPress={clearDateFilter}
-                          style={styles.dateClearButton}
-                          hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
-                        >
-                          <Ionicons
-                            name="close"
-                            size={18}
-                            color={colors.surface}
-                            style={styles.dateClearIcon}
-                          />
-                        </TouchableOpacity>
-                      ) : (
-                        <Ionicons
-                          name={showDateControls ? 'chevron-up' : 'chevron-down'}
-                          size={18}
-                          color={colors.surface}
-                          style={styles.dateChevronIcon}
-                        />
-                      ),
-                      labelStyle: styles.datePillText,
-                    },
+                <TouchableOpacity
+                  onPress={() => {
+                    toggleDateControls();
+                  }}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateSegment,
+                    styles.dateSegmentRight,
+                    isCustomDateActive && styles.dateSegmentActive,
+                    !isCustomDateActive && styles.dateSegmentInactive,
                   ]}
-                  contentContainerStyle={styles.filterChips}
-                />
+                >
+                  <Text
+                    style={[
+                      styles.dateSegmentText,
+                      isCustomDateActive && styles.dateSegmentTextActive,
+                      !isCustomDateActive && styles.dateSegmentTextInactive,
+                    ]}
+                  >
+                    {dateLabel}
+                  </Text>
+                  {showDateClear ? (
+                    <TouchableOpacity
+                      onPress={clearDateFilter}
+                      style={[
+                        styles.dateClearButton,
+                        !isCustomDateActive && styles.dateClearButtonInactive,
+                      ]}
+                      hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+                    >
+                      <Ionicons
+                        name="close"
+                        size={18}
+                        color={isCustomDateActive ? colors.surface : colors.textSecondary}
+                        style={styles.dateClearIcon}
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons
+                      name={showDateControls ? 'chevron-up' : 'chevron-down'}
+                      size={18}
+                      color={isCustomDateActive ? colors.surface : colors.textSecondary}
+                      style={styles.dateChevronIcon}
+                    />
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -1039,6 +1053,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
+  dateClearButtonInactive: {
+    borderColor: colors.textSecondary,
+  },
   dateClearIcon: {
     marginTop: 1,
   },
@@ -1064,11 +1081,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  filterChips: {
-    paddingTop: 0,
-    paddingLeft: spacing[4],
-    paddingHorizontal: spacing[4],
-  },
   calendarArrow: {
     width: 52,
     height: 52,
@@ -1079,20 +1091,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     transform: [{ translateY: -2 }],
   },
-  datePillText: {
-    fontWeight: typography.fontWeight.bold,
-  },
   filterRow: {
     position: 'relative',
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-  },
-  filterRowEdge: {
-    marginHorizontal: -spacing[4],
-    height: 44,
-    justifyContent: 'center',
   },
   dateToggleRow: {
     flexDirection: 'row',
@@ -1117,18 +1121,29 @@ const styles = StyleSheet.create({
   dateSegmentLeft: {
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
-    borderRightWidth: 0,
+  },
+  dateSegmentMiddle: {
+    borderRadius: 0,
   },
   dateSegmentRight: {
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.surface,
+  },
+  dateDivider: {
+    position: 'absolute',
+    right: -1,
+    top: 6,
+    bottom: 6,
+    width: 1,
+    backgroundColor: colors.surface,
   },
   dateSegmentActive: {
     backgroundColor: colors.primaryHover,
     borderWidth: 2,
     borderColor: colors.surface,
+  },
+  dateSegmentInactive: {
+    backgroundColor: colors.primaryLight,
   },
   dateSegmentText: {
     fontSize: typography.fontSize.sm,
@@ -1137,6 +1152,9 @@ const styles = StyleSheet.create({
   },
   dateSegmentTextActive: {
     color: colors.surface,
+  },
+  dateSegmentTextInactive: {
+    color: colors.textSecondary,
   },
   dateCountBadge: {
     minWidth: 24,
