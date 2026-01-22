@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
-import { addDays, format, isBefore, isSameDay, parseISO } from 'date-fns';
+import { addDays, endOfWeek, format, isBefore, isSameDay, parseISO, startOfWeek } from 'date-fns';
 import {
   EmptyState,
   Button,
@@ -54,6 +54,8 @@ export function TodaysJobsScreen() {
   const [appliedEndDate, setAppliedEndDate] = useState<string>(() => todayKey);
   const [draftStartDate, setDraftStartDate] = useState<string>(() => todayKey);
   const [draftEndDate, setDraftEndDate] = useState<string>(() => todayKey);
+  const weekStartKey = format(startOfWeek(new Date()), 'yyyy-MM-dd');
+  const weekEndKey = format(endOfWeek(new Date()), 'yyyy-MM-dd');
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -111,6 +113,26 @@ export function TodaysJobsScreen() {
     setDraftEndDate(todayKey);
     setIsDateSelected(false);
     setHasDraftSelection(false);
+    setShowDateControls(false);
+  };
+
+  const applyTodayFilter = () => {
+    setAppliedStartDate(todayKey);
+    setAppliedEndDate(todayKey);
+    setDraftStartDate(todayKey);
+    setDraftEndDate(todayKey);
+    setIsDateSelected(true);
+    setHasDraftSelection(true);
+    setShowDateControls(false);
+  };
+
+  const applyThisWeekFilter = () => {
+    setAppliedStartDate(weekStartKey);
+    setAppliedEndDate(weekEndKey);
+    setDraftStartDate(weekStartKey);
+    setDraftEndDate(weekEndKey);
+    setIsDateSelected(true);
+    setHasDraftSelection(true);
     setShowDateControls(false);
   };
 
@@ -181,6 +203,8 @@ export function TodaysJobsScreen() {
   }, [appliedStartDate, appliedEndDate, draftStartDate, draftEndDate, showDateControls]);
 
   const showDateClear = isDateSelected;
+  const isTodayApplied = appliedStartDate === todayKey && appliedEndDate === todayKey;
+  const isThisWeekApplied = appliedStartDate === weekStartKey && appliedEndDate === weekEndKey;
   const hasDateChanges = draftStartDate !== appliedStartDate || draftEndDate !== appliedEndDate;
   const canApplyDates = hasDraftSelection && (hasDateChanges || !isDateSelected);
 
@@ -324,9 +348,21 @@ export function TodaysJobsScreen() {
                 count: myJobsCount,
               },
               {
+                id: 'today',
+                label: 'Today',
+                active: isTodayApplied,
+                onPress: applyTodayFilter,
+              },
+              {
+                id: 'this-week',
+                label: 'This Week',
+                active: isThisWeekApplied,
+                onPress: applyThisWeekFilter,
+              },
+              {
                 id: 'date',
                 label: dateLabel,
-                active: isDateSelected,
+                active: isDateSelected && !isTodayApplied && !isThisWeekApplied,
                 onPress: toggleDateControls,
                 accessory: showDateClear ? (
                   <TouchableOpacity
@@ -388,6 +424,7 @@ export function TodaysJobsScreen() {
               <View style={styles.calendarCard}>
                 <Calendar
                   markingType="period"
+                  enableSwipeMonths
                   markedDates={markedDates}
                   onDayPress={(day) => handleDayPress(day.dateString)}
                   style={styles.calendar}
