@@ -14,7 +14,6 @@ import { colors, spacing, borderRadius, typography } from '@/components/ui';
  * Props for ChatInput component
  */
 interface ChatInputProps {
-  // eslint-disable-next-line no-unused-vars
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;

@@ -9,9 +9,7 @@ import type { Equipment } from '../types';
  */
 interface EquipmentCardProps {
   equipment: Equipment;
-  // eslint-disable-next-line no-unused-vars
   onPress?: (equipment: Equipment) => void;
-  // eslint-disable-next-line no-unused-vars
   onDelete?: (id: string) => void;
 }
 

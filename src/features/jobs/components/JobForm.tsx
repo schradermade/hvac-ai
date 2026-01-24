@@ -23,7 +23,6 @@ import type { Job, JobFormData, JobType } from '../types';
  */
 interface JobFormProps {
   job?: Job;
-  // eslint-disable-next-line no-unused-vars
   onSubmit: (data: JobFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;

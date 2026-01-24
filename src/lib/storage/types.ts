@@ -27,14 +27,9 @@ export interface StoredAccount extends AuthUser {
  * Storage keys for AsyncStorage
  */
 export enum StorageKeys {
-  // eslint-disable-next-line no-unused-vars
   AUTH_TOKEN = '@hvacops:auth_token',
-  // eslint-disable-next-line no-unused-vars
   CURRENT_USER = '@hvacops:current_user',
-  // eslint-disable-next-line no-unused-vars
   TOKEN_EXPIRY = '@hvacops:token_expiry',
-  // eslint-disable-next-line no-unused-vars
   ACCOUNTS = '@hvacops:accounts',
-  // eslint-disable-next-line no-unused-vars
   ACTIVE_ACCOUNT_ID = '@hvacops:active_account_id',
 }

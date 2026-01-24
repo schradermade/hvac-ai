@@ -164,7 +164,6 @@ class DiagnosticService {
     };
   }
 
-  // eslint-disable-next-line no-unused-vars
   private getNoisyResponse(_context?: EquipmentContext): DiagnosticResponse {
     return {
       message:
@@ -188,7 +187,6 @@ class DiagnosticService {
     };
   }
 
-  // eslint-disable-next-line no-unused-vars
   private getLeakResponse(_context?: EquipmentContext): DiagnosticResponse {
     return {
       message:

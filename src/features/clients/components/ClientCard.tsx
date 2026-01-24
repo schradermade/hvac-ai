@@ -11,7 +11,6 @@ import { UNASSIGNED_CLIENT_ID } from '../types';
  */
 interface ClientCardProps {
   client: Client;
-  // eslint-disable-next-line no-unused-vars
   onPress?: (client: Client) => void;
 }
 

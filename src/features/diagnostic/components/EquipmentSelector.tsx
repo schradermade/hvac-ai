@@ -10,7 +10,6 @@ import type { Equipment } from '@/features/equipment';
  */
 interface EquipmentSelectorProps {
   selectedEquipmentId?: string;
-  // eslint-disable-next-line no-unused-vars
   onEquipmentChange: (equipment?: Equipment) => void;
 }
 

@@ -10,9 +10,7 @@ import type { Example } from '../types';
 interface ExampleCardProps {
   example: Example;
   // Callback parameter names are for documentation only
-  // eslint-disable-next-line no-unused-vars
   onPress?: (item: Example) => void;
-  // eslint-disable-next-line no-unused-vars
   onDelete?: (itemId: string) => void;
 }
 

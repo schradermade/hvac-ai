@@ -24,7 +24,6 @@ import type { Equipment, EquipmentFormData, SystemType } from '../types';
 interface EquipmentFormProps {
   equipment?: Equipment;
   initialClientId?: string; // Pre-fill clientId when creating from client detail
-  // eslint-disable-next-line no-unused-vars
   onSubmit: (data: EquipmentFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;

@@ -14,7 +14,6 @@ import type { Technician } from '../types';
 
 interface TechnicianCardProps {
   technician: Technician;
-  // eslint-disable-next-line no-unused-vars
   onPress?: (tech: Technician) => void;
 }
 

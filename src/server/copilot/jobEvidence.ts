@@ -1,12 +1,10 @@
 export interface D1PreparedStatement<T> {
-  // eslint-disable-next-line no-unused-vars
   bind: (..._values: unknown[]) => D1PreparedStatement<T>;
   first: <R = T>() => Promise<R | null>;
   all: <R = T>() => Promise<{ results: R[] }>;
 }
 
 export interface D1DatabaseLike {
-  // eslint-disable-next-line no-unused-vars
   prepare: <T = unknown>(_query: string) => D1PreparedStatement<T>;
 }
 

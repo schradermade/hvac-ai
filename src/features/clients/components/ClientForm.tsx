@@ -9,7 +9,6 @@ import type { Client, ClientFormData } from '../types';
  */
 interface ClientFormProps {
   client?: Client;
-  // eslint-disable-next-line no-unused-vars
   onSubmit: (data: ClientFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;

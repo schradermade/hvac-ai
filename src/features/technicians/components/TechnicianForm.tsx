@@ -12,7 +12,6 @@ import type { TechnicianFormData, TechnicianRole, TechnicianStatus } from '../ty
 
 interface TechnicianFormProps {
   initialData?: Partial<TechnicianFormData>;
-  // eslint-disable-next-line no-unused-vars
   onSubmit: (data: TechnicianFormData) => void | Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;

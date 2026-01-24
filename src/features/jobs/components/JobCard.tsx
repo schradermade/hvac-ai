@@ -12,7 +12,6 @@ import type { Job } from '../types';
  */
 interface JobCardProps {
   job: Job;
-  // eslint-disable-next-line no-unused-vars
   onPress?: (job: Job) => void;
 }
 

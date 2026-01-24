@@ -19,7 +19,6 @@ import Constants from 'expo-constants';
  * - Tappable cards with icon containers and chevrons
  * - App information and support options
  */
-// eslint-disable-next-line no-unused-vars
 export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
   const { user, logout } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();

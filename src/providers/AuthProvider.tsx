@@ -12,11 +12,8 @@ import { authService } from '@/features/auth/services/authService';
 import * as authStorage from '@/lib/storage';
 
 interface AuthContextValue extends AuthState {
-  // eslint-disable-next-line no-unused-vars
   login: (credentials: AuthCredentials) => Promise<void>;
-  // eslint-disable-next-line no-unused-vars
   signup: (data: SignupData) => Promise<void>;
-  // eslint-disable-next-line no-unused-vars
   loginWithSavedAccount: (accountId: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
