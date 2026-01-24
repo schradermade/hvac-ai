@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Description: Sync production D1 data into the local D1 database.
 set -euo pipefail
 
 SCRIPT_NAME="sync-prod-d1"
