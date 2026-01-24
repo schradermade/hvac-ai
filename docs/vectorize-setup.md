@@ -47,6 +47,27 @@ wrangler dev --remote
 node scripts/vectorizeSeed.js --tenant=tenant_demo --job=job_demo
 ```
 
+## 5) Enable metadata filtering (required for tenant/job filters)
+
+Create metadata indexes so Vectorize can filter by tenant and job:
+
+```bash
+wrangler vectorize create-metadata-index hvacops-copilot --propertyName tenant_id --type string
+wrangler vectorize create-metadata-index hvacops-copilot --propertyName job_id --type string
+```
+
+Confirm they exist:
+
+```bash
+wrangler vectorize list-metadata-index hvacops-copilot
+```
+
+Then reindex:
+
+```bash
+node scripts/vectorizeSeed.js --tenant=tenant_demo --job=job_demo
+```
+
 The reindex endpoint:
 
 ```
