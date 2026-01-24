@@ -40,6 +40,11 @@ Prefer Cloudflare-native services whenever feasible (Workers, D1, KV, Vectorize,
 - `x-user-id`
 - `x-user-role` (optional, defaults to `technician`)
 
+**Service tokens:**
+
+- Access service-token JWTs omit `sub`. Use `common_name` as the subject.
+- Map service tokens in `access_identities.subject` using the `common_name` value.
+
 ## 2) Data ingestion + sync
 
 - Create ingestion pipeline to write jobs/clients/notes/events into D1.

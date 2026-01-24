@@ -43,6 +43,7 @@ interface AccessClaims {
   sub: string;
   email?: string;
   name?: string;
+  common_name?: string;
 }
 
 interface AccessIdentityRow {
@@ -107,11 +108,12 @@ export async function authenticateAccessToken(params: {
   });
 
   const claims = payload as AccessClaims;
-  if (!claims.iss || !claims.sub) {
+  const subject = claims.sub || claims.common_name || '';
+  if (!claims.iss || !subject) {
     throw new AccessAuthError('Invalid access token', 401);
   }
 
-  const identity = await resolveAccessIdentity(params.db, claims.iss, claims.sub);
+  const identity = await resolveAccessIdentity(params.db, claims.iss, subject);
   if (!identity) {
     throw new AccessAuthError('Access identity not mapped', 403);
   }
