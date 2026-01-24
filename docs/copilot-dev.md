@@ -83,3 +83,54 @@ curl -X POST \
   -H "x-api-key: <VECTORIZE_ADMIN_TOKEN>" \
   http://localhost:8787/api/vectorize/reindex/job/job_demo
 ```
+
+## Ingestion endpoints
+
+Create client:
+
+```bash
+curl -X POST \
+  -H "content-type: application/json" \
+  -H "x-tenant-id: tenant_demo" \
+  -H "x-user-id: user_demo" \
+  -d '{"name":"Acme HVAC","type":"commercial","primaryPhone":"555-0100","email":"ops@acme.com"}' \
+  http://localhost:8787/api/ingest/clients
+```
+
+Create property:
+
+```bash
+curl -X POST \
+  -H "content-type: application/json" \
+  -H "x-tenant-id: tenant_demo" \
+  -H "x-user-id: user_demo" \
+  -d '{"clientId":"client_demo","addressLine1":"500 Main St","city":"Austin","state":"TX","zip":"78701"}' \
+  http://localhost:8787/api/ingest/properties
+```
+
+Create job:
+
+```bash
+curl -X POST \
+  -H "content-type: application/json" \
+  -H "x-tenant-id: tenant_demo" \
+  -H "x-user-id: user_demo" \
+  -d '{"jobType":"maintenance","clientId":"client_demo","propertyId":"property_demo","scheduledAt":"2025-02-10T14:00:00Z","summary":"Seasonal maintenance"}' \
+  http://localhost:8787/api/ingest/jobs
+```
+
+Create note (triggers reindex):
+
+```bash
+curl -X POST \
+  -H "content-type: application/json" \
+  -H "x-tenant-id: tenant_demo" \
+  -H "x-user-id: user_demo" \
+  -d '{"entityType":"job","entityId":"job_demo","content":"Customer reports rattling.","jobId":"job_demo"}' \
+  http://localhost:8787/api/ingest/notes
+```
+
+Notes:
+
+- `x-tenant-id`/`x-user-id` headers only work when `ALLOW_DEV_AUTH=1`.
+- For Access/service tokens, use `CF-Access-Client-Id` and `CF-Access-Client-Secret` instead.

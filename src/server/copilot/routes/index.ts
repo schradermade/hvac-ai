@@ -3,6 +3,7 @@ import { AccessAuthError, authenticateAccessToken } from '../auth/access';
 import type { AppEnv } from '../workerTypes';
 import { registerChatRoutes } from './chat';
 import { registerContextRoutes } from './context';
+import { registerIngestRoutes } from './ingest';
 import { registerReindexRoutes } from './reindex';
 import { registerSessionRoutes } from './session';
 
@@ -54,6 +55,7 @@ export function createCopilotRouter() {
   registerContextRoutes(router);
   registerSessionRoutes(router);
   registerChatRoutes(router);
+  registerIngestRoutes(router);
   registerReindexRoutes(router);
 
   return router;
