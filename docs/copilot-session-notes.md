@@ -51,6 +51,38 @@ Date: 2026-01-21
     - Returns vectorize enabled state, match count, filters, and unfiltered matches.
   - Added fallback logic: if Vectorize filtered query returns 0, fetch unfiltered and filter locally by tenant/job.
 
+## 2026-01-24 Updates
+
+- **Vectorize filtering fixed**
+  - Added metadata indexes for `tenant_id` + `job_id` in Vectorize.
+  - Filtered queries now work; fallback remains as safety with warning log.
+  - Debug fields show `vectorFilterUsed` and `vectorFilterFallbackUsed`.
+
+- **Production-grade error handling**
+  - Added `JobNotFoundError` and returned `404` for missing jobs.
+  - Updated `/ai/context`, `/ai/chat`, `/ai/session`, `/vectorize/reindex` to use 404s vs 500s.
+
+- **Cloudflare Access auth**
+  - New D1 table: `access_identities` (`db/migrations/0003_access_identities.sql`).
+  - Access JWT middleware in `src/server/copilot/auth/access.ts`.
+  - Copilot routes now use Access JWT; dev-only fallback behind `ALLOW_DEV_AUTH=1`.
+  - Service token support: `common_name` used when `sub` is empty.
+
+- **Cloudflare-first MVP doc**
+  - Added `docs/COPILOT_PRODUCTION_MVP.md` with auth architecture + required env vars.
+
+## Current state (verified)
+
+- Browser login (Access OTP) works and returns context JSON.
+- Service token access works via `CF-Access-Client-Id` + `CF-Access-Client-Secret`.
+- Access identity mapping required in D1 to resolve tenant/user.
+
+## What remains to do (next session)
+
+1. Add `access_identities` seed mapping for real users/tenants.
+2. Add UI + API wiring for real data ingestion (jobs/clients/notes).
+3. Add rate limiting + observability for production hardening.
+
 ## Current state (verified)
 
 - `/ai/chat` returns answers with citations from D1 evidence.
