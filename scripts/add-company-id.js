@@ -26,7 +26,7 @@ files.forEach((file) => {
   );
 
   fs.writeFileSync(filePath, content, 'utf8');
-  console.log(`Updated ${file}`);
+  console.warn(`Updated ${file}`);
 });
 
-console.log('Done!');
+console.warn('Done!');

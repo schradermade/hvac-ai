@@ -10,19 +10,19 @@ import { equipmentService } from '@/features/equipment/services/equipmentService
  * when it initializes.
  */
 export async function migrateEquipmentToClients(): Promise<void> {
-  console.log('[Migration] Starting equipment migration...');
+  console.warn('[Migration] Starting equipment migration...');
 
   try {
     // Migrate all equipment without clientId
     const migratedCount = await equipmentService.migrateExistingEquipment();
 
     if (migratedCount === 0) {
-      console.log('[Migration] No equipment needs migration.');
+      console.warn('[Migration] No equipment needs migration.');
     } else {
-      console.log(`[Migration] Migrated ${migratedCount} equipment items to Unassigned client.`);
+      console.warn(`[Migration] Migrated ${migratedCount} equipment items to Unassigned client.`);
     }
 
-    console.log('[Migration] Equipment migration complete!');
+    console.warn('[Migration] Equipment migration complete!');
   } catch (error) {
     console.error('[Migration] Failed:', error);
     throw error;

@@ -61,7 +61,7 @@ export function EquipmentForm({
   isLoading = false,
 }: EquipmentFormProps) {
   const { data: clientsData, isLoading: clientsLoading } = useClientList();
-  const clients = clientsData?.items || [];
+  const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
 
   // Load the initial client if provided
   const { data: initialClient } = useClient(initialClientId || '');

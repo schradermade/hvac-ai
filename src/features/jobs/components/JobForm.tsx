@@ -48,7 +48,7 @@ const JOB_TYPES: Array<{
  */
 export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormProps) {
   const { data: clientsData, isLoading: clientsLoading } = useClientList();
-  const clients = clientsData?.items || [];
+  const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
 
   // Default to 2 hours from now
   const now = new Date();

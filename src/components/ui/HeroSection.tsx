@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from './tokens';
+import { colors, spacing, typography } from './tokens';
 
 export interface HeroSectionProps {
   /** Icon name for the title */
@@ -37,17 +37,13 @@ export interface HeroSectionProps {
  *   }}
  * />
  */
-export function HeroSection({
-  icon,
-  title,
-  metadata,
-  variant = 'default',
-}: HeroSectionProps) {
+export function HeroSection({ icon, title, metadata, variant = 'default' }: HeroSectionProps) {
   const isDarkTheme = variant === 'indigo' || variant === 'dark';
   const iconColor = isDarkTheme ? '#FFFFFF' : colors.primary;
   const titleColor = isDarkTheme ? '#FFFFFF' : colors.textPrimary;
   const metaColor = isDarkTheme ? '#FFFFFF' : colors.textSecondary;
   const brandColor = isDarkTheme ? '#FFFFFF' : colors.primary;
+  const brandTextStyle = isDarkTheme ? styles.brandTextDark : styles.brandTextLight;
 
   return (
     <View style={styles.heroSection}>
@@ -74,11 +70,8 @@ export function HeroSection({
         <View style={styles.brandLogoContainer}>
           <Ionicons name="snow" size={20} color={brandColor} />
         </View>
-        <Text style={[styles.brandText, { color: isDarkTheme ? '#FFFFFF' : colors.textPrimary }]}>
-          HVACOps
-        </Text>
+        <Text style={[styles.brandText, brandTextStyle]}>HVACOps</Text>
       </View>
-
     </View>
   );
 }
@@ -141,5 +134,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 0.5,
+  },
+  brandTextLight: {
+    color: colors.textPrimary,
+  },
+  brandTextDark: {
+    color: '#FFFFFF',
   },
 });

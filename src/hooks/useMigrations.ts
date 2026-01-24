@@ -32,7 +32,7 @@ export function useMigrations() {
         const needsMigration = await needsEquipmentMigration(user.companyId);
 
         if (needsMigration) {
-          console.log('[App] Running equipment migration...');
+          console.warn('[App] Running equipment migration...');
           await migrateEquipmentToClients();
         }
 
