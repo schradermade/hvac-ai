@@ -21,11 +21,17 @@ export interface Env {
   OPENAI_API_KEY: string;
   VECTORIZE_ADMIN_TOKEN?: string;
   VECTORIZE_INDEX?: VectorizeIndex;
+  CF_ACCESS_AUD?: string;
+  CF_ACCESS_ISSUER?: string;
+  CF_ACCESS_JWKS_URL?: string;
+  ALLOW_DEV_AUTH?: string;
 }
 
 export type AppEnv = {
   Bindings: Env;
   Variables: {
     tenantId: string;
+    userId: string;
+    userRole: string;
   };
 };
