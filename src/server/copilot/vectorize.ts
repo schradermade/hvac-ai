@@ -8,13 +8,18 @@ export interface VectorizeQueryResponse {
   matches?: VectorizeMatch[];
 }
 
-/* eslint-disable no-unused-vars */
 export interface VectorizeIndex {
   query: (
-    ..._args: [number[], { topK?: number; filter?: Record<string, unknown> }?]
+    ..._args: [
+      number[],
+      {
+        topK?: number;
+        filter?: Record<string, unknown>;
+        returnMetadata?: boolean;
+      }?,
+    ]
   ) => Promise<VectorizeQueryResponse>;
 }
-/* eslint-enable no-unused-vars */
 
 export interface OpenAIEmbeddingResponse {
   data: Array<{ embedding: number[] }>;
@@ -52,14 +57,50 @@ export async function fetchOpenAIEmbedding(apiKey: string, input: string) {
 export async function queryVectorize(
   index: VectorizeIndex,
   embedding: number[],
-  options: { topK: number; filter: Record<string, unknown> }
+  options: { topK: number; filter?: Record<string, unknown> }
 ): Promise<VectorizeMatch[]> {
+  const filter =
+    options.filter && Object.keys(options.filter).length > 0 ? options.filter : undefined;
   const response = await index.query(embedding, {
     topK: options.topK,
-    filter: options.filter,
+    filter,
     returnMetadata: true,
   });
   return response.matches ?? [];
+}
+
+export async function queryVectorizeWithFilterCandidates(
+  index: VectorizeIndex,
+  embedding: number[],
+  options: {
+    topK: number;
+    filters: Record<string, unknown>[];
+    acceptMatch?: (_match: VectorizeMatch) => boolean;
+  }
+): Promise<{
+  matches: VectorizeMatch[];
+  filterUsed: Record<string, unknown> | null;
+  filterErrors: Array<{ filter: Record<string, unknown>; message: string }>;
+}> {
+  const filterErrors: Array<{ filter: Record<string, unknown>; message: string }> = [];
+  for (const filter of options.filters) {
+    try {
+      const matches = await queryVectorize(index, embedding, {
+        topK: options.topK,
+        filter,
+      });
+      const acceptedMatches = options.acceptMatch ? matches.filter(options.acceptMatch) : matches;
+      if (acceptedMatches.length > 0) {
+        return { matches: acceptedMatches, filterUsed: filter, filterErrors };
+      }
+    } catch (error) {
+      filterErrors.push({
+        filter,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return { matches: [], filterUsed: null, filterErrors };
 }
 
 export function toEvidenceChunks(matches: VectorizeMatch[]): EvidenceChunk[] {

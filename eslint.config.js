@@ -11,6 +11,7 @@ module.exports = [
       'node_modules/**',
       '.expo/**',
       '.expo-shared/**',
+      '.wrangler/**',
       'dist/**',
       'build/**',
       'coverage/**',
@@ -50,6 +51,7 @@ module.exports = [
     },
     rules: {
       // TypeScript specific rules
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

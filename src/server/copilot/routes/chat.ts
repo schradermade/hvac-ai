@@ -1,7 +1,12 @@
 import { Hono } from 'hono';
 import { getJobContextSnapshot } from '../jobContext';
 import { getJobEvidence } from '../jobEvidence';
-import { fetchOpenAIEmbedding, queryVectorize, toEvidenceChunks } from '../vectorize';
+import {
+  fetchOpenAIEmbedding,
+  queryVectorize,
+  queryVectorizeWithFilterCandidates,
+  toEvidenceChunks,
+} from '../vectorize';
 import { buildSystemPrompt, callOpenAI, extractJsonPayload } from '../services/ai';
 import type { AppEnv } from '../workerTypes';
 
@@ -33,6 +38,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     }> = [];
     let vectorMetadata: Array<{ id: string; metadata?: Record<string, unknown> }> = [];
     let vectorFilterFallbackUsed = false;
+    let vectorFilterUsed: Record<string, unknown> | null = null;
+    let vectorFilterErrors: Array<{ filter: Record<string, unknown>; message: string }> = [];
 
     if (c.env.VECTORIZE_INDEX) {
       const embeddingResponse = await fetchOpenAIEmbedding(c.env.OPENAI_API_KEY, message);
@@ -40,20 +47,32 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       embeddingVector = embedding ?? null;
 
       if (embedding) {
-        const matches = await queryVectorize(c.env.VECTORIZE_INDEX, embedding, {
-          topK: 6,
-          filter: {
-            tenant_id: tenantId,
-            job_id: jobId,
-          },
-        });
-        vectorEvidence = toEvidenceChunks(matches);
-        vectorMatchCount = matches.length;
+        const filterCandidates = [
+          { tenant_id: tenantId, job_id: jobId },
+          { tenant_id: String(tenantId), job_id: String(jobId) },
+          { tenant_id: tenantId },
+          { tenant_id: String(tenantId) },
+          { job_id: jobId },
+          { job_id: String(jobId) },
+        ];
+        const filteredResult = await queryVectorizeWithFilterCandidates(
+          c.env.VECTORIZE_INDEX,
+          embedding,
+          {
+            topK: 6,
+            filters: filterCandidates,
+            acceptMatch: (match) =>
+              match.metadata?.tenant_id === tenantId && match.metadata?.job_id === jobId,
+          }
+        );
+        vectorFilterUsed = filteredResult.filterUsed;
+        vectorFilterErrors = filteredResult.filterErrors;
+        vectorEvidence = toEvidenceChunks(filteredResult.matches);
+        vectorMatchCount = filteredResult.matches.length;
 
         if (vectorMatchCount === 0) {
           const fallbackMatches = await queryVectorize(c.env.VECTORIZE_INDEX, embedding, {
             topK: 10,
-            filter: {},
           });
           const filteredFallback = fallbackMatches.filter(
             (match) => match.metadata?.tenant_id === tenantId && match.metadata?.job_id === jobId
@@ -62,17 +81,18 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
             vectorFilterFallbackUsed = true;
             vectorEvidence = toEvidenceChunks(filteredFallback);
             vectorMatchCount = filteredFallback.length;
+            console.warn(
+              `Vectorize filter returned 0 matches; using fallback filter for tenant ${tenantId} job ${jobId}`
+            );
           }
         }
       }
     }
-
     const debugEnabled = c.req.header('x-debug') === '1';
 
     if (debugEnabled && c.env.VECTORIZE_INDEX && embeddingVector) {
       const matches = await queryVectorize(c.env.VECTORIZE_INDEX, embeddingVector, {
         topK: 3,
-        filter: {},
       });
       unfilteredMatches = matches.map((match) => ({
         id: match.id,
@@ -129,6 +149,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
               vectorMatches: vectorMatchCount,
               evidenceCount: evidence.length,
               vectorFilter: { tenant_id: tenantId, job_id: jobId },
+              vectorFilterUsed,
+              vectorFilterErrors,
               unfilteredMatches,
               vectorMetadata,
               vectorFilterFallbackUsed,
