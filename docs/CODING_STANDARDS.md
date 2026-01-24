@@ -2,6 +2,10 @@
 
 These standards ensure our codebase remains maintainable, consistent, and professional. Following these patterns makes the code look like it was written by a staff-level engineering team.
 
+## Production-Grade Requirement
+
+All code changes must be production-quality in both implementation and behavior. Avoid brittle checks, ad-hoc logic, or shortcuts that would be unacceptable in a production system. Prefer explicit error types, clear failure modes, and maintainable patterns that scale with the codebase.
+
 ## Core Principles
 
 1. **Clarity over cleverness** - Code should be obvious

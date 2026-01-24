@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { getJobContextSnapshot } from '../jobContext';
+import { getJobContextSnapshot, JobNotFoundError } from '../jobContext';
 import { getJobEvidence } from '../jobEvidence';
 import {
   fetchOpenAIEmbedding,
@@ -25,7 +25,16 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     }
 
     const jobId = c.req.param('jobId');
-    const snapshot = await getJobContextSnapshot(c.env.D1_DB, tenantId, jobId);
+    let snapshot;
+    try {
+      snapshot = await getJobContextSnapshot(c.env.D1_DB, tenantId, jobId);
+    } catch (error) {
+      if (error instanceof JobNotFoundError) {
+        return c.json({ error: 'Job not found' }, 404);
+      }
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return c.json({ error: message }, 500);
+    }
     const evidence = await getJobEvidence(c.env.D1_DB, tenantId, jobId, 6);
     let vectorEvidence: ReturnType<typeof toEvidenceChunks> = [];
     let vectorMatchCount = 0;

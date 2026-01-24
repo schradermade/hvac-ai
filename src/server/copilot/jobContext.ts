@@ -1,12 +1,10 @@
 export interface D1PreparedStatement<T> {
-  // eslint-disable-next-line no-unused-vars
   bind: (..._values: unknown[]) => D1PreparedStatement<T>;
   first: <R = T>() => Promise<R | null>;
   all: <R = T>() => Promise<{ results: R[] }>;
 }
 
 export interface D1DatabaseLike {
-  // eslint-disable-next-line no-unused-vars
   prepare: <T = unknown>(_query: string) => D1PreparedStatement<T>;
 }
 
@@ -61,6 +59,18 @@ export interface JobContextSnapshot {
 
 export interface JobContextOptions {
   recentEventLimit?: number;
+}
+
+export class JobNotFoundError extends Error {
+  tenantId: string;
+  jobId: string;
+
+  constructor(tenantId: string, jobId: string) {
+    super(`Job not found for tenant ${tenantId}: ${jobId}`);
+    this.name = 'JobNotFoundError';
+    this.tenantId = tenantId;
+    this.jobId = jobId;
+  }
 }
 
 interface JobContextRow {
@@ -149,7 +159,7 @@ export async function getJobContextSnapshot(
     .first();
 
   if (!jobRow) {
-    throw new Error(`Job not found for tenant ${tenantId}: ${jobId}`);
+    throw new JobNotFoundError(tenantId, jobId);
   }
 
   const equipmentResults = await db
