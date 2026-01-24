@@ -165,6 +165,9 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
   app.post('/ingest/notes', async (c) => {
     const tenantId = c.get('tenantId');
     const userId = c.get('userId');
+    const idempotencyKey = optionalString(
+      c.req.header('Idempotency-Key') ?? c.req.header('idempotency-key')
+    );
     const body = await readJson(c);
     if (!body) {
       return c.json({ error: 'Invalid JSON' }, 400);
@@ -195,14 +198,50 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
     const id = optionalString(body.id) ?? crypto.randomUUID();
     const noteType = optionalString(body.noteType) ?? 'tech';
 
-    await c.env.D1_DB.prepare(
+    const insert = await c.env.D1_DB.prepare(
       `
-      INSERT INTO notes (id, tenant_id, entity_type, entity_id, note_type, content, author_user_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT ${idempotencyKey ? 'OR IGNORE' : ''} INTO notes (
+        id,
+        tenant_id,
+        entity_type,
+        entity_id,
+        note_type,
+        content,
+        author_user_id,
+        idempotency_key
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `.trim()
     )
-      .bind(id, tenantId, entityType.value, entityId.value, noteType, content.value, userId)
+      .bind(
+        id,
+        tenantId,
+        entityType.value,
+        entityId.value,
+        noteType,
+        content.value,
+        userId,
+        idempotencyKey
+      )
       .run();
+
+    if (idempotencyKey && (insert.meta?.changes ?? 0) === 0) {
+      const existing = await c.env.D1_DB.prepare(
+        `
+        SELECT id
+        FROM notes
+        WHERE tenant_id = ? AND idempotency_key = ?
+        `.trim()
+      )
+        .bind(tenantId, idempotencyKey)
+        .first<{ id: string }>();
+
+      if (existing?.id) {
+        return c.json({ id: existing.id, idempotent: true }, 200);
+      }
+
+      return c.json({ error: 'Idempotency key already used' }, 409);
+    }
 
     if (c.env.VECTORIZE_INDEX && c.env.OPENAI_API_KEY) {
       try {
