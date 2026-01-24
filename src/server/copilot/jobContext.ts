@@ -96,6 +96,10 @@ interface JobContextRow {
   access_notes: string | null;
 }
 
+interface JobExistsRow {
+  id: string;
+}
+
 interface EquipmentRow {
   id: string;
   type: string;
@@ -113,6 +117,22 @@ interface JobEventRow {
   resolution: string | null;
   equipment_id: string | null;
   created_at: string;
+}
+
+export async function jobExists(db: D1DatabaseLike, tenantId: string, jobId: string) {
+  const row = await db
+    .prepare<JobExistsRow>(
+      `
+      SELECT id
+      FROM jobs
+      WHERE tenant_id = ? AND id = ?
+      LIMIT 1
+      `.trim()
+    )
+    .bind(tenantId, jobId)
+    .first();
+
+  return Boolean(row?.id);
 }
 
 export async function getJobContextSnapshot(

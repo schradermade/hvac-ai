@@ -1,6 +1,6 @@
+import { JobNotFoundError } from './jobContext';
 import { fetchOpenAIEmbedding } from './vectorize';
 
-/* eslint-disable no-unused-vars */
 export interface D1PreparedStatement<T> {
   bind: (..._args: unknown[]) => D1PreparedStatement<T>;
   first: <R = T>() => Promise<R | null>;
@@ -16,7 +16,6 @@ export interface VectorizeIndex {
     ..._args: [Array<{ id: string; values: number[]; metadata?: Record<string, unknown> }>]
   ) => Promise<void>;
 }
-/* eslint-enable no-unused-vars */
 
 interface JobRow {
   property_id: string;
@@ -64,7 +63,7 @@ export async function reindexJobEvidence(params: {
     .first();
 
   if (!job) {
-    throw new Error(`Job not found for tenant ${tenantId}: ${jobId}`);
+    throw new JobNotFoundError(tenantId, jobId);
   }
 
   const events = await db
