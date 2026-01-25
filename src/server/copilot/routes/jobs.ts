@@ -87,18 +87,18 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
     const row = await c.env.D1_DB.prepare(
       `
       SELECT
-        id,
-        tenant_id,
-        client_id,
-        property_id,
-        job_type,
-        status,
-        scheduled_at,
-        summary,
-        created_at,
-        updated_at
-      FROM jobs
-      WHERE tenant_id = ? AND id = ?
+        j.id,
+        j.tenant_id,
+        j.client_id,
+        j.property_id,
+        j.job_type,
+        j.status,
+        j.scheduled_at,
+        j.summary,
+        j.created_at,
+        j.updated_at
+      FROM jobs j
+      WHERE j.tenant_id = ? AND j.id = ?
       LIMIT 1
       `.trim()
     )
