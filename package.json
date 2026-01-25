@@ -17,6 +17,7 @@
     "test:coverage": "jest --coverage",
     "validate": "npm run type-check && npm run lint && npm run format",
     "test:postman": "newman run postman/Copilot_API.postman_collection.json -e postman/Copilot_API.local.postman_environment.json",
+    "test:postman:smoke": "newman run postman/Copilot_API_smoke.postman_collection.json -e postman/Copilot_API.local.postman_environment.json",
     "create-feature": "node scripts/create-feature.js",
     "prepare": "husky"
   },

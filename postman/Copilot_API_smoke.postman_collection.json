@@ -1,0 +1,197 @@
+{
+  "info": {
+    "_postman_id": "98d71e81-1feb-421f-8eec-19632e574514",
+    "name": "Copilot API Smoke",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38316830"
+  },
+  "item": [
+    {
+      "name": "AI Job Context",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/{{jobId}}/ai/context",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "jobs", "{{jobId}}", "ai", "context"]
+        },
+        "description": "Fetch the AI-ready context snapshot for\u00a0jobId."
+      },
+      "response": [
+        {
+          "name": "Context - dynamic jobId",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/ai/context",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "job_demo", "ai", "context"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Encoding",
+              "value": "gzip"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"job\": {\n        \"id\": \"job_demo\",\n        \"jobType\": \"maintenance\",\n        \"scheduledAt\": \"2025-02-10T14:00:00Z\",\n        \"status\": \"scheduled\",\n        \"summary\": \"Seasonal maintenance and filter replacement check.\",\n        \"assignedUser\": {\n            \"id\": \"user_demo\",\n            \"firstName\": \"Alex\",\n            \"lastName\": \"Rivera\"\n        }\n    },\n    \"client\": {\n        \"id\": \"client_demo\",\n        \"name\": \"Jordan Whitfield\",\n        \"type\": \"residential\",\n        \"primaryPhone\": \"555-555-0123\",\n        \"email\": \"jordan@example.com\"\n    },\n    \"property\": {\n        \"id\": \"property_demo\",\n        \"addressLine1\": \"123 Oak Street\",\n        \"addressLine2\": null,\n        \"city\": \"Austin\",\n        \"state\": \"TX\",\n        \"zip\": \"78701\",\n        \"accessNotes\": \"Gate code 4521. Indoor unit in attic.\"\n    },\n    \"equipment\": [\n        {\n            \"id\": \"equip_demo_1\",\n            \"type\": \"heat_pump\",\n            \"brand\": \"Trane\",\n            \"model\": \"XR16\",\n            \"serial\": \"TRN-AX16-00921\",\n            \"installedAt\": \"2021-05-14\",\n            \"warrantyExpiresAt\": \"2031-05-14\"\n        }\n    ],\n    \"recentEvents\": [\n        {\n            \"id\": \"event_demo_1\",\n            \"eventType\": \"maintenance\",\n            \"issue\": \"Filter heavily soiled; airflow reduced.\",\n            \"resolution\": \"Replaced filter and advised quarterly changes.\",\n            \"equipmentId\": \"equip_demo_1\",\n            \"createdAt\": \"2024-11-12T17:30:00Z\"\n        }\n    ],\n    \"generatedAt\": \"2026-01-24T23:40:27.955Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "AI Job Chat",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 ok\", () => pm.response.code === 200);",
+              "",
+              "var data = pm.response.json();",
+              "pm.test(\"answer string\", () => pm.expect(data.answer).to.be.a(\"string\"));",
+              "pm.test(\"citations array\", () => pm.expect(data.citations).to.be.an(\"array\"));",
+              "pm.test(\"follow_ups array\", () => pm.expect(data.follow_ups).to.be.an(\"array\"));",
+              "",
+              "const noteContent = pm.environment.get(\"noteContent\");",
+              "if (noteContent) {",
+              "  pm.test(\"citation includes note content\", () => {",
+              "    const snippets = data.citations.map(c => c.snippet || \"\");",
+              "    pm.expect(snippets.some(s => s.includes(noteContent))).to.be.true;",
+              "  });",
+              "}",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"Any notes about rattling?\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/{{jobId}}/ai/chat",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "jobs", "{{jobId}}", "ai", "chat"]
+        },
+        "description": "Ask the AI about\u00a0jobId; uses notes + history for citations."
+      },
+      "response": [
+        {
+          "name": "Chat - dynamic jobId",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"message\":\"Any notes about rattling?\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/ai/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "ai", "chat"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Encoding",
+              "value": "gzip"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"answer\": \"Yes, the customer reports rattling from the air handler.\",\n    \"citations\": [\n        {\n            \"doc_id\": \"1b6099ae-b84d-4019-aad0-c9bdc58b42dc\",\n            \"date\": \"2026-01-24T23:39:54.976Z\",\n            \"type\": \"note\",\n            \"snippet\": \"Customer reports rattling from the air handler.\"\n        }\n    ],\n    \"follow_ups\": []\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "const autoVarsEnabled = pm.environment.get(\"autoVarsEnabled\") === \"true\";",
+          "",
+          "if (autoVarsEnabled) {",
+          "  const now = new Date();",
+          "  pm.environment.set(\"nowIso\", now.toISOString());",
+          "  pm.environment.set(\"today\", now.toISOString().slice(0, 10));",
+          "  pm.environment.set(\"uuid\", pm.variables.replaceIn(\"{{$guid}}\"));",
+          "",
+          "  const rand = Math.floor(Math.random() * 1000000);",
+          "  pm.environment.set(\"randInt\", String(rand));",
+          "  pm.environment.set(\"noteContent\", `Rattling reported (${rand}) at ${now.toISOString()}`);",
+          "",
+          "  if (!pm.environment.get(\"idempotencyKey\")) {",
+          "    pm.environment.set(\"idempotencyKey\", pm.variables.replaceIn(\"{{$guid}}\"));",
+          "  }",
+          "}",
+          "",
+          "// Auth headers",
+          "const clientId = pm.environment.get(\"accessClientId\");",
+          "const clientSecret = pm.environment.get(\"accessClientSecret\");",
+          "",
+          "if (clientId && clientSecret) {",
+          "  pm.request.headers.upsert({ key: \"CF-Access-Client-Id\", value: clientId });",
+          "  pm.request.headers.upsert({ key: \"CF-Access-Client-Secret\", value: clientSecret });",
+          "} else {",
+          "  pm.request.headers.upsert({ key: \"x-tenant-id\", value: pm.environment.get(\"tenantId\") || \"\" });",
+          "  pm.request.headers.upsert({ key: \"x-user-id\", value: pm.environment.get(\"userId\") || \"\" });",
+          "}",
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [""]
+      }
+    }
+  ]
+}

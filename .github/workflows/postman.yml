@@ -1,4 +1,4 @@
-name: Postman Collection
+name: Postman Staging E2E
 
 on:
   push:
@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  postman:
+  postman-staging:
     runs-on: ubuntu-latest
     env:
-      POSTMAN_BASE_URL: ${{ secrets.POSTMAN_BASE_URL }}
-      POSTMAN_TENANT_ID: ${{ secrets.POSTMAN_TENANT_ID }}
-      POSTMAN_USER_ID: ${{ secrets.POSTMAN_USER_ID }}
+      POSTMAN_BASE_URL: ${{ secrets.POSTMAN_BASE_URL_STAGING }}
+      POSTMAN_TENANT_ID: ${{ secrets.POSTMAN_TENANT_ID_STAGING }}
+      POSTMAN_USER_ID: ${{ secrets.POSTMAN_USER_ID_STAGING }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,10 +21,10 @@ jobs:
           cache: npm
       - name: Install deps
         run: npm ci
-      - name: Run Postman collection
+      - name: Run Postman collection (staging)
         run: |
           if [ -z "$POSTMAN_BASE_URL" ]; then
-            echo "Missing POSTMAN_BASE_URL secret; skipping."
+            echo "Missing POSTMAN_BASE_URL_STAGING secret; skipping."
             exit 0
           fi
           npx newman run postman/Copilot_API.postman_collection.json \

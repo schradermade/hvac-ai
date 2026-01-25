@@ -9,3 +9,4 @@
 ## 2026-01-25
 
 - Updated collection scripts for Newman compatibility.
+- Added smoke collection and CI workflows for staging + production checks.

@@ -27,5 +27,17 @@ See `postman/CHANGELOG.md` for updates to the collection and environments.
 
 ## CI
 
-GitHub Actions runs the collection via Newman when `POSTMAN_BASE_URL` is set.
-Optional secrets: `POSTMAN_TENANT_ID`, `POSTMAN_USER_ID`.
+GitHub Actions runs the collections via Newman.
+
+Staging E2E (`postman.yml`):
+
+- `POSTMAN_BASE_URL_STAGING` (required)
+- `POSTMAN_TENANT_ID_STAGING` (optional)
+- `POSTMAN_USER_ID_STAGING` (optional)
+
+Production smoke (`postman-smoke.yml`):
+
+- `POSTMAN_BASE_URL_PROD` (required)
+- `POSTMAN_JOB_ID_PROD` (required)
+- `POSTMAN_TENANT_ID_PROD` (optional)
+- `POSTMAN_USER_ID_PROD` (optional)

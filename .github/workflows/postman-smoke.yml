@@ -1,0 +1,39 @@
+name: Postman Production Smoke
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  postman-smoke:
+    runs-on: ubuntu-latest
+    env:
+      POSTMAN_BASE_URL: ${{ secrets.POSTMAN_BASE_URL_PROD }}
+      POSTMAN_TENANT_ID: ${{ secrets.POSTMAN_TENANT_ID_PROD }}
+      POSTMAN_USER_ID: ${{ secrets.POSTMAN_USER_ID_PROD }}
+      POSTMAN_JOB_ID: ${{ secrets.POSTMAN_JOB_ID_PROD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install deps
+        run: npm ci
+      - name: Run Postman smoke collection (prod)
+        run: |
+          if [ -z "$POSTMAN_BASE_URL" ]; then
+            echo "Missing POSTMAN_BASE_URL_PROD secret; skipping."
+            exit 0
+          fi
+          if [ -z "$POSTMAN_JOB_ID" ]; then
+            echo "Missing POSTMAN_JOB_ID_PROD secret; skipping."
+            exit 0
+          fi
+          npx newman run postman/Copilot_API_smoke.postman_collection.json \
+            -e postman/Copilot_API.local.postman_environment.json \
+            --env-var baseUrl="$POSTMAN_BASE_URL" \
+            --env-var tenantId="$POSTMAN_TENANT_ID" \
+            --env-var userId="$POSTMAN_USER_ID" \
+            --env-var jobId="$POSTMAN_JOB_ID"
