@@ -22,7 +22,13 @@ wrangler d1 execute hvacops --local --file db/migrations/0001_copilot_core.sql
 wrangler d1 execute hvacops --local --file db/migrations/0002_seed_copilot_sample.sql
 ```
 
-4. (Optional) Create Vectorize index (Cloudflare):
+4. Apply idempotency migration:
+
+```bash
+wrangler d1 execute hvacops --local --file db/migrations/0004_notes_idempotency.sql
+```
+
+5. (Optional) Create Vectorize index (Cloudflare):
 
 ```bash
 wrangler vectorize create hvacops-copilot --dimensions 1536 --metric cosine
@@ -41,6 +47,7 @@ wrangler dev --remote
 ```bash
 wrangler d1 execute hvacops --remote --file db/migrations/0001_copilot_core.sql
 wrangler d1 execute hvacops --remote --file db/migrations/0002_seed_copilot_sample.sql
+wrangler d1 execute hvacops --remote --file db/migrations/0004_notes_idempotency.sql
 ```
 
 3. Set secrets:
@@ -126,6 +133,7 @@ curl -X POST \
   -H "content-type: application/json" \
   -H "x-tenant-id: tenant_demo" \
   -H "x-user-id: user_demo" \
+  -H "Idempotency-Key: <uuid>" \
   -d '{"entityType":"job","entityId":"job_demo","content":"Customer reports rattling.","jobId":"job_demo"}' \
   http://localhost:8787/api/ingest/notes
 ```
@@ -134,3 +142,8 @@ Notes:
 
 - `x-tenant-id`/`x-user-id` headers only work when `ALLOW_DEV_AUTH=1`.
 - For Access/service tokens, use `CF-Access-Client-Id` and `CF-Access-Client-Secret` instead.
+- Use `Idempotency-Key` on note ingest to prevent duplicate notes on retry.
+
+## Postman
+
+See `postman/README.md` for the Postman collection and sanitized environment export.

@@ -143,6 +143,7 @@ Model the domain in a way that cleanly supports “job-scoped answers.”
 - `note_type` (tech/office/call)
 - `content` (text)
 - `author_user_id`
+- `idempotency_key` (optional; prevents duplicate note inserts on retries)
 - `created_at`
 
 ---
@@ -323,7 +324,12 @@ Return structured JSON from the model (then render nicely in UI):
 {
   "answer": "Filter was last discussed during the maintenance visit on June 10, 2025...",
   "citations": [
-    { "doc_id": "note_123", "date": "2025-06-10", "type": "job_event", "snippet": "Filter was dirty; advised quarterly replacement." }
+    {
+      "doc_id": "note_123",
+      "date": "2025-06-10",
+      "type": "job_event",
+      "snippet": "Filter was dirty; advised quarterly replacement."
+    }
   ],
   "follow_ups": [
     "Want me to summarize the full service history for this property?",

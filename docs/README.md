@@ -27,6 +27,11 @@ Important architectural decisions are documented in `adr/`:
 4. Read [FEATURE_DEVELOPMENT.md](./FEATURE_DEVELOPMENT.md) before building new features
 5. Use `npm run create-feature [name]` to scaffold new features
 
+## 🧪 Postman
+
+The Postman collection and a sanitized local environment export live in `postman/`.
+See [postman/README.md](../postman/README.md) for import instructions.
+
 ## 🤖 For AI Assistants
 
 When starting a new session, read these files to maintain consistency:
