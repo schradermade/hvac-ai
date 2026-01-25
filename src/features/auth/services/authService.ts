@@ -219,17 +219,33 @@ class AuthService {
       refresh_token: string;
       expires_in: number;
       refresh_expires_at: string;
-      user: AuthUser;
+      user: {
+        id: string;
+        email: string;
+        name: string;
+        role: AuthUser['role'];
+        tenantId: string;
+      };
     };
 
     const expiresAt = new Date(Date.now() + payload.expires_in * 1000);
+    const [firstName, ...lastNameParts] = payload.user.name.trim().split(/\s+/);
+    const lastName = lastNameParts.join(' ') || 'User';
+    const mappedUser: AuthUser = {
+      id: payload.user.id,
+      email: payload.user.email,
+      firstName: firstName || 'Unknown',
+      lastName,
+      companyId: payload.user.tenantId,
+      role: payload.user.role,
+    };
 
     return {
       token: payload.access_token,
       refreshToken: payload.refresh_token,
       expiresAt,
       refreshExpiresAt: new Date(payload.refresh_expires_at),
-      user: payload.user,
+      user: mappedUser,
     };
   }
 

@@ -30,7 +30,13 @@ export function LoginScreen() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const authUrl = process.env.EXPO_PUBLIC_AUTH_URL;
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'hvacops', path: 'auth' });
+  const useProxy = true;
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'hvacops',
+    path: 'auth',
+    useProxy,
+    projectNameForProxy: '@schradermade/hvacops',
+  });
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: 'hvacops-mobile',
@@ -88,7 +94,7 @@ export function LoginScreen() {
     }
 
     setAuthError(null);
-    await promptAsync();
+    await promptAsync({ useProxy, returnUrl: redirectUri });
   };
 
   return (

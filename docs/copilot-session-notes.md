@@ -140,3 +140,81 @@ Date: 2026-01-21
 - Confirm correct Vectorize filter syntax for metadata fields (tenant_id, job_id).
 - Should Vectorize results include property/client scope (same rules as evidence)?
 - Should chat logs be persisted in D1 or stored in R2?
+
+## 2026-01-25 Updates
+
+### What we completed
+
+- **Auth worker + OIDC login flow working**
+  - Cloudflare Access SaaS OIDC app configured and working (email OTP).
+  - Fixed authorize URL: uses `/authorization` endpoint.
+  - Auth worker endpoints: `/auth/authorize`, `/auth/callback`, `/auth/exchange`, `/auth/refresh`, `/.well-known/jwks.json`.
+  - Expo Go login works with proxy redirect.
+
+- **Auth storage + tenant mapping**
+  - User now maps `tenantId` -> `companyId` in app auth exchange.
+  - Added dev debug footer + clear auth data button in Jobs tab.
+
+- **Seeded prod D1**
+  - One-time seed SQL added: `db/seed/0001_prod_demo.sql`
+  - Inserts `tenant_demo`, 10 clients, 10 properties, 10 jobs (scheduled in Feb 2026).
+  - Run: `wrangler d1 execute hvacops --remote --file db/seed/0001_prod_demo.sql`
+
+- **API wiring (in progress)**
+  - Added API helper `src/lib/api/copilotApi.ts`.
+  - Jobs and clients services now call API when `EXPO_PUBLIC_COPILOT_API_URL` is set:
+    - `src/features/jobs/services/jobService.ts`
+    - `src/features/clients/services/clientService.ts`
+  - Added worker routes:
+    - `src/server/copilot/routes/jobs.ts` (`GET /api/jobs`, `GET /api/jobs/:id`, `POST /api/jobs`)
+    - `src/server/copilot/routes/clients.ts` (`GET /api/clients`, `GET /api/clients/:id`)
+  - Registered routes in `src/server/copilot/routes/index.ts`.
+  - API worker deployed after changes.
+
+- **Access blocking removed**
+  - Cloudflare Access app `hvac-ai-api` was deleted (it intercepted `/api/*`).
+
+### Current issues
+
+- **Jobs list still empty**
+  - The app hits `/api/jobs` but receives `401`.
+  - Debug footer shows JWT auth fails.
+
+- **JWKS was broken + leaked**
+  - `/.well-known/jwks.json` was 500 due to non-extractable key; fixed by importing key as extractable.
+  - JWKS response included private fields (`d`, `p`, `q`, ...). We must rotate the key.
+  - Fix added to strip private fields in `src/auth/worker.ts`.
+  - JWKS now returns 200 JSON but key rotation is still required.
+
+### Required fixes (next session)
+
+1. **Rotate JWT key and redeploy auth worker**
+   - Ensure JWKS is public-only (no private fields).
+   - Update secret and redeploy:
+     - `wrangler secret put AUTH_JWT_PRIVATE_KEY --config wrangler.auth.toml < auth_jwt_private_pkcs8.pem`
+     - `wrangler deploy --config wrangler.auth.toml`
+
+2. **Set API worker JWT secrets and redeploy**
+   - These must be set on `hvac-ai` (API worker) to validate app tokens:
+     - `AUTH_JWKS_URL=https://hvacops-auth.hvac-ai.workers.dev/.well-known/jwks.json`
+     - `AUTH_JWT_ISSUER=https://hvacops-auth.hvac-ai.workers.dev`
+     - `AUTH_JWT_AUD=hvacops-mobile`
+   - Commands:
+     - `wrangler secret put AUTH_JWKS_URL --config wrangler.toml`
+     - `wrangler secret put AUTH_JWT_ISSUER --config wrangler.toml`
+     - `wrangler secret put AUTH_JWT_AUD --config wrangler.toml`
+     - `wrangler deploy`
+
+3. **Retest Jobs API**
+   - In app: use "Test Jobs API" button in debug footer.
+   - Expected: `200 application/json` with job count.
+
+4. **If list still empty after auth fix**
+   - Date filtering: seed jobs are in Feb 2026; set calendar range accordingly.
+   - Alternatively, re-seed with "today" dates.
+
+### Useful references
+
+- Auth worker config: `wrangler.auth.toml`
+- API worker config: `wrangler.toml`
+- Auth docs: `docs/AUTH.md`

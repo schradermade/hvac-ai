@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createLocalJWKSet, createRemoteJWKSet, jwtVerify } from 'jose';
 
 export type AppJwtIdentity = {
   userId: string;
@@ -11,8 +11,11 @@ export async function authenticateAppJwt(params: {
   jwksUrl: string;
   issuer: string;
   audience: string;
+  jwksFetcher?: () => Promise<JSONWebKeySet>;
 }): Promise<AppJwtIdentity> {
-  const jwks = createRemoteJWKSet(new URL(params.jwksUrl));
+  const jwks = params.jwksFetcher
+    ? createLocalJWKSet(await params.jwksFetcher())
+    : createRemoteJWKSet(new URL(params.jwksUrl));
   const { payload } = await jwtVerify(params.token, jwks, {
     issuer: params.issuer,
     audience: params.audience,

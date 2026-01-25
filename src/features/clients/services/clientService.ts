@@ -1,5 +1,21 @@
 import type { Client, ClientFormData, ClientFilters, ClientListResponse } from '../types';
 import { UNASSIGNED_CLIENT_ID } from '../types';
+import { fetchCopilotJson } from '@/lib/api/copilotApi';
+
+type ApiClient = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  type: string;
+  primary_phone: string | null;
+  email: string | null;
+  address_line1: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 /**
  * Service for client management operations
@@ -15,7 +31,29 @@ class ClientService {
     // Initialize with special "Unassigned" client for equipment migration
     this.createUnassignedClient();
     // Initialize with test clients for development
-    this.createTestClients();
+    if (!process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      this.createTestClients();
+    }
+  }
+
+  private mapApiClient(client: ApiClient): Client {
+    return {
+      id: client.id,
+      companyId: client.tenant_id,
+      name: client.name,
+      phone: client.primary_phone ?? '',
+      address: client.address_line1 ?? '',
+      city: client.city ?? '',
+      state: client.state ?? '',
+      zipCode: client.zip ?? '',
+      email: client.email ?? undefined,
+      createdBy: 'system',
+      createdByName: 'System',
+      createdAt: new Date(client.created_at),
+      modifiedBy: 'system',
+      modifiedByName: 'System',
+      updatedAt: new Date(client.updated_at),
+    };
   }
 
   /**
@@ -584,6 +622,28 @@ class ClientService {
    * Get all clients for a company with optional filtering
    */
   async getAll(companyId: string, filters?: ClientFilters): Promise<ClientListResponse> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const params = new URLSearchParams();
+      if (filters?.search) {
+        params.set('search', filters.search);
+      }
+      if (filters?.city) {
+        params.set('city', filters.city);
+      }
+      if (filters?.state) {
+        params.set('state', filters.state);
+      }
+
+      const data = await fetchCopilotJson<{ items: ApiClient[]; total: number }>(
+        `/api/clients${params.toString() ? `?${params.toString()}` : ''}`
+      );
+
+      return {
+        items: data.items.map((client) => this.mapApiClient(client)),
+        total: data.total,
+      };
+    }
+
     await this.delay(300);
 
     let items = Array.from(this.clients.values()).filter(
@@ -625,6 +685,11 @@ class ClientService {
    * Get client by ID
    */
   async getById(id: string): Promise<Client> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const client = await fetchCopilotJson<ApiClient>(`/api/clients/${id}`);
+      return this.mapApiClient(client);
+    }
+
     await this.delay(200);
 
     const client = this.clients.get(id);
@@ -644,6 +709,34 @@ class ClientService {
     technicianName: string,
     data: ClientFormData
   ): Promise<Client> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      this.validateClientData(data);
+
+      const created = await fetchCopilotJson<{ id: string }>('/api/ingest/clients', {
+        method: 'POST',
+        body: {
+          name: data.name,
+          type: 'residential',
+          primaryPhone: data.phone,
+          email: data.email,
+        },
+      });
+
+      await fetchCopilotJson<{ id: string }>('/api/ingest/properties', {
+        method: 'POST',
+        body: {
+          clientId: created.id,
+          addressLine1: data.address,
+          city: data.city,
+          state: data.state,
+          zip: data.zipCode,
+        },
+      });
+
+      const client = await fetchCopilotJson<ApiClient>(`/api/clients/${created.id}`);
+      return this.mapApiClient(client);
+    }
+
     await this.delay(400);
 
     // Validate required fields

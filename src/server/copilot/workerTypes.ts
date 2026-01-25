@@ -21,6 +21,7 @@ export interface Env {
   OPENAI_API_KEY: string;
   VECTORIZE_ADMIN_TOKEN?: string;
   VECTORIZE_INDEX?: VectorizeIndex;
+  AUTH_SERVICE?: Fetcher;
   CF_ACCESS_AUD?: string;
   CF_ACCESS_ISSUER?: string;
   CF_ACCESS_JWKS_URL?: string;

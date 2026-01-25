@@ -3,8 +3,11 @@ import { AccessAuthError, authenticateAccessToken } from '../auth/access';
 import { authenticateAppJwt } from '../auth/jwt';
 import type { AppEnv } from '../workerTypes';
 import { registerChatRoutes } from './chat';
+import { registerClientRoutes } from './clients';
 import { registerContextRoutes } from './context';
+import { registerDebugRoutes } from './debug';
 import { registerIngestRoutes } from './ingest';
+import { registerJobRoutes } from './jobs';
 import { registerReindexRoutes } from './reindex';
 import { registerSessionRoutes } from './session';
 
@@ -12,6 +15,14 @@ export function createCopilotRouter() {
   const router = new Hono<AppEnv>();
 
   router.use('*', async (c, next) => {
+    const path = c.req.path;
+    const adminToken = c.req.header('x-admin-token');
+    const expectedAdmin = c.env.VECTORIZE_ADMIN_TOKEN;
+
+    if (path.includes('/debug/') && expectedAdmin && adminToken === expectedAdmin) {
+      return next();
+    }
+
     const allowDevAuth = c.env.ALLOW_DEV_AUTH === '1';
     const token = c.req.header('Cf-Access-Jwt-Assertion');
     const bearer = c.req.header('Authorization');
@@ -19,11 +30,21 @@ export function createCopilotRouter() {
     if (bearer?.startsWith('Bearer ')) {
       try {
         const jwt = bearer.slice('Bearer '.length);
+        const jwksFetcher = c.env.AUTH_SERVICE
+          ? async () => {
+              const response = await c.env.AUTH_SERVICE.fetch('https://auth/.well-known/jwks.json');
+              if (!response.ok) {
+                throw new Error(`JWKS fetch failed: ${response.status}`);
+              }
+              return (await response.json()) as JSONWebKeySet;
+            }
+          : undefined;
         const identity = await authenticateAppJwt({
           token: jwt,
           jwksUrl: c.env.AUTH_JWKS_URL ?? '',
           audience: c.env.AUTH_JWT_AUD ?? '',
           issuer: c.env.AUTH_JWT_ISSUER ?? '',
+          jwksFetcher,
         });
 
         c.set('tenantId', identity.tenantId);
@@ -77,6 +98,9 @@ export function createCopilotRouter() {
   registerContextRoutes(router);
   registerSessionRoutes(router);
   registerChatRoutes(router);
+  registerDebugRoutes(router);
+  registerClientRoutes(router);
+  registerJobRoutes(router);
   registerIngestRoutes(router);
   registerReindexRoutes(router);
 

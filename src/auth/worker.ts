@@ -41,7 +41,7 @@ async function sha256(input: string) {
 }
 
 async function getJwtKey(env: AuthEnv) {
-  return importPKCS8(env.AUTH_JWT_PRIVATE_KEY, 'RS256');
+  return importPKCS8(env.AUTH_JWT_PRIVATE_KEY, 'RS256', { extractable: true });
 }
 
 async function issueAccessToken(env: AuthEnv, user: AuthUser) {
@@ -152,6 +152,12 @@ app.get('/.well-known/jwks.json', async (c) => {
   jwk.kid = c.env.AUTH_JWT_KID ?? 'auth-1';
   jwk.use = 'sig';
   jwk.alg = 'RS256';
+  delete (jwk as { d?: string }).d;
+  delete (jwk as { p?: string }).p;
+  delete (jwk as { q?: string }).q;
+  delete (jwk as { dp?: string }).dp;
+  delete (jwk as { dq?: string }).dq;
+  delete (jwk as { qi?: string }).qi;
 
   return c.json({ keys: [jwk] });
 });
@@ -167,6 +173,14 @@ app.get('/auth/authorize', async (c) => {
 
   await c.env.AUTH_DB.prepare(
     `
+    DELETE FROM auth_sessions WHERE id = ?
+    `.trim()
+  )
+    .bind(state)
+    .run();
+
+  await c.env.AUTH_DB.prepare(
+    `
     INSERT INTO auth_sessions (id, app_redirect_uri, code_challenge)
     VALUES (?, ?, ?)
     `.trim()
@@ -174,10 +188,11 @@ app.get('/auth/authorize', async (c) => {
     .bind(state, appRedirect, codeChallenge)
     .run();
 
-  const authorizeUrl = new URL(`${c.env.AUTH_OIDC_ISSUER.replace(/\/+$/, '')}/authorize`);
+  const authorizeUrl = new URL(`${c.env.AUTH_OIDC_ISSUER.replace(/\/+$/, '')}/authorization`);
   authorizeUrl.searchParams.set('response_type', 'code');
   authorizeUrl.searchParams.set('client_id', c.env.AUTH_OIDC_CLIENT_ID);
   authorizeUrl.searchParams.set('redirect_uri', c.env.AUTH_OIDC_REDIRECT_URL);
+  authorizeUrl.searchParams.set('scope', 'openid profile email');
   authorizeUrl.searchParams.set('state', state);
   authorizeUrl.searchParams.set('code_challenge', codeChallenge);
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');

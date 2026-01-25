@@ -1,50 +1,5 @@
 import type { JobCopilotResponse } from '../types/copilot';
-import { getAuthToken } from '@/lib/storage';
-
-const COPILOT_API_URL = process.env.EXPO_PUBLIC_COPILOT_API_URL;
-const DEV_TENANT_ID = process.env.EXPO_PUBLIC_COPILOT_TENANT_ID;
-const DEV_USER_ID = process.env.EXPO_PUBLIC_COPILOT_USER_ID;
-
-type FetchOptions = {
-  method?: 'GET' | 'POST';
-  body?: unknown;
-};
-
-async function fetchCopilot<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  if (!COPILOT_API_URL) {
-    throw new Error('Copilot API URL not configured');
-  }
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  const token = await getAuthToken();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  if (!token && DEV_TENANT_ID) {
-    headers['x-tenant-id'] = DEV_TENANT_ID;
-  }
-
-  if (!token && DEV_USER_ID) {
-    headers['x-user-id'] = DEV_USER_ID;
-  }
-
-  const response = await fetch(`${COPILOT_API_URL}${path}`, {
-    method: options.method ?? 'GET',
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || 'Copilot API request failed');
-  }
-
-  return (await response.json()) as T;
-}
+import { fetchCopilotJson } from '@/lib/api/copilotApi';
 
 function buildMockResponse(message: string): JobCopilotResponse {
   const lower = message.toLowerCase();
@@ -75,11 +30,11 @@ function buildMockResponse(message: string): JobCopilotResponse {
 
 class JobCopilotService {
   async sendMessage(jobId: string, message: string): Promise<JobCopilotResponse> {
-    if (!COPILOT_API_URL) {
+    if (!process.env.EXPO_PUBLIC_COPILOT_API_URL) {
       return buildMockResponse(message);
     }
 
-    return fetchCopilot<JobCopilotResponse>(`/api/jobs/${jobId}/ai/chat`, {
+    return fetchCopilotJson<JobCopilotResponse>(`/api/jobs/${jobId}/ai/chat`, {
       method: 'POST',
       body: { message },
     });

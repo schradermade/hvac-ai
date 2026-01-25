@@ -1,4 +1,12 @@
-import type { Job, JobFormData, JobFilters, JobListResponse } from '../types';
+import type {
+  AppointmentStatus,
+  Job,
+  JobFormData,
+  JobFilters,
+  JobListResponse,
+  JobType,
+} from '../types';
+import { fetchCopilotJson } from '@/lib/api/copilotApi';
 
 /**
  * Service for job/appointment management operations
@@ -6,13 +14,74 @@ import type { Job, JobFormData, JobFilters, JobListResponse } from '../types';
  * Currently uses in-memory storage for MVP
  * Will be replaced with real API integration later
  */
+type ApiJob = {
+  id: string;
+  tenant_id: string;
+  client_id: string;
+  property_id: string;
+  job_type: string;
+  status: string;
+  scheduled_at: string | null;
+  summary: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 class JobService {
   private jobs: Map<string, Job> = new Map();
   private idCounter = 0;
 
   constructor() {
     // Initialize with test jobs for development
-    this.createTestJobs();
+    if (!process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      this.createTestJobs();
+    }
+  }
+
+  private mapJobType(value: string): JobType {
+    if (value === 'install') return 'installation';
+    if (value === 'inspection') return 'inspection';
+    if (value === 'emergency') return 'emergency';
+    if (value === 'repair') return 'repair';
+    return 'maintenance';
+  }
+
+  private mapStatus(value: string): AppointmentStatus {
+    const known: AppointmentStatus[] = [
+      'unassigned',
+      'assigned',
+      'accepted',
+      'declined',
+      'scheduled',
+      'in_progress',
+      'completed',
+      'cancelled',
+      'rescheduled',
+    ];
+    return known.includes(value as AppointmentStatus) ? (value as AppointmentStatus) : 'scheduled';
+  }
+
+  private mapApiJob(job: ApiJob): Job {
+    const scheduledStart = job.scheduled_at ? new Date(job.scheduled_at) : new Date();
+    const scheduledEnd = new Date(scheduledStart.getTime() + 90 * 60 * 1000);
+
+    return {
+      id: job.id,
+      companyId: job.tenant_id,
+      clientId: job.client_id,
+      type: this.mapJobType(job.job_type),
+      status: this.mapStatus(job.status),
+      scheduledStart,
+      scheduledEnd,
+      description: job.summary ?? '',
+      notes: undefined,
+      createdBy: 'system',
+      createdByName: 'System',
+      createdAt: new Date(job.created_at),
+      modifiedBy: 'system',
+      modifiedByName: 'System',
+      updatedAt: new Date(job.updated_at),
+    };
   }
 
   /**
@@ -532,6 +601,25 @@ class JobService {
    * Get today's scheduled jobs for a company
    */
   async getTodaysJobs(companyId: string): Promise<JobListResponse> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+      const params = new URLSearchParams({
+        start: today.toISOString(),
+        end: end.toISOString(),
+      });
+      const data = await fetchCopilotJson<{ items: ApiJob[]; total: number }>(
+        `/api/jobs?${params.toString()}`
+      );
+
+      return {
+        items: data.items.map((job) => this.mapApiJob(job)),
+        total: data.total,
+      };
+    }
+
     await this.delay(300);
 
     const today = new Date();
@@ -555,6 +643,47 @@ class JobService {
    * Get all jobs for a company with optional filtering
    */
   async getAll(companyId: string, filters?: JobFilters): Promise<JobListResponse> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const params = new URLSearchParams();
+
+      if (filters?.clientId) {
+        params.set('clientId', filters.clientId);
+      }
+
+      if (filters?.status) {
+        params.set('status', filters.status);
+      }
+
+      if (filters?.type) {
+        params.set('type', filters.type);
+      }
+
+      if (filters?.dateRange) {
+        const start = new Date(filters.dateRange.startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(filters.dateRange.endDate);
+        end.setHours(23, 59, 59, 999);
+        params.set('start', start.toISOString());
+        params.set('end', end.toISOString());
+      } else if (filters?.date) {
+        const start = new Date(filters.date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(filters.date);
+        end.setHours(23, 59, 59, 999);
+        params.set('start', start.toISOString());
+        params.set('end', end.toISOString());
+      }
+
+      const data = await fetchCopilotJson<{ items: ApiJob[]; total: number }>(
+        `/api/jobs${params.toString() ? `?${params.toString()}` : ''}`
+      );
+
+      return {
+        items: data.items.map((job) => this.mapApiJob(job)),
+        total: data.total,
+      };
+    }
+
     await this.delay(300);
 
     let items = Array.from(this.jobs.values()).filter((job) => job.companyId === companyId);
@@ -607,6 +736,11 @@ class JobService {
    * Get job by ID
    */
   async getById(id: string): Promise<Job> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const job = await fetchCopilotJson<ApiJob>(`/api/jobs/${id}`);
+      return this.mapApiJob(job);
+    }
+
     await this.delay(200);
 
     const job = this.jobs.get(id);
@@ -633,6 +767,21 @@ class JobService {
     technicianName: string,
     data: JobFormData
   ): Promise<Job> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const response = await fetchCopilotJson<{ id: string }>('/api/jobs', {
+        method: 'POST',
+        body: {
+          clientId: data.clientId,
+          jobType: data.type,
+          scheduledAt: data.scheduledStart.toISOString(),
+          summary: data.description,
+        },
+      });
+
+      const job = await fetchCopilotJson<ApiJob>(`/api/jobs/${response.id}`);
+      return this.mapApiJob(job);
+    }
+
     await this.delay(400);
 
     this.idCounter++;

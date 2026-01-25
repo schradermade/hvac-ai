@@ -11,3 +11,7 @@ database_id = "1f5a8f59-194d-4598-8347-fa4f8afa0d21"
 binding = "VECTORIZE_INDEX"
 index_name = "hvacops-copilot"
 remote = true
+
+[[services]]
+binding = "AUTH_SERVICE"
+service = "hvacops-auth"

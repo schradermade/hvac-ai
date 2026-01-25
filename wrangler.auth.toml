@@ -5,4 +5,11 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "AUTH_DB"
 database_name = "hvacops-auth"
-database_id = "REPLACE_WITH_AUTH_D1_ID"
+database_id = "21e4354d-7a50-47d0-8d39-771e883e19ea"
+
+[vars]
+AUTH_OIDC_ISSUER = "https://hvacops.cloudflareaccess.com/cdn-cgi/access/sso/oidc/1fdd3534018553809e370531efe368a05f3881709d6237fa4b23103512dca1db"
+AUTH_OIDC_REDIRECT_URL = "https://hvacops-auth.hvac-ai.workers.dev/auth/callback"
+AUTH_JWT_ISSUER = "https://hvacops-auth.hvac-ai.workers.dev"
+AUTH_JWT_AUDIENCE = "hvacops-mobile"
+AUTH_DEFAULT_TENANT_ID = "tenant_demo"
