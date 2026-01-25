@@ -10,6 +10,8 @@ type JobRow = {
   status: string;
   scheduled_at: string | null;
   summary: string | null;
+  assigned_user_id: string | null;
+  assigned_user_name: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -27,6 +29,7 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
     const clientId = c.req.query('clientId');
     const status = c.req.query('status');
     const type = c.req.query('type');
+    const assignedUserId = c.req.query('assignedUserId');
     const start = parseDateParam(c.req.query('start'));
     const end = parseDateParam(c.req.query('end'));
 
@@ -48,6 +51,11 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
       params.push(type);
     }
 
+    if (assignedUserId) {
+      where.push('j.assigned_user_id = ?');
+      params.push(assignedUserId);
+    }
+
     if (start && end) {
       where.push('j.scheduled_at >= ? AND j.scheduled_at <= ?');
       params.push(start, end);
@@ -63,9 +71,14 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
         j.status,
         j.scheduled_at,
         j.summary,
+        j.assigned_user_id,
+        NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), '') AS assigned_user_name,
         j.created_at,
         j.updated_at
       FROM jobs j
+      LEFT JOIN users u
+        ON u.id = j.assigned_user_id
+       AND u.tenant_id = j.tenant_id
       WHERE ${where.join(' AND ')}
       ORDER BY j.scheduled_at ASC
     `.trim();
@@ -95,9 +108,14 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
         j.status,
         j.scheduled_at,
         j.summary,
+        j.assigned_user_id,
+        NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), '') AS assigned_user_name,
         j.created_at,
         j.updated_at
       FROM jobs j
+      LEFT JOIN users u
+        ON u.id = j.assigned_user_id
+       AND u.tenant_id = j.tenant_id
       WHERE j.tenant_id = ? AND j.id = ?
       LIMIT 1
       `.trim()
@@ -177,5 +195,40 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
       .run();
 
     return c.json({ id }, 201);
+  });
+
+  app.post('/jobs/:id/assign', async (c) => {
+    const tenantId = c.get('tenantId');
+    const id = c.req.param('id');
+    const body = await c.req.json<{ technicianId?: string }>();
+
+    if (!body?.technicianId) {
+      return c.json({ error: 'Missing technicianId' }, 400);
+    }
+
+    const technician = await c.env.D1_DB.prepare(
+      `
+      SELECT id FROM users WHERE tenant_id = ? AND id = ? LIMIT 1
+      `.trim()
+    )
+      .bind(tenantId, body.technicianId)
+      .first();
+
+    if (!technician) {
+      return c.json({ error: 'Technician not found' }, 404);
+    }
+
+    await c.env.D1_DB.prepare(
+      `
+      UPDATE jobs
+      SET assigned_user_id = ?, status = 'assigned',
+          updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      WHERE tenant_id = ? AND id = ?
+      `.trim()
+    )
+      .bind(body.technicianId, tenantId, id)
+      .run();
+
+    return c.json({ id }, 200);
   });
 }

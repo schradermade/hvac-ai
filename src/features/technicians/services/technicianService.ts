@@ -11,6 +11,7 @@ import type {
   TechnicianFilters,
   TechnicianListResponse,
 } from '../types';
+import { fetchCopilotJson } from '@/lib/api/copilotApi';
 
 /**
  * Generate unique ID
@@ -28,7 +29,35 @@ class TechnicianService {
 
   constructor() {
     // Initialize with default test data
-    this.initializeTestData();
+    if (!process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      this.initializeTestData();
+    }
+  }
+
+  private mapApiTechnician(tech: {
+    id: string;
+    tenant_id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string | null;
+    role: Technician['role'];
+    created_at: string;
+    updated_at: string;
+  }): Technician {
+    return {
+      id: tech.id,
+      companyId: tech.tenant_id,
+      email: tech.email,
+      firstName: tech.first_name ?? '',
+      lastName: tech.last_name ?? '',
+      phone: tech.phone ?? '',
+      role: tech.role ?? 'technician',
+      status: 'active',
+      certifications: [],
+      createdAt: new Date(tech.created_at),
+      updatedAt: new Date(tech.updated_at),
+    };
   }
 
   /**
@@ -134,6 +163,42 @@ class TechnicianService {
    * Get all technicians for a company with optional filters
    */
   async getAll(companyId: string, filters?: TechnicianFilters): Promise<TechnicianListResponse> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      if (filters?.status && filters.status !== 'active') {
+        return { technicians: [], total: 0 };
+      }
+
+      const params = new URLSearchParams();
+      if (filters?.search) {
+        params.set('search', filters.search);
+      }
+      if (filters?.role) {
+        params.set('role', filters.role);
+      }
+
+      const data = await fetchCopilotJson<{ technicians: unknown[]; total: number }>(
+        `/api/technicians${params.toString() ? `?${params.toString()}` : ''}`
+      );
+      const technicians = (
+        data.technicians as Array<{
+          id: string;
+          tenant_id: string;
+          email: string;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          role: Technician['role'];
+          created_at: string;
+          updated_at: string;
+        }>
+      ).map((tech) => this.mapApiTechnician(tech));
+
+      return {
+        technicians,
+        total: data.total,
+      };
+    }
+
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -178,6 +243,22 @@ class TechnicianService {
    * Get technician by ID
    */
   async getById(technicianId: string): Promise<Technician> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const tech = await fetchCopilotJson<{
+        id: string;
+        tenant_id: string;
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        phone: string | null;
+        role: Technician['role'];
+        created_at: string;
+        updated_at: string;
+      }>(`/api/technicians/${technicianId}`);
+
+      return this.mapApiTechnician(tech);
+    }
+
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -194,6 +275,33 @@ class TechnicianService {
    * Create new technician
    */
   async create(companyId: string, data: TechnicianFormData): Promise<Technician> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const created = await fetchCopilotJson<{ id: string }>('/api/technicians', {
+        method: 'POST',
+        body: {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          role: data.role,
+        },
+      });
+
+      const tech = await fetchCopilotJson<{
+        id: string;
+        tenant_id: string;
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        phone: string | null;
+        role: Technician['role'];
+        created_at: string;
+        updated_at: string;
+      }>(`/api/technicians/${created.id}`);
+
+      return this.mapApiTechnician(tech);
+    }
+
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 

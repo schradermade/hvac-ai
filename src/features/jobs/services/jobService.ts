@@ -23,6 +23,8 @@ type ApiJob = {
   status: string;
   scheduled_at: string | null;
   summary: string | null;
+  assigned_user_id: string | null;
+  assigned_user_name: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -75,6 +77,15 @@ class JobService {
       scheduledEnd,
       description: job.summary ?? '',
       notes: undefined,
+      assignment: job.assigned_user_id
+        ? {
+            technicianId: job.assigned_user_id,
+            technicianName: job.assigned_user_name || 'Assigned Technician',
+            assignedAt: new Date(job.updated_at),
+            assignedBy: 'system',
+            assignedByName: 'System',
+          }
+        : undefined,
       createdBy: 'system',
       createdByName: 'System',
       createdAt: new Date(job.created_at),
@@ -847,6 +858,18 @@ class JobService {
    * Get jobs assigned to a specific technician
    */
   async getByTechnician(companyId: string, technicianId: string): Promise<JobListResponse> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const params = new URLSearchParams({ assignedUserId: technicianId });
+      const data = await fetchCopilotJson<{ items: ApiJob[]; total: number }>(
+        `/api/jobs?${params.toString()}`
+      );
+
+      return {
+        items: data.items.map((job) => this.mapApiJob(job)),
+        total: data.total,
+      };
+    }
+
     await this.delay(300);
 
     const items = Array.from(this.jobs.values())
@@ -869,6 +892,16 @@ class JobService {
     assignedBy: string,
     assignedByName: string
   ): Promise<Job> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      await fetchCopilotJson<{ id: string }>(`/api/jobs/${jobId}/assign`, {
+        method: 'POST',
+        body: { technicianId },
+      });
+
+      const job = await fetchCopilotJson<ApiJob>(`/api/jobs/${jobId}`);
+      return this.mapApiJob(job);
+    }
+
     await this.delay(400);
 
     const job = await this.getById(jobId);

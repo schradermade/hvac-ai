@@ -8,6 +8,7 @@ import { registerContextRoutes } from './context';
 import { registerDebugRoutes } from './debug';
 import { registerIngestRoutes } from './ingest';
 import { registerJobRoutes } from './jobs';
+import { registerTechnicianRoutes } from './technicians';
 import { registerReindexRoutes } from './reindex';
 import { registerSessionRoutes } from './session';
 
@@ -101,6 +102,7 @@ export function createCopilotRouter() {
   registerDebugRoutes(router);
   registerClientRoutes(router);
   registerJobRoutes(router);
+  registerTechnicianRoutes(router);
   registerIngestRoutes(router);
   registerReindexRoutes(router);
 
