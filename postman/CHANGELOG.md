@@ -1,0 +1,7 @@
+# Postman Changelog
+
+## 2026-01-24
+
+- Added Copilot API collection with ingest + AI requests.
+- Added sanitized local environment export.
+- Added Postman mocks guidance in `postman/README.md`.

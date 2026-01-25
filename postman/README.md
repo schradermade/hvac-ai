@@ -20,3 +20,12 @@ Create additional environments in Postman and set:
 - `userId`
 - (optional) `accessClientId`
 - (optional) `accessClientSecret`
+
+## Changelog
+
+See `postman/CHANGELOG.md` for updates to the collection and environments.
+
+## CI
+
+GitHub Actions runs the collection via Newman when `POSTMAN_BASE_URL` is set.
+Optional secrets: `POSTMAN_TENANT_ID`, `POSTMAN_USER_ID`.
