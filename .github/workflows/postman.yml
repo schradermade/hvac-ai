@@ -8,7 +8,6 @@ on:
 
 jobs:
   postman:
-    if: ${{ secrets.POSTMAN_BASE_URL != '' }}
     runs-on: ubuntu-latest
     env:
       POSTMAN_BASE_URL: ${{ secrets.POSTMAN_BASE_URL }}
@@ -25,8 +24,8 @@ jobs:
       - name: Run Postman collection
         run: |
           if [ -z "$POSTMAN_BASE_URL" ]; then
-            echo "Missing POSTMAN_BASE_URL secret"
-            exit 1
+            echo "Missing POSTMAN_BASE_URL secret; skipping."
+            exit 0
           fi
           npx newman run postman/Copilot_API.postman_collection.json \
             -e postman/Copilot_API.local.postman_environment.json \
