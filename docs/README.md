@@ -10,6 +10,7 @@ Start here to understand the project:
 2. **[CODING_STANDARDS.md](./CODING_STANDARDS.md)** - Code organization, naming conventions, and quality standards
 3. **[FEATURE_DEVELOPMENT.md](./FEATURE_DEVELOPMENT.md)** - Step-by-step guide for building new features
 4. **[TECH_STACK.md](./TECH_STACK.md)** - Technology choices and rationale
+5. **[AUTH.md](./AUTH.md)** - Auth architecture and deployment details
 
 ## 🎯 Architecture Decision Records (ADRs)
 

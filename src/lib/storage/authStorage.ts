@@ -14,7 +14,9 @@ import { StorageKeys } from './types';
 interface AccountSession {
   user: AuthUser;
   token: string;
+  refreshToken: string;
   expiresAt: Date;
+  refreshExpiresAt: Date;
 }
 
 export interface AccountSummary {
@@ -25,6 +27,8 @@ export interface AccountSummary {
 
 const ACCOUNT_TOKEN_KEY_PREFIX = 'hvacops_account_token_';
 const ACCOUNT_EXPIRY_KEY_PREFIX = 'hvacops_account_expiry_';
+const ACCOUNT_REFRESH_KEY_PREFIX = 'hvacops_account_refresh_';
+const ACCOUNT_REFRESH_EXPIRY_KEY_PREFIX = 'hvacops_account_refresh_expiry_';
 
 function getAccountTokenKey(accountId: string): string {
   return `${ACCOUNT_TOKEN_KEY_PREFIX}${accountId}`;
@@ -32,6 +36,14 @@ function getAccountTokenKey(accountId: string): string {
 
 function getAccountExpiryKey(accountId: string): string {
   return `${ACCOUNT_EXPIRY_KEY_PREFIX}${accountId}`;
+}
+
+function getAccountRefreshKey(accountId: string): string {
+  return `${ACCOUNT_REFRESH_KEY_PREFIX}${accountId}`;
+}
+
+function getAccountRefreshExpiryKey(accountId: string): string {
+  return `${ACCOUNT_REFRESH_EXPIRY_KEY_PREFIX}${accountId}`;
 }
 
 async function getAccounts(): Promise<StoredAccount[]> {
@@ -59,13 +71,19 @@ async function pruneAccounts(accounts: StoredAccount[]): Promise<StoredAccount[]
 export async function saveAccountSession(
   user: AuthUser,
   token: string,
-  expiresAt: Date
+  expiresAt: Date,
+  refreshToken: string,
+  refreshExpiresAt: Date
 ): Promise<void> {
   try {
     await SecureStore.setItemAsync(getAccountTokenKey(user.id), token, {
       keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
     });
+    await SecureStore.setItemAsync(getAccountRefreshKey(user.id), refreshToken, {
+      keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+    });
     await AsyncStorage.setItem(getAccountExpiryKey(user.id), expiresAt.toISOString());
+    await AsyncStorage.setItem(getAccountRefreshExpiryKey(user.id), refreshExpiresAt.toISOString());
 
     const accounts = await getAccounts();
     const nextAccount: StoredAccount = {
@@ -89,19 +107,23 @@ export async function saveAccountSession(
 
 export async function getAccountSession(accountId: string): Promise<AccountSession | null> {
   try {
-    const [accounts, token, expiry] = await Promise.all([
+    const [accounts, token, refreshToken, expiry, refreshExpiry] = await Promise.all([
       getAccounts(),
       SecureStore.getItemAsync(getAccountTokenKey(accountId)),
+      SecureStore.getItemAsync(getAccountRefreshKey(accountId)),
       AsyncStorage.getItem(getAccountExpiryKey(accountId)),
+      AsyncStorage.getItem(getAccountRefreshExpiryKey(accountId)),
     ]);
 
     const account = accounts.find((item) => item.id === accountId);
-    if (!account || !token || !expiry) return null;
+    if (!account || !token || !refreshToken || !expiry || !refreshExpiry) return null;
 
     return {
       user: account,
       token,
+      refreshToken,
       expiresAt: new Date(expiry),
+      refreshExpiresAt: new Date(refreshExpiry),
     };
   } catch (error) {
     console.error('Failed to get account session:', error);
@@ -114,17 +136,19 @@ export async function getSavedAccounts(): Promise<AccountSummary[]> {
     const accounts = await getAccounts();
     const summaries = await Promise.all(
       accounts.map(async (account) => {
-        const [token, expiry] = await Promise.all([
+        const [token, expiry, refreshExpiry] = await Promise.all([
           SecureStore.getItemAsync(getAccountTokenKey(account.id)),
           AsyncStorage.getItem(getAccountExpiryKey(account.id)),
+          AsyncStorage.getItem(getAccountRefreshExpiryKey(account.id)),
         ]);
         const expiresAt = expiry ? new Date(expiry) : null;
         const isExpired = expiresAt ? new Date() > expiresAt : true;
+        const isRefreshExpired = refreshExpiry ? new Date() > new Date(refreshExpiry) : true;
 
         return {
           account,
-          hasSession: Boolean(token),
-          isExpired,
+          hasSession: Boolean(token) && !isRefreshExpired,
+          isExpired: isExpired || isRefreshExpired,
         };
       })
     );
@@ -167,8 +191,9 @@ export async function getActiveAccountSession(): Promise<AccountSession | null> 
 export async function isAccountTokenExpired(accountId: string): Promise<boolean> {
   try {
     const expiry = await AsyncStorage.getItem(getAccountExpiryKey(accountId));
-    if (!expiry) return true;
-    return new Date() > new Date(expiry);
+    const refreshExpiry = await AsyncStorage.getItem(getAccountRefreshExpiryKey(accountId));
+    if (!expiry || !refreshExpiry) return true;
+    return new Date() > new Date(expiry) || new Date() > new Date(refreshExpiry);
   } catch (error) {
     console.error('Failed to check account token expiry:', error);
     return true;
@@ -179,7 +204,9 @@ export async function clearAccountSession(accountId: string): Promise<void> {
   try {
     await Promise.all([
       SecureStore.deleteItemAsync(getAccountTokenKey(accountId)),
+      SecureStore.deleteItemAsync(getAccountRefreshKey(accountId)),
       AsyncStorage.removeItem(getAccountExpiryKey(accountId)),
+      AsyncStorage.removeItem(getAccountRefreshExpiryKey(accountId)),
     ]);
   } catch (error) {
     console.error('Failed to clear account session:', error);
@@ -206,7 +233,7 @@ export async function migrateLegacyAuth(): Promise<void> {
     const user = JSON.parse(userJson) as AuthUser;
     const expiresAt = expiry ? new Date(expiry) : new Date(0);
 
-    await saveAccountSession(user, token, expiresAt);
+    await saveAccountSession(user, token, expiresAt, `legacy-${user.id}`, expiresAt);
 
     await Promise.all([
       AsyncStorage.removeItem(StorageKeys.AUTH_TOKEN),
@@ -256,10 +283,22 @@ export async function getAuthToken(): Promise<string | null> {
   return SecureStore.getItemAsync(getAccountTokenKey(accountId));
 }
 
+export async function getRefreshToken(): Promise<string | null> {
+  const accountId = await getActiveAccountId();
+  if (!accountId) return null;
+  return SecureStore.getItemAsync(getAccountRefreshKey(accountId));
+}
+
 export async function clearAuthToken(): Promise<void> {
   const accountId = await getActiveAccountId();
   if (!accountId) return;
   await SecureStore.deleteItemAsync(getAccountTokenKey(accountId));
+}
+
+export async function clearRefreshToken(): Promise<void> {
+  const accountId = await getActiveAccountId();
+  if (!accountId) return;
+  await SecureStore.deleteItemAsync(getAccountRefreshKey(accountId));
 }
 
 export async function saveCurrentUser(user: AuthUser): Promise<void> {

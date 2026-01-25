@@ -2,6 +2,7 @@
   "expo": {
     "name": "HVACOps",
     "slug": "hvacops",
+    "scheme": "hvacops",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,9 +27,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-font",
-      "expo-secure-store"
-    ]
+    "plugins": ["expo-font", "expo-secure-store"]
   }
 }

@@ -13,6 +13,7 @@ import * as authStorage from '@/lib/storage';
 
 interface AuthContextValue extends AuthState {
   login: (credentials: AuthCredentials) => Promise<void>;
+  loginWithOidc: (code: string, codeVerifier: string) => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   loginWithSavedAccount: (accountId: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -49,28 +50,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await authStorage.migrateLegacyAuth();
       const session = await authStorage.getActiveAccountSession();
 
-      // If we have a valid token and user, restore the session
-      if (session && !(await authStorage.isAccountTokenExpired(session.user.id))) {
-        setState({
-          user: session.user,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      } else {
-        // Token expired or missing, clear everything
-        if (session) {
-          await authStorage.clearAccountSession(session.user.id);
-          await authStorage.setActiveAccountId(null);
+      if (session) {
+        const now = new Date();
+        const accessExpired = now > session.expiresAt;
+        const refreshExpired = now > session.refreshExpiresAt;
+
+        if (!accessExpired) {
+          setState({
+            user: session.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+          return;
         }
 
-        setState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
+        if (!refreshExpired) {
+          try {
+            const refreshed = await authService.refreshToken();
+            await authStorage.saveAccountSession(
+              session.user,
+              refreshed.token,
+              refreshed.expiresAt,
+              refreshed.refreshToken,
+              refreshed.refreshExpiresAt
+            );
+
+            setState({
+              user: session.user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+            return;
+          } catch (error) {
+            console.error('Failed to refresh session:', error);
+          }
+        }
+
+        await authStorage.clearAccountSession(session.user.id);
+        await authStorage.setActiveAccountId(null);
       }
+
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
     } catch (error) {
       console.error('Failed to initialize auth:', error);
       setState({
@@ -95,7 +122,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.login(credentials);
 
       // Save auth data to storage
-      await authStorage.saveAccountSession(response.user, response.token, response.expiresAt);
+      await authStorage.saveAccountSession(
+        response.user,
+        response.token,
+        response.expiresAt,
+        response.refreshToken,
+        response.refreshExpiresAt
+      );
+
+      setState({
+        user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const authError = error as AuthError;
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: authError,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Login with OIDC authorization code + PKCE verifier
+   */
+  async function loginWithOidc(code: string, codeVerifier: string): Promise<void> {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const response = await authService.exchangeCode(code, codeVerifier);
+
+      await authStorage.saveAccountSession(
+        response.user,
+        response.token,
+        response.expiresAt,
+        response.refreshToken,
+        response.refreshExpiresAt
+      );
 
       setState({
         user: response.user,
@@ -125,7 +193,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.signup(data);
 
       // Save auth data to storage
-      await authStorage.saveAccountSession(response.user, response.token, response.expiresAt);
+      await authStorage.saveAccountSession(
+        response.user,
+        response.token,
+        response.expiresAt,
+        response.refreshToken,
+        response.refreshExpiresAt
+      );
 
       setState({
         user: response.user,
@@ -243,6 +317,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextValue = {
     ...state,
     login,
+    loginWithOidc,
     signup,
     loginWithSavedAccount,
     logout,

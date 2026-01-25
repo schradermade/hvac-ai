@@ -14,68 +14,18 @@ import type {
   AuthError,
 } from '../types';
 import type { AuthUser } from '@/lib/storage';
+import { getRefreshToken, getCurrentUser } from '@/lib/storage';
 
 class AuthService {
   /**
    * Login with email and password
-   * Mock implementation - validates credentials and returns mock user
+   * Deprecated in production (OIDC login required)
    */
-  async login(credentials: AuthCredentials): Promise<AuthResponse> {
-    // Simulate network delay
-    await this.delay(800);
-
-    // Mock validation
-    if (!credentials.email || !credentials.password) {
-      throw this.createError('invalid_credentials', 'Email and password are required');
-    }
-
-    // For MVP, accept any email/password combination
-    // In production, this will make an API call
-    // Check if email matches a test technician
-    const testUsers: Record<string, AuthUser> = {
-      'admin@test.com': {
-        id: 'tech_test_admin',
-        email: 'admin@test.com',
-        firstName: 'John',
-        lastName: 'Smith',
-        companyId: 'company_test_1',
-        role: 'admin',
-      },
-      'bob.wilson@test.com': {
-        id: 'tech_test_lead',
-        email: 'bob.wilson@test.com',
-        firstName: 'Bob',
-        lastName: 'Wilson',
-        companyId: 'company_test_1',
-        role: 'lead_tech',
-      },
-      'alice.johnson@test.com': {
-        id: 'tech_test_alice',
-        email: 'alice.johnson@test.com',
-        firstName: 'Alice',
-        lastName: 'Johnson',
-        companyId: 'company_test_1',
-        role: 'technician',
-      },
-    };
-
-    const mockUser: AuthUser = testUsers[credentials.email.toLowerCase()] || {
-      id: 'user_' + Date.now(),
-      email: credentials.email,
-      firstName: 'Test',
-      lastName: 'User',
-      companyId: 'company_test_1',
-      role: 'admin', // Default to admin for unknown emails
-    };
-
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
-
-    return {
-      token: this.generateMockToken(),
-      user: mockUser,
-      expiresAt,
-    };
+  async login(_credentials: AuthCredentials): Promise<AuthResponse> {
+    throw this.createError(
+      'invalid_credentials',
+      'Password login is disabled. Use enterprise SSO.'
+    );
   }
 
   /**
@@ -121,8 +71,10 @@ class AuthService {
 
     return {
       token: this.generateMockToken(),
+      refreshToken: this.generateMockToken(),
       user: mockUser,
       expiresAt,
+      refreshExpiresAt: expiresAt,
     };
   }
 
@@ -131,11 +83,18 @@ class AuthService {
    * Clears local auth data
    */
   async logout(): Promise<void> {
-    // Simulate network delay
-    await this.delay(300);
+    const authUrl = process.env.EXPO_PUBLIC_AUTH_URL;
+    const refreshToken = await getRefreshToken();
 
-    // In production, this might invalidate the token on the server
-    // For now, just resolve - actual cleanup happens in AuthProvider
+    if (!authUrl || !refreshToken) {
+      return;
+    }
+
+    await fetch(`${authUrl}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
   }
 
   /**
@@ -143,13 +102,49 @@ class AuthService {
    * Mock implementation - generates new token
    */
   async refreshToken(): Promise<AuthResponse> {
-    // Simulate network delay
-    await this.delay(500);
+    const authUrl = process.env.EXPO_PUBLIC_AUTH_URL;
+    const refreshToken = await getRefreshToken();
 
-    // In production, this would use the refresh token to get a new access token
-    // For now, just return a new mock token
+    if (!authUrl || !refreshToken) {
+      throw this.createError('token_expired', 'Refresh token unavailable');
+    }
 
-    throw this.createError('token_expired', 'Token refresh not implemented in MVP');
+    const response = await fetch(`${authUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw this.createError('token_expired', message || 'Refresh failed');
+    }
+
+    const payload = (await response.json()) as {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+      refresh_expires_at: string;
+    };
+
+    const expiresAt = new Date(Date.now() + payload.expires_in * 1000);
+
+    const currentUser = (await getCurrentUser()) ?? {
+      id: 'unknown',
+      email: 'unknown@example.com',
+      firstName: 'Unknown',
+      lastName: 'User',
+      companyId: 'unknown',
+      role: 'technician',
+    };
+
+    return {
+      token: payload.access_token,
+      refreshToken: payload.refresh_token,
+      expiresAt,
+      refreshExpiresAt: new Date(payload.refresh_expires_at),
+      user: currentUser,
+    };
   }
 
   /**
@@ -200,6 +195,42 @@ class AuthService {
   validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  async exchangeCode(code: string, codeVerifier: string): Promise<AuthResponse> {
+    const authUrl = process.env.EXPO_PUBLIC_AUTH_URL;
+    if (!authUrl) {
+      throw this.createError('network_error', 'Auth service not configured');
+    }
+
+    const response = await fetch(`${authUrl}/auth/exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, code_verifier: codeVerifier }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw this.createError('invalid_credentials', message || 'Auth exchange failed');
+    }
+
+    const payload = (await response.json()) as {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+      refresh_expires_at: string;
+      user: AuthUser;
+    };
+
+    const expiresAt = new Date(Date.now() + payload.expires_in * 1000);
+
+    return {
+      token: payload.access_token,
+      refreshToken: payload.refresh_token,
+      expiresAt,
+      refreshExpiresAt: new Date(payload.refresh_expires_at),
+      user: payload.user,
+    };
   }
 
   /**

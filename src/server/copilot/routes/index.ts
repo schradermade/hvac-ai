@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { AccessAuthError, authenticateAccessToken } from '../auth/access';
+import { authenticateAppJwt } from '../auth/jwt';
 import type { AppEnv } from '../workerTypes';
 import { registerChatRoutes } from './chat';
 import { registerContextRoutes } from './context';
@@ -13,6 +14,27 @@ export function createCopilotRouter() {
   router.use('*', async (c, next) => {
     const allowDevAuth = c.env.ALLOW_DEV_AUTH === '1';
     const token = c.req.header('Cf-Access-Jwt-Assertion');
+    const bearer = c.req.header('Authorization');
+
+    if (bearer?.startsWith('Bearer ')) {
+      try {
+        const jwt = bearer.slice('Bearer '.length);
+        const identity = await authenticateAppJwt({
+          token: jwt,
+          jwksUrl: c.env.AUTH_JWKS_URL ?? '',
+          audience: c.env.AUTH_JWT_AUD ?? '',
+          issuer: c.env.AUTH_JWT_ISSUER ?? '',
+        });
+
+        c.set('tenantId', identity.tenantId);
+        c.set('userId', identity.userId);
+        c.set('userRole', identity.role);
+        return next();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invalid token';
+        return c.json({ error: message }, 401);
+      }
+    }
 
     if (!token && allowDevAuth) {
       const tenantId = c.req.header('x-tenant-id');

@@ -51,8 +51,10 @@ export interface PasswordResetConfirm {
  */
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
   user: AuthUser;
   expiresAt: Date;
+  refreshExpiresAt: Date;
 }
 
 /**

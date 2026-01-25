@@ -143,6 +143,7 @@ Notes:
 - `x-tenant-id`/`x-user-id` headers only work when `ALLOW_DEV_AUTH=1`.
 - For Access/service tokens, use `CF-Access-Client-Id` and `CF-Access-Client-Secret` instead.
 - Use `Idempotency-Key` on note ingest to prevent duplicate notes on retry.
+- Production clients should use `Authorization: Bearer <token>` with the auth worker.
 
 ## Postman
 

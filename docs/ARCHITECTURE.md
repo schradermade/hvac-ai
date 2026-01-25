@@ -118,6 +118,21 @@ features/[feature-name]/
 - **Components** are purely presentational (use hooks for data)
 - **Public API** (`index.ts`) explicitly defines what other features can import
 
+## Auth Architecture
+
+Production auth uses a dedicated Worker (`hvacops-auth`) that brokers Cloudflare Access OIDC and
+issues first-party JWTs for mobile clients.
+
+Flow overview:
+
+1. Mobile app starts an OIDC login via `/auth/authorize` (PKCE).
+2. Auth Worker exchanges the Access code and validates the id_token.
+3. Auth Worker issues short-lived access JWT + rotating refresh token.
+4. API Worker validates JWTs via `AUTH_JWKS_URL`.
+
+Auth Worker config: `wrangler.auth.toml`  
+Auth D1 schema: `db/auth/`
+
 Example:
 
 ```typescript

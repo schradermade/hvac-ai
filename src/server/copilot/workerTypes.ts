@@ -24,6 +24,9 @@ export interface Env {
   CF_ACCESS_AUD?: string;
   CF_ACCESS_ISSUER?: string;
   CF_ACCESS_JWKS_URL?: string;
+  AUTH_JWT_AUD?: string;
+  AUTH_JWT_ISSUER?: string;
+  AUTH_JWKS_URL?: string;
   ALLOW_DEV_AUTH?: string;
 }
 
