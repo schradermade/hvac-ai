@@ -18,7 +18,7 @@
                 "exec": [
                   "pm.test(\"201 created\", () => pm.response.code === 201);",
                   "",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"id present\", () => pm.expect(data.id).to.be.a(\"string\"));",
                   "",
                   "pm.environment.set(\"clientId\", data.id);",
@@ -109,7 +109,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"201 created\", () => pm.response.code === 201);",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"id present\", () => pm.expect(data.id).to.be.a(\"string\"));",
                   "pm.environment.set(\"propertyId\", data.id);",
                   ""
@@ -199,7 +199,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"201 created\", () => pm.response.code === 201);",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"id present\", () => pm.expect(data.id).to.be.a(\"string\"));",
                   "pm.environment.set(\"jobId\", data.id);",
                   ""
@@ -236,7 +236,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "ingest", "jobs"]
             },
-            "description": "Create a job linked to clientId and propertyId."
+            "description": "Create a job linked to\u00a0clientId\u00a0and\u00a0propertyId."
           },
           "response": [
             {
@@ -289,7 +289,7 @@
               "script": {
                 "exec": [
                   "if (!pm.environment.get(\"idempotencyKey\")) {",
-                  "  pm.environment.set(\"idempotencyKey\", crypto.randomUUID())",
+                  "  pm.environment.set(\"idempotencyKey\", pm.variables.replaceIn(\"{{$guid}}\"));",
                   "}"
                 ],
                 "type": "text/javascript",
@@ -303,7 +303,7 @@
                 "exec": [
                   "pm.test(\"201 created\", () => pm.response.code === 201);",
                   "",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"id present\", () => pm.expect(data.id).to.be.a(\"string\"));",
                   "pm.environment.set(\"noteId\", data.id);",
                   "",
@@ -356,7 +356,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "ingest", "notes"]
             },
-            "description": "Add a note to a job and trigger reindex; uses jobId"
+            "description": "Add a note to a job and trigger reindex; uses\u00a0jobId"
           },
           "response": [
             {
@@ -431,7 +431,7 @@
                 "exec": [
                   "pm.test(\"200 ok\", () => pm.response.code === 200);",
                   "",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"answer string\", () => pm.expect(data.answer).to.be.a(\"string\"));",
                   "pm.test(\"citations array\", () => pm.expect(data.citations).to.be.an(\"array\"));",
                   "pm.test(\"follow_ups array\", () => pm.expect(data.follow_ups).to.be.an(\"array\"));",
@@ -468,7 +468,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "jobs", "{{jobId}}", "ai", "chat"]
             },
-            "description": "Ask the AI about jobId; uses notes + history for citations."
+            "description": "Ask the AI about\u00a0jobId; uses notes + history for citations."
           },
           "response": [
             {
@@ -525,7 +525,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["api", "jobs", "job_demo", "ai", "context"]
         },
-        "description": "Fetch the AI-ready context snapshot for jobId."
+        "description": "Fetch the AI-ready context snapshot for\u00a0jobId."
       },
       "response": [
         {
@@ -571,7 +571,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["api", "vectorize", "reindex", "job", "job_demo"]
         },
-        "description": "Rebuild Vectorize evidence for jobId (admin auth required)"
+        "description": "Rebuild Vectorize evidence for\u00a0jobId (admin auth required)"
       },
       "response": []
     }
@@ -590,14 +590,14 @@
           "  const now = new Date();",
           "  pm.environment.set(\"nowIso\", now.toISOString());",
           "  pm.environment.set(\"today\", now.toISOString().slice(0, 10));",
-          "  pm.environment.set(\"uuid\", crypto.randomUUID());",
+          "  pm.environment.set(\"uuid\", pm.variables.replaceIn(\"{{$guid}}\"));",
           "",
           "  const rand = Math.floor(Math.random() * 1000000);",
           "  pm.environment.set(\"randInt\", String(rand));",
           "  pm.environment.set(\"noteContent\", `Rattling reported (${rand}) at ${now.toISOString()}`);",
           "",
           "  if (!pm.environment.get(\"idempotencyKey\")) {",
-          "    pm.environment.set(\"idempotencyKey\", crypto.randomUUID());",
+          "    pm.environment.set(\"idempotencyKey\", pm.variables.replaceIn(\"{{$guid}}\"));",
           "  }",
           "}",
           "",
