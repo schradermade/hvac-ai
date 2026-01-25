@@ -7,7 +7,7 @@ import { TabNavigator } from './TabNavigator';
 import { DiagnosticChatScreen } from '@/features/diagnostic';
 import { ClientDetailScreen } from '@/features/clients';
 import { CreateEquipmentScreen, EquipmentDetailScreen } from '@/features/equipment';
-import { JobDetailScreen } from '@/features/jobs';
+import { JobCopilotScreen, JobDetailScreen } from '@/features/jobs';
 import {
   TechnicianDetailScreen,
   CreateTechnicianScreen,
@@ -123,6 +123,23 @@ export function RootNavigator() {
             component={JobDetailScreen}
             options={{
               title: 'Job Details',
+            }}
+          />
+          <Stack.Screen
+            name="JobCopilot"
+            component={JobCopilotScreen}
+            options={{
+              title: 'Job Copilot',
+              headerStyle: {
+                backgroundColor: '#EEF2FF',
+              },
+              headerTintColor: colors.textPrimary,
+              headerTitleStyle: {
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.bold,
+                color: colors.textPrimary,
+              },
+              headerShadowVisible: false,
             }}
           />
           <Stack.Screen

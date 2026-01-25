@@ -106,11 +106,9 @@ export function JobDetailScreen({ route, navigation }: Props) {
     return status.replace('_', ' ').toUpperCase();
   };
 
-  const handleStartDiagnostic = () => {
-    navigation.navigate('DiagnosticChat', {
-      clientId: job.clientId,
+  const handleStartCopilot = () => {
+    navigation.navigate('JobCopilot', {
       jobId: job.id,
-      equipmentId: job.equipmentId,
     });
   };
 
@@ -265,7 +263,7 @@ export function JobDetailScreen({ route, navigation }: Props) {
           {/* AI Help - Premium feature showcase */}
           <TouchableOpacity
             style={styles.aiHelpButton}
-            onPress={handleStartDiagnostic}
+            onPress={handleStartCopilot}
             activeOpacity={0.85}
           >
             <View style={styles.aiHelpIconContainer}>

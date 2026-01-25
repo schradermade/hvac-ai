@@ -41,3 +41,4 @@ export { AssignJobModal } from './components/AssignJobModal';
 // Export screens
 export { TodaysJobsScreen } from './screens/TodaysJobsScreen';
 export { JobDetailScreen } from './screens/JobDetailScreen';
+export { JobCopilotScreen } from './screens/JobCopilotScreen';

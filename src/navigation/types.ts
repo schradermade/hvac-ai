@@ -38,6 +38,7 @@ export type RootStackParamList = {
   EquipmentDetail: { equipmentId: string };
   // Job flows
   JobDetail: { jobId: string };
+  JobCopilot: { jobId: string };
   // Technician flows
   TechnicianList: undefined;
   TechnicianDetail: { technicianId: string };
