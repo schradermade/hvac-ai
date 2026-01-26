@@ -218,3 +218,62 @@ Date: 2026-01-21
 - Auth worker config: `wrangler.auth.toml`
 - API worker config: `wrangler.toml`
 - Auth docs: `docs/AUTH.md`
+
+## 2026-01-26 Updates
+
+### What we completed
+
+- **Auth role persistence fix**
+  - Prevented auth upsert from overwriting existing DB roles with IdP default.
+  - Refresh now returns canonical user info from `hvacops-auth`.
+  - Files:
+    - `src/auth/worker.ts`
+    - `src/features/auth/services/authService.ts`
+    - `src/providers/AuthProvider.tsx`
+
+- **Job note flow + auto reindex**
+  - Added in-app “Add Note” modal for job detail.
+  - Notes created via `/api/ingest/notes` with idempotency support.
+  - Auto reindex triggered asynchronously after note insert.
+  - Files:
+    - `src/features/jobs/screens/JobDetailScreen.tsx`
+    - `src/features/jobs/services/jobService.ts`
+    - `src/server/copilot/routes/ingest.ts`
+
+- **Technicians + assignments**
+  - Added technician API routes (`GET /api/technicians`, `GET /api/technicians/:id`, `POST /api/technicians`).
+  - Job create supports optional assignment; added assignment endpoint.
+  - Job form supports selecting a technician before create.
+  - Files:
+    - `src/server/copilot/routes/technicians.ts`
+    - `src/server/copilot/routes/jobs.ts`
+    - `src/features/jobs/components/JobForm.tsx`
+    - `src/features/jobs/types.ts`
+
+- **Debug cleanup**
+  - Removed debug footer and `/api/debug/jwks` route from production UI/API.
+  - Files:
+    - `src/features/jobs/screens/TodaysJobsScreen.tsx`
+    - `src/server/copilot/routes/debug.ts`
+    - `src/server/copilot/routes/index.ts`
+
+### Current state (verified)
+
+- Login via Cloudflare Access OIDC works in Expo Go.
+- Technicians can be created and assigned to new jobs.
+- Job detail supports adding technician notes.
+- Chat answers include new note content after ingest + reindex.
+
+### Still needs to be done
+
+1. **Admin/role management UI**
+   - Promote/demote users without touching D1 directly.
+2. **Production-safe role updates**
+   - Add an admin API endpoint (auth worker or API worker) to update roles.
+3. **Operational hardening**
+   - Optional: queue-based reindexing for notes/events at scale.
+
+### Known issues
+
+- Role changes require a fresh login/refresh to take effect in the app.
+  - With the auth fix, roles no longer revert to `technician`, but the app still needs a new token to pick up changes.
