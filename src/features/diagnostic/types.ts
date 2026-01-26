@@ -44,6 +44,8 @@ export interface Message {
     snippet: string;
     date?: string;
     type?: string;
+    authorName?: string;
+    authorEmail?: string;
   }>;
 
   // Sender attribution for collaborative sessions

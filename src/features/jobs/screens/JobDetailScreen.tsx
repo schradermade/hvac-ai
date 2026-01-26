@@ -299,6 +299,7 @@ export function JobDetailScreen({ route, navigation }: Props) {
                     <Ionicons name="sparkles" size={18} color="#FFFFFF" />
                     <Text style={styles.aiHelpButtonTextCompact}>Get AI Help</Text>
                   </TouchableOpacity>
+                  <Text style={styles.aiHelpFootnote}>Powered by HVACOps AI</Text>
                 </View>
               </View>
               {!canStartJob && showStartJob && (
@@ -308,14 +309,17 @@ export function JobDetailScreen({ route, navigation }: Props) {
               )}
             </>
           ) : (
-            <TouchableOpacity
-              style={styles.aiHelpButtonCompact}
-              onPress={handleStartCopilot}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="sparkles" size={18} color="#FFFFFF" />
-              <Text style={styles.aiHelpButtonTextCompact}>Get AI Help</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.aiHelpButtonCompact}
+                onPress={handleStartCopilot}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+                <Text style={styles.aiHelpButtonTextCompact}>Get AI Help</Text>
+              </TouchableOpacity>
+              <Text style={styles.aiHelpFootnote}>Powered by HVACOps AI</Text>
+            </>
           )}
         </View>
 
@@ -835,7 +839,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing[2],
     backgroundColor: '#6366F1',
-    paddingVertical: spacing[3],
+    paddingVertical: spacing[2],
     paddingHorizontal: spacing[3],
     borderRadius: borderRadius.lg,
     minHeight: 54,
@@ -853,6 +857,13 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     color: '#FFFFFF',
     letterSpacing: 0.3,
+  },
+  aiHelpFootnote: {
+    marginTop: spacing[1],
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   section: {
     marginTop: spacing[6],

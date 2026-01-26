@@ -403,7 +403,15 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         date: item.date ?? null,
         type: item.type,
         snippet: item.text.slice(0, 240),
+        author_name: item.authorName ?? null,
+        author_email: item.authorEmail ?? null,
       }));
+
+      const evidenceById = new Map(
+        evidenceCitations
+          .filter((item) => typeof item.doc_id === 'string')
+          .map((item) => [item.doc_id as string, item])
+      );
 
       const normalizedCitations =
         citations.length > 0 &&
@@ -416,7 +424,14 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
             typeof record.type === 'string'
           );
         })
-          ? citations
+          ? citations.map((citation) => {
+              const record = citation as Record<string, unknown>;
+              const fallback = evidenceById.get(record.doc_id as string);
+              return {
+                ...fallback,
+                ...record,
+              };
+            })
           : evidenceCitations;
 
       const assistantContent = parsedResponse?.answer ?? fullContent;
@@ -537,7 +552,15 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       date: item.date ?? null,
       type: item.type,
       snippet: item.text.slice(0, 240),
+      author_name: item.authorName ?? null,
+      author_email: item.authorEmail ?? null,
     }));
+
+    const evidenceById = new Map(
+      evidenceCitations
+        .filter((item) => typeof item.doc_id === 'string')
+        .map((item) => [item.doc_id as string, item])
+    );
 
     const normalizedCitations =
       citations.length > 0 &&
@@ -550,7 +573,14 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           typeof record.type === 'string'
         );
       })
-        ? citations
+        ? citations.map((citation) => {
+            const record = citation as Record<string, unknown>;
+            const fallback = evidenceById.get(record.doc_id as string);
+            return {
+              ...fallback,
+              ...record,
+            };
+          })
         : evidenceCitations;
 
     const assistantContent = parsedResponse?.answer ?? content;
@@ -639,6 +669,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           type: item.type,
           scope: item.scope,
           text: item.text,
+          author_name: item.authorName ?? null,
+          author_email: item.authorEmail ?? null,
         })),
         debug: debugEnabled
           ? {

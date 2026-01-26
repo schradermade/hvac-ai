@@ -129,6 +129,8 @@ class AuthService {
         id: string;
         email: string;
         name: string;
+        firstName?: string;
+        lastName?: string;
         role: AuthUser['role'];
         tenantId: string;
       };
@@ -138,12 +140,16 @@ class AuthService {
 
     const mappedUser = payload.user
       ? (() => {
-          const [firstName, ...lastNameParts] = payload.user.name.trim().split(/\s+/);
-          const lastName = lastNameParts.join(' ') || 'User';
+          const firstName =
+            payload.user.firstName || payload.user.name.trim().split(/\s+/)[0] || 'Unknown';
+          const lastName =
+            payload.user.lastName ||
+            payload.user.name.trim().split(/\s+/).slice(1).join(' ') ||
+            'User';
           return {
             id: payload.user.id,
             email: payload.user.email,
-            firstName: firstName || 'Unknown',
+            firstName,
             lastName,
             companyId: payload.user.tenantId,
             role: payload.user.role,
@@ -246,18 +252,22 @@ class AuthService {
         id: string;
         email: string;
         name: string;
+        firstName?: string;
+        lastName?: string;
         role: AuthUser['role'];
         tenantId: string;
       };
     };
 
     const expiresAt = new Date(Date.now() + payload.expires_in * 1000);
-    const [firstName, ...lastNameParts] = payload.user.name.trim().split(/\s+/);
-    const lastName = lastNameParts.join(' ') || 'User';
+    const firstName =
+      payload.user.firstName || payload.user.name.trim().split(/\s+/)[0] || 'Unknown';
+    const lastName =
+      payload.user.lastName || payload.user.name.trim().split(/\s+/).slice(1).join(' ') || 'User';
     const mappedUser: AuthUser = {
       id: payload.user.id,
       email: payload.user.email,
-      firstName: firstName || 'Unknown',
+      firstName,
       lastName,
       companyId: payload.user.tenantId,
       role: payload.user.role,

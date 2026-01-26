@@ -117,11 +117,13 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
               >
                 <View style={styles.sourcesMeta}>
                   <Text style={styles.sourcesTitle}>Sources</Text>
-                  <Text style={styles.sourcesCount}>{message.sources.length}</Text>
+                  <View style={styles.sourcesCountBadge}>
+                    <Text style={styles.sourcesCount}>{message.sources.length}</Text>
+                  </View>
                 </View>
                 <Ionicons
                   name={sourcesExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={16}
+                  size={24}
                   color={colors.textMuted}
                 />
               </TouchableOpacity>
@@ -132,9 +134,18 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
                 ]}
               >
                 {message.sources.map((source, index) => (
-                  <Text key={`${source.snippet}-${index}`} style={styles.sourceLine}>
-                    {formatSource(source)}
-                  </Text>
+                  <View key={`${source.snippet}-${index}`} style={styles.sourceItem}>
+                    <Text style={styles.sourceLine}>{source.snippet}</Text>
+                    <View style={styles.sourceDivider} />
+                    {(source.authorName || source.authorEmail) && (
+                      <Text style={styles.sourceAuthor}>
+                        {source.authorName || source.authorEmail}
+                      </Text>
+                    )}
+                    {source.date ? (
+                      <Text style={styles.sourceDate}>{formatSourceDate(source.date)}</Text>
+                    ) : null}
+                  </View>
                 ))}
               </View>
             </View>
@@ -174,21 +185,18 @@ function formatTimestamp(date: Date): string {
   return `${displayHours}:${displayMinutes} ${ampm}`;
 }
 
-function formatSource(source: { snippet: string; date?: string }) {
-  if (!source.date) {
-    return `• ${source.snippet}`;
+function formatSourceDate(date: string) {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return date;
   }
-  const parsed = new Date(source.date);
-  const stamp = Number.isNaN(parsed.getTime())
-    ? source.date
-    : parsed.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      });
-  return `• ${source.snippet} (${stamp})`;
+  return parsed.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 const styles = StyleSheet.create({
@@ -293,8 +301,19 @@ const styles = StyleSheet.create({
   },
   sourcesCount: {
     fontSize: typography.fontSize.xs,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     fontWeight: typography.fontWeight.semibold,
+  },
+  sourcesCountBadge: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: spacing[1],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
   },
   sourcesBody: {
     overflow: 'hidden',
@@ -313,7 +332,28 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.textPrimary,
     lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
+  },
+  sourceItem: {
+    gap: spacing[1],
+    padding: spacing[2],
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
     marginTop: spacing[2],
+  },
+  sourceAuthor: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+  },
+  sourceDivider: {
+    height: 1,
+    width: 25,
+    backgroundColor: colors.border,
+  },
+  sourceDate: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
   },
   // System messages
   systemMessageContainer: {

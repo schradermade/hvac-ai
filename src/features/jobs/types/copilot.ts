@@ -3,6 +3,8 @@ export type CopilotCitation = {
   date?: string;
   type: 'note' | 'event' | 'job' | 'property' | 'client' | string;
   snippet: string;
+  author_name?: string;
+  author_email?: string;
 };
 
 export type JobCopilotResponse = {
@@ -16,5 +18,7 @@ export type JobCopilotResponse = {
     type: string;
     scope?: string;
     text: string;
+    author_name?: string;
+    author_email?: string;
   }>;
 };

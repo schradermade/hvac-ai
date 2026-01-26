@@ -14,6 +14,8 @@ export interface EvidenceItem {
   scope: 'job' | 'property' | 'client';
   date: string;
   text: string;
+  authorName?: string | null;
+  authorEmail?: string | null;
 }
 
 interface JobEventRow {
@@ -29,6 +31,8 @@ interface NoteRow {
   note_type: string;
   content: string;
   created_at: string;
+  author_name: string | null;
+  author_email: string | null;
 }
 
 export async function getJobEvidence(
@@ -125,13 +129,16 @@ async function loadNotes(
     .prepare<NoteRow>(
       `
       SELECT
-        id,
-        note_type,
-        content,
-        created_at
-      FROM notes
-      WHERE tenant_id = ? AND entity_type = ? AND entity_id = ?
-      ORDER BY created_at DESC
+        n.id,
+        n.note_type,
+        n.content,
+        n.created_at,
+        TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')) AS author_name,
+        u.email AS author_email
+      FROM notes n
+      LEFT JOIN users u ON u.id = n.author_user_id
+      WHERE n.tenant_id = ? AND n.entity_type = ? AND n.entity_id = ?
+      ORDER BY n.created_at DESC
       ${limitClause}
       `.trim()
     )
@@ -148,5 +155,7 @@ async function loadNotes(
     scope,
     date: row.created_at,
     text: row.content,
+    authorName: row.author_name || null,
+    authorEmail: row.author_email || null,
   }));
 }

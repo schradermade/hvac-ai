@@ -9,6 +9,8 @@ function getSources(response: JobCopilotResponse) {
       snippet: citation.snippet,
       date: citation.date,
       type: citation.type,
+      authorName: (citation as { author_name?: string }).author_name,
+      authorEmail: (citation as { author_email?: string }).author_email,
     }));
   }
 
@@ -17,6 +19,8 @@ function getSources(response: JobCopilotResponse) {
       snippet: item.text,
       date: item.date,
       type: item.type,
+      authorName: (item as { author_name?: string }).author_name,
+      authorEmail: (item as { author_email?: string }).author_email,
     }));
   }
 
@@ -77,6 +81,10 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
                       snippet: record.snippet as string,
                       date: typeof record.date === 'string' ? record.date : undefined,
                       type: typeof record.type === 'string' ? record.type : undefined,
+                      authorName:
+                        typeof record.author_name === 'string' ? record.author_name : undefined,
+                      authorEmail:
+                        typeof record.author_email === 'string' ? record.author_email : undefined,
                     };
                   })
                   .filter(Boolean);

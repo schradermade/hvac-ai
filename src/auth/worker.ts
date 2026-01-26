@@ -55,6 +55,8 @@ async function issueAccessToken(env: AuthEnv, user: AuthUser) {
     role: user.role,
     email: user.email,
     name: user.name,
+    first_name: user.firstName,
+    last_name: user.lastName,
   })
     .setProtectedHeader({ alg: 'RS256', kid })
     .setSubject(user.id)
@@ -93,6 +95,8 @@ type AuthUser = {
   id: string;
   email: string;
   name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   tenantId: string;
 };
@@ -100,30 +104,48 @@ type AuthUser = {
 async function getUserById(env: AuthEnv, id: string) {
   return env.AUTH_DB.prepare(
     `
-    SELECT id, email, name, role, tenant_id
+    SELECT id, email, name, first_name, last_name, role, tenant_id
     FROM users
     WHERE id = ?
     LIMIT 1
     `.trim()
   )
     .bind(id)
-    .first<{ id: string; email: string; name: string; role: string; tenant_id: string }>();
+    .first<{
+      id: string;
+      email: string;
+      name: string;
+      first_name: string | null;
+      last_name: string | null;
+      role: string;
+      tenant_id: string;
+    }>();
 }
 
 async function upsertUser(env: AuthEnv, payload: AuthUser) {
   await env.AUTH_DB.prepare(
     `
-    INSERT INTO users (id, email, name, role, tenant_id)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO users (id, email, name, first_name, last_name, role, tenant_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       email = excluded.email,
       name = excluded.name,
+      first_name = excluded.first_name,
+      last_name = excluded.last_name,
       role = COALESCE(users.role, excluded.role),
       tenant_id = excluded.tenant_id,
       updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     `.trim()
   )
-    .bind(payload.id, payload.email, payload.name, payload.role, payload.tenantId)
+    .bind(
+      payload.id,
+      payload.email,
+      payload.name,
+      payload.firstName,
+      payload.lastName,
+      payload.role,
+      payload.tenantId
+    )
     .run();
 
   return payload;
@@ -271,16 +293,25 @@ app.post('/auth/exchange', async (c) => {
     sub: string;
     email?: string;
     name?: string;
+    given_name?: string;
+    family_name?: string;
     roles?: string[];
     tenant_id?: string;
   };
+
+  const rawName = claims.name ?? 'Unknown User';
+  const firstName = claims.given_name ?? rawName.split(' ')[0] ?? 'Unknown';
+  const lastName = claims.family_name ?? rawName.split(' ').slice(1).join(' ') ?? 'User';
+  const fullName = `${firstName} ${lastName}`.trim();
 
   const tenantId = claims.tenant_id ?? c.env.AUTH_DEFAULT_TENANT_ID ?? 'tenant_default';
   const role = claims.roles?.[0] ?? 'technician';
   await upsertUser(c.env, {
     id: claims.sub,
     email: claims.email ?? 'unknown@example.com',
-    name: claims.name ?? 'Unknown User',
+    name: fullName,
+    firstName,
+    lastName,
     role,
     tenantId,
   });
@@ -288,7 +319,9 @@ app.post('/auth/exchange', async (c) => {
   const user = {
     id: claims.sub,
     email: userRow?.email ?? claims.email ?? 'unknown@example.com',
-    name: userRow?.name ?? claims.name ?? 'Unknown User',
+    name: userRow?.name ?? fullName,
+    firstName: userRow?.first_name ?? firstName,
+    lastName: userRow?.last_name ?? lastName,
     role: userRow?.role ?? role,
     tenantId: userRow?.tenant_id ?? tenantId,
   };
@@ -359,6 +392,8 @@ app.post('/auth/refresh', async (c) => {
     id: userRow.id,
     email: userRow.email,
     name: userRow.name,
+    firstName: userRow.first_name ?? 'Unknown',
+    lastName: userRow.last_name ?? 'User',
     role: userRow.role,
     tenantId: userRow.tenant_id,
   };
@@ -376,6 +411,8 @@ app.post('/auth/refresh', async (c) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
         tenantId: user.tenantId,
       },
