@@ -1,6 +1,11 @@
 import { Hono } from 'hono';
 import { JobNotFoundError, jobExists } from '../jobContext';
 import { reindexJobEvidence } from '../indexing';
+import {
+  reindexJobsByClient,
+  reindexJobsByProperty,
+  upsertJobSearchIndex,
+} from '../search/jobSearchIndex';
 import type { AppEnv } from '../workerTypes';
 
 type JsonRecord = Record<string, unknown>;
@@ -58,6 +63,12 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
       )
       .run();
 
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(reindexJobsByClient(c.env.D1_DB, tenantId, id));
+    } else {
+      await reindexJobsByClient(c.env.D1_DB, tenantId, id);
+    }
+
     return c.json({ id }, 201);
   });
 
@@ -112,6 +123,12 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
       )
       .run();
 
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(reindexJobsByProperty(c.env.D1_DB, tenantId, id));
+    } else {
+      await reindexJobsByProperty(c.env.D1_DB, tenantId, id);
+    }
+
     return c.json({ id }, 201);
   });
 
@@ -158,6 +175,12 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
         optionalString(body.summary)
       )
       .run();
+
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(upsertJobSearchIndex(c.env.D1_DB, tenantId, id));
+    } else {
+      await upsertJobSearchIndex(c.env.D1_DB, tenantId, id);
+    }
 
     return c.json({ id }, 201);
   });
@@ -244,6 +267,7 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
     }
 
     const reindex = async () => {
+      await upsertJobSearchIndex(c.env.D1_DB, tenantId, jobId.value);
       if (!c.env.VECTORIZE_INDEX || !c.env.OPENAI_API_KEY) {
         return;
       }

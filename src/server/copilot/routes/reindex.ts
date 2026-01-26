@@ -1,9 +1,32 @@
 import { Hono } from 'hono';
 import { JobNotFoundError } from '../jobContext';
 import { reindexJobEvidence } from '../indexing';
+import { reindexJobsForTenant, upsertJobSearchIndex } from '../search/jobSearchIndex';
 import type { AppEnv } from '../workerTypes';
 
 export function registerReindexRoutes(app: Hono<AppEnv>) {
+  app.post('/search/reindex', async (c) => {
+    const tenantId = c.get('tenantId');
+    const apiKeyHeader = c.req.header('x-api-key');
+    if (!c.env.SEARCH_ADMIN_TOKEN || apiKeyHeader !== c.env.SEARCH_ADMIN_TOKEN) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const count = await reindexJobsForTenant(c.env.D1_DB, tenantId);
+    return c.json({ status: 'ok', reindexed: count }, 200);
+  });
+
+  app.post('/search/reindex/job/:jobId', async (c) => {
+    const tenantId = c.get('tenantId');
+    const apiKeyHeader = c.req.header('x-api-key');
+    if (!c.env.SEARCH_ADMIN_TOKEN || apiKeyHeader !== c.env.SEARCH_ADMIN_TOKEN) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    await upsertJobSearchIndex(c.env.D1_DB, tenantId, c.req.param('jobId'));
+    return c.json({ status: 'ok' }, 200);
+  });
+
   app.post('/vectorize/reindex/job/:jobId', async (c) => {
     const tenantId = c.get('tenantId');
 

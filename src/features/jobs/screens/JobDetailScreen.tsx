@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { useJob, useJobNotes, useUpdateJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
 import { useEquipment } from '@/features/equipment';
 import { useAuth } from '@/providers';
+import { getAuthToken } from '@/lib/storage';
 import { AssignJobModal } from '../components/AssignJobModal';
 import { JobActionButtons } from '../components/JobActionButtons';
 import { JobAssignmentBadge } from '../components/JobAssignmentBadge';
@@ -57,6 +58,21 @@ export function JobDetailScreen({ route, navigation }: Props) {
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const notes = notesData?.items ?? [];
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    let cancelled = false;
+    const logToken = async () => {
+      const token = await getAuthToken();
+      if (!cancelled) {
+        console.log('[AUTH_BEARER]', token ?? 'null');
+      }
+    };
+    logToken();
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId]);
 
   if (loadingJob) {
     return (

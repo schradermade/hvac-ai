@@ -20,6 +20,7 @@ export interface Env {
   D1_DB: D1Database;
   OPENAI_API_KEY: string;
   VECTORIZE_ADMIN_TOKEN?: string;
+  SEARCH_ADMIN_TOKEN?: string;
   VECTORIZE_INDEX?: VectorizeIndex;
   AUTH_SERVICE?: Fetcher;
   CF_ACCESS_AUD?: string;

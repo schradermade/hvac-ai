@@ -13,12 +13,12 @@ const jobAssignmentKeys = {
 /**
  * Hook for getting jobs assigned to current user
  */
-export function useMyJobs() {
+export function useMyJobs(search?: string) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: jobAssignmentKeys.myJobs(user?.companyId || '', user?.id || ''),
-    queryFn: () => jobService.getByTechnician(user!.companyId, user!.id),
+    queryKey: [...jobAssignmentKeys.myJobs(user?.companyId || '', user?.id || ''), search ?? ''],
+    queryFn: () => jobService.getByTechnician(user!.companyId, user!.id, search),
     enabled: !!user?.companyId && !!user?.id,
   });
 }

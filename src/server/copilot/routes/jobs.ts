@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../workerTypes';
+import { searchJobIds, upsertJobSearchIndex } from '../search/jobSearchIndex';
 
 type JobRow = {
   id: string;
@@ -40,11 +41,28 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
     const status = c.req.query('status');
     const type = c.req.query('type');
     const assignedUserId = c.req.query('assignedUserId');
+    const searchQuery = c.req.query('q')?.trim();
     const start = parseDateParam(c.req.query('start'));
     const end = parseDateParam(c.req.query('end'));
 
     const params: unknown[] = [tenantId];
     const where: string[] = ['j.tenant_id = ?'];
+    let orderBy = 'ORDER BY j.scheduled_at ASC';
+    let orderParams: unknown[] = [];
+
+    if (searchQuery) {
+      const searchIds = await searchJobIds(c.env.D1_DB, tenantId, searchQuery);
+      if (searchIds.length === 0) {
+        return c.json({ items: [], total: 0 });
+      }
+      const placeholders = searchIds.map(() => '?').join(', ');
+      where.push(`j.id IN (${placeholders})`);
+      params.push(...searchIds);
+
+      const ordering = searchIds.map(() => 'WHEN ? THEN ?').join(' ');
+      orderBy = `ORDER BY CASE j.id ${ordering} ELSE ${searchIds.length} END`;
+      orderParams = searchIds.flatMap((id, index) => [id, index]);
+    }
 
     if (clientId) {
       where.push('j.client_id = ?');
@@ -90,11 +108,11 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
         ON u.id = j.assigned_user_id
        AND u.tenant_id = j.tenant_id
       WHERE ${where.join(' AND ')}
-      ORDER BY j.scheduled_at ASC
+      ${orderBy}
     `.trim();
 
     const result = await c.env.D1_DB.prepare(query)
-      .bind(...params)
+      .bind(...params, ...orderParams)
       .all<JobRow>();
 
     return c.json({
@@ -204,6 +222,12 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
       )
       .run();
 
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(upsertJobSearchIndex(c.env.D1_DB, tenantId, id));
+    } else {
+      await upsertJobSearchIndex(c.env.D1_DB, tenantId, id);
+    }
+
     return c.json({ id }, 201);
   });
 
@@ -238,6 +262,12 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
     )
       .bind(body.technicianId, tenantId, id)
       .run();
+
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(upsertJobSearchIndex(c.env.D1_DB, tenantId, id));
+    } else {
+      await upsertJobSearchIndex(c.env.D1_DB, tenantId, id);
+    }
 
     return c.json({ id }, 200);
   });

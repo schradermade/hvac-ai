@@ -95,6 +95,8 @@ export interface JobFilters {
   clientId?: string;
   status?: AppointmentStatus;
   type?: JobType;
+  assignedUserId?: string;
+  search?: string;
   date?: Date;
   dateRange?: {
     startDate: Date;

@@ -31,8 +31,8 @@ import { JobCard } from '../components/JobCard';
 import { JobForm } from '../components/JobForm';
 import type { JobFormData, Job } from '../types';
 import type { RootStackParamList } from '@/navigation/types';
-import { useClientList } from '@/features/clients';
 import { useAuth } from '@/providers';
+import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListRow =
@@ -104,19 +104,14 @@ export function TodaysJobsScreen() {
   }, [appliedEndDate]);
 
   const isDateFiltering = isDateSelected;
-  const { data: allJobsData, isLoading, isFetching } = useJobList();
-  const { data: myJobsData } = useMyJobs();
-  const { data: clientsData } = useClientList();
+  const debouncedSearch = useDebouncedValue(searchQuery, 250);
+  const allJobsFilters = useMemo(
+    () => ({ search: debouncedSearch || undefined }),
+    [debouncedSearch]
+  );
+  const { data: allJobsData, isLoading, isFetching } = useJobList(allJobsFilters);
+  const { data: myJobsData } = useMyJobs(debouncedSearch || undefined);
   const createMutation = useCreateJob();
-
-  const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
-  const clientNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    clients.forEach((client) => {
-      map.set(client.id, client.name.toLowerCase());
-    });
-    return map;
-  }, [clients]);
 
   const handleAdd = () => {
     setShowForm(true);
@@ -192,25 +187,12 @@ export function TodaysJobsScreen() {
     });
   }, [myJobsData?.items, isDateFiltering, rangeStart, rangeEnd]);
 
-  // Filter jobs based on filter toggle and search query
+  // Filter jobs based on filter toggle
   const filteredJobs = useMemo(() => {
     // First apply the "All" vs "My Jobs" filter
     const jobsToShow = jobFilter === 'my' ? myJobs : allJobs;
-
-    // Then apply search query
-    if (!searchQuery.trim()) {
-      return jobsToShow;
-    }
-
-    const query = searchQuery.toLowerCase();
-    return jobsToShow.filter((job) => {
-      const clientName = clientNameById.get(job.clientId) || '';
-      const jobType = job.type.toLowerCase();
-      const description = job.description.toLowerCase();
-
-      return clientName.includes(query) || jobType.includes(query) || description.includes(query);
-    });
-  }, [allJobs, myJobs, searchQuery, clientNameById, jobFilter]);
+    return jobsToShow;
+  }, [allJobs, myJobs, jobFilter]);
 
   const jobs = filteredJobs;
   const hasAnyJobs = allJobs.length > 0;

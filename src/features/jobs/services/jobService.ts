@@ -670,6 +670,14 @@ class JobService {
         params.set('type', filters.type);
       }
 
+      if (filters?.assignedUserId) {
+        params.set('assignedUserId', filters.assignedUserId);
+      }
+
+      if (filters?.search) {
+        params.set('q', filters.search);
+      }
+
       if (filters?.dateRange) {
         const start = new Date(filters.dateRange.startDate);
         start.setHours(0, 0, 0, 0);
@@ -713,6 +721,10 @@ class JobService {
       items = items.filter((job) => job.type === filters.type);
     }
 
+    if (filters?.assignedUserId) {
+      items = items.filter((job) => job.assignment?.technicianId === filters.assignedUserId);
+    }
+
     if (filters?.dateRange) {
       const rangeStart = new Date(filters.dateRange.startDate);
       rangeStart.setHours(0, 0, 0, 0);
@@ -733,6 +745,23 @@ class JobService {
         const scheduled = job.scheduledStart;
         return scheduled >= startOfDay && scheduled <= endOfDay;
       });
+    }
+
+    if (filters?.search) {
+      const query = filters.search.trim().toLowerCase();
+      if (query) {
+        items = items.filter((job) => {
+          const assignmentName = job.assignment?.technicianName?.toLowerCase() ?? '';
+          const fields = [
+            job.description,
+            job.notes ?? '',
+            job.type,
+            job.status,
+            assignmentName,
+          ].map((value) => value.toLowerCase());
+          return fields.some((value) => value.includes(query));
+        });
+      }
     }
 
     // Sort by scheduled start time
@@ -955,9 +984,16 @@ class JobService {
   /**
    * Get jobs assigned to a specific technician
    */
-  async getByTechnician(companyId: string, technicianId: string): Promise<JobListResponse> {
+  async getByTechnician(
+    companyId: string,
+    technicianId: string,
+    search?: string
+  ): Promise<JobListResponse> {
     if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
       const params = new URLSearchParams({ assignedUserId: technicianId });
+      if (search) {
+        params.set('q', search);
+      }
       const data = await fetchCopilotJson<{ items: ApiJob[]; total: number }>(
         `/api/jobs?${params.toString()}`
       );
@@ -970,9 +1006,26 @@ class JobService {
 
     await this.delay(300);
 
-    const items = Array.from(this.jobs.values())
+    let items = Array.from(this.jobs.values())
       .filter((job) => job.companyId === companyId && job.assignment?.technicianId === technicianId)
       .sort((a, b) => a.scheduledStart.getTime() - b.scheduledStart.getTime());
+
+    if (search) {
+      const query = search.trim().toLowerCase();
+      if (query) {
+        items = items.filter((job) => {
+          const assignmentName = job.assignment?.technicianName?.toLowerCase() ?? '';
+          const fields = [
+            job.description,
+            job.notes ?? '',
+            job.type,
+            job.status,
+            assignmentName,
+          ].map((value) => value.toLowerCase());
+          return fields.some((value) => value.includes(query));
+        });
+      }
+    }
 
     return {
       items,
