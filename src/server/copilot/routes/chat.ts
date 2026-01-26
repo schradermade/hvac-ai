@@ -10,9 +10,69 @@ import {
 import { buildSystemPrompt, callOpenAI, extractJsonPayload } from '../services/ai';
 import type { AppEnv } from '../workerTypes';
 
+type ConversationRow = {
+  id: string;
+  tenant_id: string;
+  job_id: string;
+  user_id: string;
+};
+
+type MessageRow = {
+  role: string;
+  content: string;
+  created_at: string;
+};
+
+function formatTimestamp(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().replace('T', ' ').replace('Z', ' UTC').slice(0, 20);
+}
+
+function formatEvidenceSection(
+  title: string,
+  items: Array<{ text: string; date?: string | null }>
+) {
+  if (items.length === 0) return '';
+  const lines = items.map((item) => {
+    const stamp = formatTimestamp(item.date);
+    const prefix = stamp ? `[${stamp}] ` : '';
+    return `- ${prefix}${item.text}`;
+  });
+  return `${title}:\n${lines.join('\n')}`;
+}
+
+function formatEvidenceForPrompt(
+  evidence: Array<{ scope: string; type: string; text: string; date?: string | null }>,
+  vectorEvidence: Array<{ text: string; date?: string | null }>
+) {
+  const jobNotes = evidence.filter((item) => item.scope === 'job' && item.type === 'note');
+  const jobEvents = evidence.filter((item) => item.scope === 'job' && item.type === 'job_event');
+  const propertyNotes = evidence.filter(
+    (item) => item.scope === 'property' && item.type === 'note'
+  );
+  const propertyEvents = evidence.filter(
+    (item) => item.scope === 'property' && item.type === 'job_event'
+  );
+  const clientNotes = evidence.filter((item) => item.scope === 'client' && item.type === 'note');
+
+  const sections = [
+    formatEvidenceSection('Job Notes', jobNotes),
+    formatEvidenceSection('Job Events', jobEvents),
+    formatEvidenceSection('Property Notes', propertyNotes),
+    formatEvidenceSection('Property Events', propertyEvents),
+    formatEvidenceSection('Client Notes', clientNotes),
+    formatEvidenceSection('Related Vector Matches', vectorEvidence),
+  ].filter(Boolean);
+
+  return sections.join('\n\n');
+}
+
 export function registerChatRoutes(app: Hono<AppEnv>) {
   app.post('/jobs/:jobId/ai/chat', async (c) => {
     const tenantId = c.get('tenantId');
+    const userId = c.get('userId');
 
     if (!c.env.OPENAI_API_KEY) {
       return c.json({ error: 'Missing OpenAI API key' }, 500);
@@ -20,6 +80,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
 
     const body = await c.req.json().catch(() => null);
     const message = body?.message;
+    const conversationIdInput = body?.conversationId;
     if (typeof message !== 'string' || message.trim().length === 0) {
       return c.json({ error: 'Missing message' }, 400);
     }
@@ -35,7 +96,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return c.json({ error: message }, 500);
     }
-    const evidence = await getJobEvidence(c.env.D1_DB, tenantId, jobId, 6);
+    const evidence = await getJobEvidence(c.env.D1_DB, tenantId, jobId);
     let vectorEvidence: ReturnType<typeof toEvidenceChunks> = [];
     let vectorMatchCount = 0;
     const vectorizeEnabled = Boolean(c.env.VECTORIZE_INDEX);
@@ -121,19 +182,258 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       }
     }
 
+    const evidenceText = formatEvidenceForPrompt(evidence, vectorEvidence);
+
+    const conversationId =
+      typeof conversationIdInput === 'string' && conversationIdInput.trim().length > 0
+        ? conversationIdInput.trim()
+        : crypto.randomUUID();
+
+    const existingConversation = await c.env.D1_DB.prepare(
+      `
+      SELECT id, tenant_id, job_id, user_id
+      FROM copilot_conversations
+      WHERE tenant_id = ? AND id = ?
+      LIMIT 1
+      `.trim()
+    )
+      .bind(tenantId, conversationId)
+      .first<ConversationRow>();
+
+    if (!existingConversation) {
+      await c.env.D1_DB.prepare(
+        `
+        INSERT INTO copilot_conversations (id, tenant_id, job_id, user_id)
+        VALUES (?, ?, ?, ?)
+        `.trim()
+      )
+        .bind(conversationId, tenantId, jobId, userId)
+        .run();
+    } else if (existingConversation.job_id !== jobId) {
+      return c.json({ error: 'Conversation does not belong to this job' }, 400);
+    }
+
+    const historyResult = await c.env.D1_DB.prepare(
+      `
+      SELECT role, content, created_at
+      FROM copilot_messages
+      WHERE conversation_id = ?
+      ORDER BY created_at DESC
+      LIMIT 25
+      `.trim()
+    )
+      .bind(conversationId)
+      .all<MessageRow>();
+
+    const historyMessages = (historyResult.results ?? []).reverse().map((row) => ({
+      role: row.role === 'assistant' ? 'assistant' : 'user',
+      content: row.content,
+    }));
+
     const openAiPayload = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       temperature: 0.2,
+      response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: buildSystemPrompt() },
         {
-          role: 'user',
-          content: `Structured context:\\n${JSON.stringify(snapshot)}\\n\\nEvidence:\\n${JSON.stringify(
-            [...evidence, ...vectorEvidence]
-          )}\\n\\nUser question:\\n${message}`,
+          role: 'system',
+          content: `Structured context:\n${JSON.stringify(
+            snapshot
+          )}\n\nEvidence (labeled sections):\n${evidenceText}`,
         },
+        ...historyMessages,
+        { role: 'user', content: message },
       ],
     };
+
+    const wantsStream = body?.stream === true;
+
+    if (wantsStream) {
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const stream = new TransformStream();
+      const writer = stream.writable.getWriter();
+
+      const sendEvent = async (event: string, data: unknown) => {
+        const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        await writer.write(encoder.encode(payload));
+      };
+
+      const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${c.env.OPENAI_API_KEY}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ ...openAiPayload, stream: true }),
+      });
+
+      if (!openAiResponse.ok || !openAiResponse.body) {
+        const errorText = await openAiResponse.text();
+        await sendEvent('error', { error: errorText || 'Streaming failed' });
+        await writer.close();
+        return new Response(stream.readable, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        });
+      }
+
+      const reader = openAiResponse.body.getReader();
+      let buffer = '';
+      let fullContent = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() ?? '';
+
+        for (const chunk of chunks) {
+          const line = chunk.split('\n').find((entry) => entry.trim().startsWith('data: '));
+          if (!line) continue;
+          const payload = line.replace(/^data:\s*/, '').trim();
+          if (payload === '[DONE]') {
+            buffer = '';
+            break;
+          }
+          try {
+            const parsed = JSON.parse(payload) as {
+              choices?: Array<{ delta?: { content?: string } }>;
+            };
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullContent += delta;
+              await sendEvent('delta', { delta });
+            }
+          } catch {
+            // ignore malformed chunks
+          }
+        }
+      }
+
+      const payloadText = extractJsonPayload(fullContent);
+      let parsedResponse: {
+        answer?: string;
+        citations?: unknown[];
+        follow_ups?: unknown[];
+      } | null = null;
+      try {
+        parsedResponse = JSON.parse(payloadText);
+      } catch {
+        parsedResponse = null;
+      }
+
+      const mergedEvidence = [...evidence, ...vectorEvidence];
+      const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
+      const hasEvidence = mergedEvidence.length > 0;
+      const shouldOverride = hasEvidence && (!Array.isArray(citations) || citations.length === 0);
+
+      const evidenceCitations = evidence.map((item) => ({
+        doc_id: item.docId,
+        date: item.date ?? null,
+        type: item.type,
+        snippet: item.text.slice(0, 240),
+      }));
+
+      const normalizedCitations =
+        citations.length > 0 &&
+        citations.every((citation) => {
+          if (!citation || typeof citation !== 'object') return false;
+          const record = citation as Record<string, unknown>;
+          return (
+            typeof record.doc_id === 'string' &&
+            typeof record.snippet === 'string' &&
+            typeof record.type === 'string'
+          );
+        })
+          ? citations
+          : evidenceCitations;
+
+      const fallbackResponse = shouldOverride
+        ? {
+            answer: `Here is the recent job history based on the latest notes and events:\n${mergedEvidence
+              .slice(0, 6)
+              .map((item) => `- ${item.text}`)
+              .join('\n')}`,
+            citations: mergedEvidence.slice(0, 6).map((item) => ({
+              doc_id: item.docId,
+              date: item.date ?? null,
+              type: item.type,
+              snippet: item.text.slice(0, 160),
+            })),
+            follow_ups: [],
+          }
+        : null;
+
+      const assistantContent = fallbackResponse?.answer ?? parsedResponse?.answer ?? fullContent;
+
+      await c.env.D1_DB.prepare(
+        `
+        INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `.trim()
+      )
+        .bind(crypto.randomUUID(), conversationId, tenantId, jobId, userId, 'user', message)
+        .run();
+
+      await c.env.D1_DB.prepare(
+        `
+        INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `.trim()
+      )
+        .bind(
+          crypto.randomUUID(),
+          conversationId,
+          tenantId,
+          jobId,
+          userId,
+          'assistant',
+          assistantContent
+        )
+        .run();
+
+      await c.env.D1_DB.prepare(
+        `
+        UPDATE copilot_conversations
+        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        WHERE id = ?
+        `.trim()
+      )
+        .bind(conversationId)
+        .run();
+
+      const responsePayload = {
+        conversation_id: conversationId,
+        answer: assistantContent,
+        citations: fallbackResponse?.citations ?? normalizedCitations,
+        follow_ups: fallbackResponse?.follow_ups ?? parsedResponse?.follow_ups ?? [],
+        evidence: evidence.map((item) => ({
+          doc_id: item.docId,
+          date: item.date,
+          type: item.type,
+          scope: item.scope,
+          text: item.text,
+        })),
+      };
+
+      await sendEvent('done', responsePayload);
+      await writer.close();
+
+      return new Response(stream.readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+          'x-conversation-id': conversationId,
+        },
+      });
+    }
 
     const aiResponse = await callOpenAI(c.env.OPENAI_API_KEY, openAiPayload);
     const content = aiResponse.choices[0]?.message?.content ?? '';
@@ -147,11 +447,101 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       parsedResponse = null;
     }
 
+    const mergedEvidence = [...evidence, ...vectorEvidence];
+    const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
+    const hasEvidence = mergedEvidence.length > 0;
+    const shouldOverride = hasEvidence && (!Array.isArray(citations) || citations.length === 0);
+
+    const evidenceCitations = evidence.map((item) => ({
+      doc_id: item.docId,
+      date: item.date ?? null,
+      type: item.type,
+      snippet: item.text.slice(0, 240),
+    }));
+
+    const normalizedCitations =
+      citations.length > 0 &&
+      citations.every((citation) => {
+        if (!citation || typeof citation !== 'object') return false;
+        const record = citation as Record<string, unknown>;
+        return (
+          typeof record.doc_id === 'string' &&
+          typeof record.snippet === 'string' &&
+          typeof record.type === 'string'
+        );
+      })
+        ? citations
+        : evidenceCitations;
+
+    const fallbackResponse = shouldOverride
+      ? {
+          answer: `Here is the recent job history based on the latest notes and events:\\n${mergedEvidence
+            .slice(0, 6)
+            .map((item) => `- ${item.text}`)
+            .join('\\n')}`,
+          citations: mergedEvidence.slice(0, 6).map((item) => ({
+            doc_id: item.docId,
+            date: item.date ?? null,
+            type: item.type,
+            snippet: item.text.slice(0, 160),
+          })),
+          follow_ups: [],
+        }
+      : null;
+
+    const assistantContent = fallbackResponse?.answer ?? parsedResponse?.answer ?? content;
+
+    await c.env.D1_DB.prepare(
+      `
+      INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      `.trim()
+    )
+      .bind(crypto.randomUUID(), conversationId, tenantId, jobId, userId, 'user', message)
+      .run();
+
+    await c.env.D1_DB.prepare(
+      `
+      INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      `.trim()
+    )
+      .bind(
+        crypto.randomUUID(),
+        conversationId,
+        tenantId,
+        jobId,
+        userId,
+        'assistant',
+        assistantContent
+      )
+      .run();
+
+    await c.env.D1_DB.prepare(
+      `
+      UPDATE copilot_conversations
+      SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      WHERE id = ?
+      `.trim()
+    )
+      .bind(conversationId)
+      .run();
+
+    c.header('x-conversation-id', conversationId);
+
     return c.json(
       {
-        answer: parsedResponse?.answer ?? content,
-        citations: parsedResponse?.citations ?? [],
-        follow_ups: parsedResponse?.follow_ups ?? [],
+        conversation_id: conversationId,
+        answer: assistantContent,
+        citations: fallbackResponse?.citations ?? normalizedCitations,
+        follow_ups: fallbackResponse?.follow_ups ?? parsedResponse?.follow_ups ?? [],
+        evidence: evidence.map((item) => ({
+          doc_id: item.docId,
+          date: item.date,
+          type: item.type,
+          scope: item.scope,
+          text: item.text,
+        })),
         debug: debugEnabled
           ? {
               vectorizeEnabled,
@@ -163,6 +553,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
               unfilteredMatches,
               vectorMetadata,
               vectorFilterFallbackUsed,
+              fallbackUsed: Boolean(fallbackResponse),
             }
           : undefined,
       },

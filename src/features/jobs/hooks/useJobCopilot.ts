@@ -3,13 +3,20 @@ import type { Message } from '@/features/diagnostic/types';
 import { jobCopilotService } from '../services/jobCopilotService';
 import type { JobCopilotResponse } from '../types/copilot';
 
-function formatCitations(response: JobCopilotResponse): string {
-  if (!response.citations.length) {
-    return '';
+function getSources(response: JobCopilotResponse) {
+  if (response.evidence?.length) {
+    return response.evidence.map((item) => ({
+      snippet: item.text,
+      date: item.date,
+      type: item.type,
+    }));
   }
 
-  const lines = response.citations.map((citation) => `- ${citation.snippet}`);
-  return `\n\nSources:\n${lines.join('\n')}`;
+  return response.citations.map((citation) => ({
+    snippet: citation.snippet,
+    date: citation.date,
+    type: citation.type,
+  }));
 }
 
 function createMessage({
@@ -20,6 +27,7 @@ function createMessage({
   senderName,
   senderRole,
   isLoading,
+  sources,
 }: Partial<Message> & Pick<Message, 'id' | 'content' | 'role'>): Message {
   return {
     id,
@@ -30,6 +38,7 @@ function createMessage({
     senderName,
     senderRole,
     isLoading,
+    sources,
   };
 }
 
@@ -37,6 +46,7 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [followUps, setFollowUps] = useState<string[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -67,15 +77,39 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
       setIsSending(true);
 
       try {
-        const response = await jobCopilotService.sendMessage(jobId, content);
+        const response = await jobCopilotService.sendMessageStreaming({
+          jobId,
+          message: content,
+          conversationId,
+          onDelta: (delta) => {
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id !== loadingMessage.id) return msg;
+                const nextContent =
+                  msg.content === 'Thinking...' ? delta : `${msg.content}${delta}`;
+                return {
+                  ...msg,
+                  content: nextContent,
+                  isLoading: false,
+                };
+              })
+            );
+          },
+        });
+
         const assistantMessage = createMessage({
           id: `ai-${Date.now()}-final`,
-          content: `${response.answer}${formatCitations(response)}`,
+          content: response.answer,
           role: 'assistant',
           senderId: 'ai',
           senderName: 'HVACOps Copilot',
           senderRole: 'ai',
+          sources: getSources(response),
         });
+
+        if (response.conversation_id) {
+          setConversationId(response.conversation_id);
+        }
 
         setFollowUps(response.follow_ups ?? []);
         setMessages((prev) => {
@@ -101,7 +135,7 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
         setIsSending(false);
       }
     },
-    [jobId, userId, userName]
+    [conversationId, jobId, userId, userName]
   );
 
   return {

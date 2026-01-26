@@ -107,6 +107,16 @@ export function MessageBubble({ message, isCollaborative, currentUserId }: Messa
               </Text>
             )}
           </View>
+          {isAI && !message.isLoading && message.sources?.length ? (
+            <View style={styles.sourcesCard}>
+              <Text style={styles.sourcesTitle}>Sources</Text>
+              {message.sources.map((source, index) => (
+                <Text key={`${source.snippet}-${index}`} style={styles.sourceLine}>
+                  {formatSource(source)}
+                </Text>
+              ))}
+            </View>
+          ) : null}
           <Text
             style={[
               styles.timestamp,
@@ -138,6 +148,23 @@ function formatTimestamp(date: Date): string {
   const displayMinutes = minutes.toString().padStart(2, '0');
 
   return `${displayHours}:${displayMinutes} ${ampm}`;
+}
+
+function formatSource(source: { snippet: string; date?: string }) {
+  if (!source.date) {
+    return `• ${source.snippet}`;
+  }
+  const parsed = new Date(source.date);
+  const stamp = Number.isNaN(parsed.getTime())
+    ? source.date
+    : parsed.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+  return `• ${source.snippet} (${stamp})`;
 }
 
 const styles = StyleSheet.create({
@@ -213,6 +240,28 @@ const styles = StyleSheet.create({
   },
   assistantTimestamp: {
     textAlign: 'left',
+  },
+  sourcesCard: {
+    marginTop: spacing[2],
+    padding: spacing[3],
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sourcesTitle: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing[2],
+  },
+  sourceLine: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textPrimary,
+    lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
+    marginBottom: spacing[1],
   },
   // System messages
   systemMessageContainer: {

@@ -11,6 +11,7 @@ export interface D1DatabaseLike {
 export interface EvidenceItem {
   docId: string;
   type: 'job_event' | 'note';
+  scope: 'job' | 'property' | 'client';
   date: string;
   text: string;
 }
@@ -34,7 +35,7 @@ export async function getJobEvidence(
   db: D1DatabaseLike,
   tenantId: string,
   jobId: string,
-  limit = 6
+  limit?: number
 ): Promise<EvidenceItem[]> {
   const jobRow = await db
     .prepare<{ property_id: string; client_id: string }>(
@@ -52,29 +53,25 @@ export async function getJobEvidence(
     return [];
   }
 
-  const jobEvents = await loadJobEvents(db, tenantId, 'job_id', jobId, limit);
-  const jobNotes = await loadNotes(db, tenantId, 'job', jobId, limit);
+  const [jobEvents, jobNotes, propertyEvents, propertyNotes, clientNotes] = await Promise.all([
+    loadJobEvents(db, tenantId, 'job_id', jobId, limit),
+    loadNotes(db, tenantId, 'job', jobId, limit),
+    loadJobEvents(db, tenantId, 'property_id', jobRow.property_id, limit),
+    loadNotes(db, tenantId, 'property', jobRow.property_id, limit),
+    loadNotes(db, tenantId, 'client', jobRow.client_id, limit),
+  ]);
 
-  let evidence: EvidenceItem[] = [...jobEvents, ...jobNotes];
+  const evidence: EvidenceItem[] = [
+    ...jobEvents,
+    ...jobNotes,
+    ...propertyEvents,
+    ...propertyNotes,
+    ...clientNotes,
+  ];
 
-  if (evidence.length < 3) {
-    const propertyEvents = await loadJobEvents(
-      db,
-      tenantId,
-      'property_id',
-      jobRow.property_id,
-      limit
-    );
-    const propertyNotes = await loadNotes(db, tenantId, 'property', jobRow.property_id, limit);
-    evidence = [...evidence, ...propertyEvents, ...propertyNotes];
-  }
+  evidence.sort((a, b) => b.date.localeCompare(a.date));
 
-  if (evidence.length < 3) {
-    const clientNotes = await loadNotes(db, tenantId, 'client', jobRow.client_id, limit);
-    evidence = [...evidence, ...clientNotes];
-  }
-
-  return evidence.slice(0, limit);
+  return limit ? evidence.slice(0, limit) : evidence;
 }
 
 async function loadJobEvents(
@@ -82,8 +79,10 @@ async function loadJobEvents(
   tenantId: string,
   column: 'job_id' | 'property_id',
   id: string,
-  limit: number
+  limit?: number
 ): Promise<EvidenceItem[]> {
+  const scope = column === 'job_id' ? 'job' : 'property';
+  const limitClause = typeof limit === 'number' ? 'LIMIT ?' : '';
   const eventResults = await db
     .prepare<JobEventRow>(
       `
@@ -96,15 +95,16 @@ async function loadJobEvents(
       FROM job_events
       WHERE tenant_id = ? AND ${column} = ?
       ORDER BY created_at DESC
-      LIMIT ?
+      ${limitClause}
       `.trim()
     )
-    .bind(tenantId, id, limit)
+    .bind(...(typeof limit === 'number' ? [tenantId, id, limit] : [tenantId, id]))
     .all();
 
   return eventResults.results.map((row) => ({
     docId: row.id,
     type: 'job_event' as const,
+    scope,
     date: row.created_at,
     text: [row.event_type, row.issue, row.resolution]
       .filter((value) => value && value.trim().length > 0)
@@ -117,8 +117,10 @@ async function loadNotes(
   tenantId: string,
   entityType: 'job' | 'property' | 'client',
   entityId: string,
-  limit: number
+  limit?: number
 ): Promise<EvidenceItem[]> {
+  const scope = entityType;
+  const limitClause = typeof limit === 'number' ? 'LIMIT ?' : '';
   const noteResults = await db
     .prepare<NoteRow>(
       `
@@ -130,15 +132,20 @@ async function loadNotes(
       FROM notes
       WHERE tenant_id = ? AND entity_type = ? AND entity_id = ?
       ORDER BY created_at DESC
-      LIMIT ?
+      ${limitClause}
       `.trim()
     )
-    .bind(tenantId, entityType, entityId, limit)
+    .bind(
+      ...(typeof limit === 'number'
+        ? [tenantId, entityType, entityId, limit]
+        : [tenantId, entityType, entityId])
+    )
     .all();
 
   return noteResults.results.map((row) => ({
     docId: row.id,
     type: 'note' as const,
+    scope,
     date: row.created_at,
     text: row.content,
   }));

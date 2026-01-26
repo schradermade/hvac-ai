@@ -40,6 +40,11 @@ export interface Message {
   content: string;
   timestamp: Date;
   isLoading?: boolean;
+  sources?: Array<{
+    snippet: string;
+    date?: string;
+    type?: string;
+  }>;
 
   // Sender attribution for collaborative sessions
   senderId?: string; // Technician ID (undefined for AI)
