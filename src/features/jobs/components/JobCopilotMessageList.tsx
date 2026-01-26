@@ -1,5 +1,19 @@
-import React, { useEffect, useRef } from 'react';
-import { FlatList, View, Text, StyleSheet } from 'react-native';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  FlatList,
+  View,
+  Text,
+  StyleSheet,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
 import { MessageBubble } from '@/features/diagnostic/components/MessageBubble';
@@ -8,6 +22,12 @@ import type { Message } from '@/features/diagnostic/types';
 type Props = {
   messages: Message[];
   currentUserId: string;
+  scrollKey: string;
+  bottomInset?: number;
+};
+
+export type JobCopilotMessageListHandle = {
+  scrollToLatest: () => void;
 };
 
 const SUGGESTIONS = [
@@ -16,55 +36,92 @@ const SUGGESTIONS = [
   'Summarize recent service history.',
 ];
 
-export function JobCopilotMessageList({ messages, currentUserId }: Props) {
-  const flatListRef = useRef<FlatList>(null);
+export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Props>(
+  ({ messages, currentUserId, scrollKey, bottomInset = 0 }, ref) => {
+    const flatListRef = useRef<FlatList>(null);
+    const isAtBottomRef = useRef(true);
+    const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
+    const isInverted = true;
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      flatListRef.current?.scrollToEnd({ animated: true });
+    useImperativeHandle(ref, () => ({
+      scrollToLatest: () => {
+        if (!isAtBottomRef.current) {
+          return;
+        }
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      },
+    }));
+
+    useEffect(() => {
+      if (messages.length === 0) return;
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+        isAtBottomRef.current = true;
+      });
+    }, [messages.length, scrollKey]);
+
+    const renderItem = useCallback(
+      ({ item }: { item: Message }) => (
+        <MessageBubble message={item} isCollaborative={false} currentUserId={currentUserId} />
+      ),
+      [currentUserId]
+    );
+
+    if (messages.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Ionicons name="sparkles" size={48} color={colors.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>Job Copilot</Text>
+          <Text style={styles.emptySubtitle}>Ask about this job's history and notes.</Text>
+
+          <View style={styles.suggestionsContainer}>
+            <Text style={styles.suggestionsTitle}>Try asking:</Text>
+            {SUGGESTIONS.map((item) => (
+              <View key={item} style={styles.suggestionCard}>
+                <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
+                <Text style={styles.suggestionText}>{item}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      );
     }
-  }, [messages.length]);
 
-  if (messages.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconContainer}>
-          <Ionicons name="sparkles" size={48} color={colors.primary} />
-        </View>
-        <Text style={styles.emptyTitle}>Job Copilot</Text>
-        <Text style={styles.emptySubtitle}>Ask about this job's history and notes.</Text>
-
-        <View style={styles.suggestionsContainer}>
-          <Text style={styles.suggestionsTitle}>Try asking:</Text>
-          {SUGGESTIONS.map((item) => (
-            <View key={item} style={styles.suggestionCard}>
-              <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
-              <Text style={styles.suggestionText}>{item}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
+      <FlatList
+        ref={flatListRef}
+        data={reversedMessages}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={[styles.listContent, { paddingBottom: spacing[2] + bottomInset }]}
+        style={styles.list}
+        inverted={isInverted}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={7}
+        onContentSizeChange={() => {
+          if (isAtBottomRef.current) {
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+          }
+        }}
+        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+          const { contentOffset } = event.nativeEvent;
+          const paddingToBottom = 40;
+          isAtBottomRef.current = contentOffset.y <= paddingToBottom;
+        }}
+        scrollEventThrottle={16}
+      />
     );
   }
-
-  return (
-    <FlatList
-      ref={flatListRef}
-      data={messages}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <MessageBubble message={item} isCollaborative={false} currentUserId={currentUserId} />
-      )}
-      contentContainerStyle={styles.listContent}
-      style={styles.list}
-      showsVerticalScrollIndicator={false}
-      onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-    />
-  );
-}
+);
 
 const styles = StyleSheet.create({
   list: {
+    flex: 1,
     backgroundColor: '#F4F6FE',
   },
   listContent: {

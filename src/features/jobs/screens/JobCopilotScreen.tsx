@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Keyboard } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers';
@@ -9,7 +9,10 @@ import { colors, spacing, typography, borderRadius, shadows } from '@/components
 import { useJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
 import { useJobCopilot } from '../hooks/useJobCopilot';
-import { JobCopilotMessageList } from '../components/JobCopilotMessageList';
+import {
+  JobCopilotMessageList,
+  type JobCopilotMessageListHandle,
+} from '../components/JobCopilotMessageList';
 import { ChatInput } from '@/features/diagnostic/components/ChatInput';
 import type { RootStackParamList } from '@/navigation/types';
 
@@ -18,6 +21,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'JobCopilot'>;
 export function JobCopilotScreen({ route }: Props) {
   const { jobId } = route.params;
   const { user } = useAuth();
+  const listRef = useRef<JobCopilotMessageListHandle>(null);
+  const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const { data: job, isLoading: jobLoading } = useJob(jobId);
   const { data: client, isLoading: clientLoading } = useClient(job?.clientId || '');
   const { messages, isSending, sendMessage, followUps } = useJobCopilot(
@@ -25,6 +31,22 @@ export function JobCopilotScreen({ route }: Props) {
     user?.id || 'user',
     user ? `${user.firstName} ${user.lastName}` : undefined
   );
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSubscription = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+      requestAnimationFrame(() => listRef.current?.scrollToLatest());
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   if (jobLoading) {
     return (
@@ -42,8 +64,10 @@ export function JobCopilotScreen({ route }: Props) {
     );
   }
 
+  const bottomInset = Math.max(0, keyboardHeight - insets.bottom);
+
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.contextHeader}>
         <Card style={styles.contextCard}>
           <View style={styles.contextRow}>
@@ -64,7 +88,13 @@ export function JobCopilotScreen({ route }: Props) {
         </Card>
       </View>
 
-      <JobCopilotMessageList messages={messages} currentUserId={user?.id || 'user'} />
+      <JobCopilotMessageList
+        ref={listRef}
+        messages={messages}
+        currentUserId={user?.id || 'user'}
+        scrollKey={jobId}
+        bottomInset={bottomInset}
+      />
 
       {followUps.length > 0 && (
         <View style={styles.followUpRow}>
@@ -83,8 +113,10 @@ export function JobCopilotScreen({ route }: Props) {
 
       <ChatInput
         onSend={sendMessage}
+        onFocus={() => listRef.current?.scrollToLatest()}
         disabled={isSending}
         placeholder="Ask about this job, notes, or service history..."
+        containerStyle={{ paddingBottom: spacing[4] + bottomInset }}
       />
     </SafeAreaView>
   );

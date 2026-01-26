@@ -4,8 +4,8 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/components/ui';
@@ -17,6 +17,8 @@ interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  onFocus?: () => void;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -33,6 +35,8 @@ export function ChatInput({
   onSend,
   disabled = false,
   placeholder = 'Ask a question...',
+  onFocus,
+  containerStyle,
 }: ChatInputProps) {
   const [text, setText] = useState('');
 
@@ -46,36 +50,32 @@ export function ChatInput({
   const canSend = text.trim().length > 0 && !disabled;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-    >
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={setText}
-          placeholder={placeholder}
-          placeholderTextColor={colors.disabled}
-          multiline
-          maxLength={500}
-          editable={!disabled}
-          returnKeyType="send"
-          onSubmitEditing={handleSend}
-        />
-        <Pressable
-          style={({ pressed }) => [
-            styles.sendButton,
-            !canSend && styles.sendButtonDisabled,
-            pressed && canSend && styles.sendButtonPressed,
-          ]}
-          onPress={handleSend}
-          disabled={!canSend}
-        >
-          <Ionicons name="arrow-up" size={24} color={canSend ? colors.surface : colors.disabled} />
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+    <View style={[styles.container, containerStyle]}>
+      <TextInput
+        style={styles.input}
+        value={text}
+        onChangeText={setText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.disabled}
+        multiline
+        maxLength={500}
+        editable={!disabled}
+        returnKeyType="send"
+        onSubmitEditing={handleSend}
+        onFocus={onFocus}
+      />
+      <Pressable
+        style={({ pressed }) => [
+          styles.sendButton,
+          !canSend && styles.sendButtonDisabled,
+          pressed && canSend && styles.sendButtonPressed,
+        ]}
+        onPress={handleSend}
+        disabled={!canSend}
+      >
+        <Ionicons name="arrow-up" size={24} color={canSend ? colors.surface : colors.disabled} />
+      </Pressable>
+    </View>
   );
 }
 

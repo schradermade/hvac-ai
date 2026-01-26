@@ -1,9 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Message } from '@/features/diagnostic/types';
 import { jobCopilotService } from '../services/jobCopilotService';
 import type { JobCopilotResponse } from '../types/copilot';
 
 function getSources(response: JobCopilotResponse) {
+  if (response.citations.length) {
+    return response.citations.map((citation) => ({
+      snippet: citation.snippet,
+      date: citation.date,
+      type: citation.type,
+    }));
+  }
+
   if (response.evidence?.length) {
     return response.evidence.map((item) => ({
       snippet: item.text,
@@ -12,11 +20,7 @@ function getSources(response: JobCopilotResponse) {
     }));
   }
 
-  return response.citations.map((citation) => ({
-    snippet: citation.snippet,
-    date: citation.date,
-    type: citation.type,
-  }));
+  return [];
 }
 
 function createMessage({
@@ -47,6 +51,60 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
   const [isSending, setIsSending] = useState(false);
   const [followUps, setFollowUps] = useState<string[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!jobId) return;
+      try {
+        const response = await jobCopilotService.getConversation(jobId, conversationId);
+        if (!isMounted) return;
+        if (response.conversation_id) {
+          setConversationId(response.conversation_id);
+        }
+        const restored = response.messages.map((item, index) => {
+          let sources;
+          if (item.metadata_json && item.role === 'assistant') {
+            try {
+              const metadata = JSON.parse(item.metadata_json) as { citations?: unknown };
+              if (Array.isArray(metadata.citations)) {
+                sources = metadata.citations
+                  .map((citation) => {
+                    if (!citation || typeof citation !== 'object') return null;
+                    const record = citation as Record<string, unknown>;
+                    if (typeof record.snippet !== 'string') return null;
+                    return {
+                      snippet: record.snippet as string,
+                      date: typeof record.date === 'string' ? record.date : undefined,
+                      type: typeof record.type === 'string' ? record.type : undefined,
+                    };
+                  })
+                  .filter(Boolean);
+              }
+            } catch {
+              sources = undefined;
+            }
+          }
+          return createMessage({
+            id: `history-${index}-${item.created_at}`,
+            content: item.content,
+            role: item.role === 'assistant' ? 'assistant' : 'user',
+            senderId: item.role === 'assistant' ? 'ai' : userId,
+            senderName: item.role === 'assistant' ? 'HVACOps Copilot' : userName,
+            senderRole: item.role === 'assistant' ? 'ai' : 'primary',
+            sources,
+          });
+        });
+        setMessages(restored);
+      } catch {
+        // Leave conversation empty if load fails.
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [conversationId, jobId, userId, userName]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -143,5 +201,6 @@ export function useJobCopilot(jobId: string, userId: string, userName?: string) 
     isSending,
     sendMessage,
     followUps,
+    conversationId,
   };
 }

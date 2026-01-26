@@ -36,7 +36,7 @@ const ROLE_COLORS = {
  * - Timestamp display
  * - Proper spacing and shadows
  */
-export function MessageBubble({ message, isCollaborative, currentUserId }: MessageBubbleProps) {
+function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageBubbleProps) {
   const isOwnMessage = message.senderId === currentUserId;
   const isAI = message.senderId === 'ai' || message.role === 'assistant';
   const isSystem = message.senderId === 'system';
@@ -136,6 +136,8 @@ export function MessageBubble({ message, isCollaborative, currentUserId }: Messa
     </View>
   );
 }
+
+export const MessageBubble = React.memo(MessageBubbleBase);
 
 /**
  * Format timestamp for display

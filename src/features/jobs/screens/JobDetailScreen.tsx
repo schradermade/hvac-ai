@@ -246,66 +246,77 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
         {/* Job Status Actions */}
         <View style={styles.quickActionsSection}>
-          {showStartJob && (
-            <View>
-              <TouchableOpacity
-                style={[
-                  styles.primaryAction,
-                  (!canStartJob || updatingStatus) && styles.primaryActionDisabled,
-                ]}
-                onPress={() => handleStatusUpdate('in_progress')}
-                disabled={!canStartJob || updatingStatus}
-                activeOpacity={0.8}
-              >
-                {updatingStatus ? (
-                  <ActivityIndicator size="small" color={colors.surface} />
-                ) : (
-                  <>
-                    <Ionicons name="play-circle" size={20} color={colors.surface} />
-                    <Text style={styles.primaryActionText}>Start Job</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              {!canStartJob && (
+          {showStartJob || canCompleteJob ? (
+            <>
+              <View style={styles.primaryActionsRow}>
+                <View style={styles.actionCell}>
+                  {canCompleteJob ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.primaryActionCompactSecondary,
+                        updatingStatus && styles.primaryActionDisabled,
+                      ]}
+                      onPress={() => handleStatusUpdate('completed')}
+                      disabled={updatingStatus}
+                      activeOpacity={0.8}
+                    >
+                      {updatingStatus ? (
+                        <ActivityIndicator size="small" color={colors.surface} />
+                      ) : (
+                        <>
+                          <Ionicons name="checkmark-circle" size={18} color={colors.surface} />
+                          <Text style={styles.primaryActionTextCompact}>Complete</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[
+                        styles.primaryActionCompactSecondary,
+                        (!canStartJob || updatingStatus) && styles.primaryActionDisabled,
+                      ]}
+                      onPress={() => handleStatusUpdate('in_progress')}
+                      disabled={!canStartJob || updatingStatus}
+                      activeOpacity={0.8}
+                    >
+                      {updatingStatus ? (
+                        <ActivityIndicator size="small" color={colors.surface} />
+                      ) : (
+                        <>
+                          <Ionicons name="play-circle" size={18} color={colors.surface} />
+                          <Text style={styles.primaryActionTextCompact}>Start Job</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View style={styles.actionCell}>
+                  <TouchableOpacity
+                    style={styles.aiHelpButtonCompact}
+                    onPress={handleStartCopilot}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+                    <Text style={styles.aiHelpButtonTextCompact}>Get AI Help</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {!canStartJob && showStartJob && (
                 <Text style={styles.primaryActionHint}>
                   Assign and accept this job before starting.
                 </Text>
               )}
-            </View>
-          )}
-          {canCompleteJob && (
+            </>
+          ) : (
             <TouchableOpacity
-              style={[styles.primaryAction, updatingStatus && styles.primaryActionDisabled]}
-              onPress={() => handleStatusUpdate('completed')}
-              disabled={updatingStatus}
-              activeOpacity={0.8}
+              style={styles.aiHelpButtonCompact}
+              onPress={handleStartCopilot}
+              activeOpacity={0.85}
             >
-              {updatingStatus ? (
-                <ActivityIndicator size="small" color={colors.surface} />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.surface} />
-                  <Text style={styles.primaryActionText}>Complete Job</Text>
-                </>
-              )}
+              <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+              <Text style={styles.aiHelpButtonTextCompact}>Get AI Help</Text>
             </TouchableOpacity>
           )}
-
-          {/* AI Help - Premium feature showcase */}
-          <TouchableOpacity
-            style={styles.aiHelpButton}
-            onPress={handleStartCopilot}
-            activeOpacity={0.85}
-          >
-            <View style={styles.aiHelpIconContainer}>
-              <Ionicons name="sparkles" size={24} color="#FFFFFF" />
-            </View>
-            <View style={styles.aiHelpTextContainer}>
-              <Text style={styles.aiHelpButtonText}>Get AI Help</Text>
-              <Text style={styles.aiHelpSubtext}>Powered by HVAC.ai</Text>
-            </View>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
         </View>
 
         {/* Schedule Section */}
@@ -530,6 +541,42 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
           <Card style={styles.infoCard}>
             <View style={styles.detailsContent}>
+              <View style={styles.infoGrid}>
+                <View style={styles.infoItem}>
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="pulse-outline" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Status</Text>
+                    <Text style={styles.infoValue}>{getStatusLabel(job.status)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="briefcase-outline" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Job Type</Text>
+                    <Text style={styles.infoValue}>{job.type.toUpperCase()}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="cube-outline" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Equipment</Text>
+                    <Text style={styles.infoValue}>
+                      {loadingEquipment
+                        ? 'Loading equipment...'
+                        : equipment?.name || 'Not assigned'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
               <View style={styles.detailSection}>
                 <Text style={styles.detailLabel}>Description</Text>
                 <Text style={styles.detailValue}>{job.description}</Text>
@@ -750,23 +797,12 @@ const styles = StyleSheet.create({
     paddingTop: spacing[6],
     gap: spacing[3],
   },
-  primaryAction: {
+  primaryActionsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.primary,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderRadius: borderRadius.lg,
-    minHeight: 56,
-    width: '100%',
-    ...shadows.lg,
+    gap: spacing[3],
   },
-  primaryActionText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.bold,
-    color: '#FFFFFF',
+  actionCell: {
+    flex: 1,
   },
   primaryActionDisabled: {
     opacity: 0.6,
@@ -776,50 +812,47 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing[2],
   },
-  aiHelpButton: {
+  primaryActionCompactSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing[3],
-    backgroundColor: '#6366F1', // Vibrant indigo
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[5],
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
     borderRadius: borderRadius.lg,
-    minHeight: 72,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    minHeight: 54,
     ...shadows.lg,
-    shadowColor: '#6366F1',
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 12,
   },
-  aiHelpIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
+  primaryActionTextCompact: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
+    color: '#FFFFFF',
+  },
+  aiHelpButtonCompact: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: '#6366F1',
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
+    borderRadius: borderRadius.lg,
+    minHeight: 54,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    ...shadows.lg,
+    shadowColor: '#6366F1',
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
   },
-  aiHelpTextContainer: {
-    flex: 1,
-    gap: spacing[1],
-  },
-  aiHelpButtonText: {
-    fontSize: typography.fontSize.lg,
+  aiHelpButtonTextCompact: {
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
     color: '#FFFFFF',
     letterSpacing: 0.3,
-  },
-  aiHelpSubtext: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.medium,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
   },
   section: {
     marginTop: spacing[6],

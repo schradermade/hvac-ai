@@ -30,6 +30,23 @@ function buildMockResponse(message: string): JobCopilotResponse {
 }
 
 class JobCopilotService {
+  async getConversation(jobId: string, conversationId?: string | null) {
+    if (!process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      return { conversation_id: null, messages: [] };
+    }
+
+    const query = conversationId ? `?conversationId=${encodeURIComponent(conversationId)}` : '';
+    return fetchCopilotJson<{
+      conversation_id: string | null;
+      messages: Array<{
+        role: string;
+        content: string;
+        created_at: string;
+        metadata_json?: string | null;
+      }>;
+    }>(`/api/jobs/${jobId}/ai/conversation${query}`);
+  }
+
   async sendMessage(
     jobId: string,
     message: string,

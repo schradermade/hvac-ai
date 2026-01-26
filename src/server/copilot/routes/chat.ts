@@ -21,7 +21,16 @@ type MessageRow = {
   role: string;
   content: string;
   created_at: string;
+  metadata_json?: string | null;
 };
+
+async function sha256(input: string) {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 function formatTimestamp(value?: string | null) {
   if (!value) return '';
@@ -70,6 +79,64 @@ function formatEvidenceForPrompt(
 }
 
 export function registerChatRoutes(app: Hono<AppEnv>) {
+  app.get('/jobs/:jobId/ai/conversation', async (c) => {
+    const tenantId = c.get('tenantId');
+    const userId = c.get('userId');
+    const jobId = c.req.param('jobId');
+    const requestedId = c.req.query('conversationId');
+
+    let conversation: ConversationRow | null = null;
+    if (requestedId) {
+      conversation = await c.env.D1_DB.prepare(
+        `
+        SELECT id, tenant_id, job_id, user_id
+        FROM copilot_conversations
+        WHERE tenant_id = ? AND id = ?
+        LIMIT 1
+        `.trim()
+      )
+        .bind(tenantId, requestedId)
+        .first<ConversationRow>();
+    } else {
+      conversation = await c.env.D1_DB.prepare(
+        `
+        SELECT id, tenant_id, job_id, user_id
+        FROM copilot_conversations
+        WHERE tenant_id = ? AND job_id = ? AND user_id = ?
+        ORDER BY updated_at DESC
+        LIMIT 1
+        `.trim()
+      )
+        .bind(tenantId, jobId, userId)
+        .first<ConversationRow>();
+    }
+
+    if (!conversation || conversation.job_id !== jobId) {
+      return c.json({ conversation_id: null, messages: [] }, 200);
+    }
+
+    const messages = await c.env.D1_DB.prepare(
+      `
+      SELECT role, content, created_at, metadata_json
+      FROM copilot_messages
+      WHERE conversation_id = ?
+      ORDER BY created_at ASC
+      `.trim()
+    )
+      .bind(conversation.id)
+      .all<MessageRow>();
+
+    return c.json({
+      conversation_id: conversation.id,
+      messages: (messages.results ?? []).map((row) => ({
+        role: row.role,
+        content: row.content,
+        created_at: row.created_at,
+        metadata_json: row.metadata_json ?? null,
+      })),
+    });
+  });
+
   app.post('/jobs/:jobId/ai/chat', async (c) => {
     const tenantId = c.get('tenantId');
     const userId = c.get('userId');
@@ -230,6 +297,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       content: row.content,
     }));
 
+    const promptVersion = 'copilot.v1';
     const openAiPayload = {
       model: 'gpt-4o',
       temperature: 0.2,
@@ -328,10 +396,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         parsedResponse = null;
       }
 
-      const mergedEvidence = [...evidence, ...vectorEvidence];
       const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
-      const hasEvidence = mergedEvidence.length > 0;
-      const shouldOverride = hasEvidence && (!Array.isArray(citations) || citations.length === 0);
 
       const evidenceCitations = evidence.map((item) => ({
         doc_id: item.docId,
@@ -354,37 +419,50 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           ? citations
           : evidenceCitations;
 
-      const fallbackResponse = shouldOverride
-        ? {
-            answer: `Here is the recent job history based on the latest notes and events:\n${mergedEvidence
-              .slice(0, 6)
-              .map((item) => `- ${item.text}`)
-              .join('\n')}`,
-            citations: mergedEvidence.slice(0, 6).map((item) => ({
-              doc_id: item.docId,
-              date: item.date ?? null,
-              type: item.type,
-              snippet: item.text.slice(0, 160),
-            })),
-            follow_ups: [],
-          }
-        : null;
-
-      const assistantContent = fallbackResponse?.answer ?? parsedResponse?.answer ?? fullContent;
+      const assistantContent = parsedResponse?.answer ?? fullContent;
+      const finalAnswer =
+        assistantContent.trim().length > 0
+          ? assistantContent
+          : 'Information not available in the job history.';
+      const userMetadata = JSON.stringify({ type: 'user_message' });
+      const assistantMetadata = JSON.stringify({
+        type: 'assistant_message',
+        citations: normalizedCitations,
+        evidence: evidence.map((item) => item.docId),
+      });
 
       await c.env.D1_DB.prepare(
         `
-        INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO copilot_messages (
+          id, conversation_id, tenant_id, job_id, user_id, role, content,
+          source, model, prompt_version, metadata_json, content_hash
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `.trim()
       )
-        .bind(crypto.randomUUID(), conversationId, tenantId, jobId, userId, 'user', message)
+        .bind(
+          crypto.randomUUID(),
+          conversationId,
+          tenantId,
+          jobId,
+          userId,
+          'user',
+          message,
+          'app',
+          openAiPayload.model,
+          promptVersion,
+          userMetadata,
+          await sha256(message)
+        )
         .run();
 
       await c.env.D1_DB.prepare(
         `
-        INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO copilot_messages (
+          id, conversation_id, tenant_id, job_id, user_id, role, content,
+          source, model, prompt_version, metadata_json, content_hash
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `.trim()
       )
         .bind(
@@ -394,7 +472,12 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           jobId,
           userId,
           'assistant',
-          assistantContent
+          finalAnswer,
+          'app',
+          openAiPayload.model,
+          promptVersion,
+          assistantMetadata,
+          await sha256(finalAnswer)
         )
         .run();
 
@@ -410,8 +493,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
 
       const responsePayload = {
         conversation_id: conversationId,
-        answer: assistantContent,
-        citations: fallbackResponse?.citations ?? normalizedCitations,
+        answer: finalAnswer,
+        citations: normalizedCitations,
         follow_ups: fallbackResponse?.follow_ups ?? parsedResponse?.follow_ups ?? [],
         evidence: evidence.map((item) => ({
           doc_id: item.docId,
@@ -447,10 +530,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       parsedResponse = null;
     }
 
-    const mergedEvidence = [...evidence, ...vectorEvidence];
     const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
-    const hasEvidence = mergedEvidence.length > 0;
-    const shouldOverride = hasEvidence && (!Array.isArray(citations) || citations.length === 0);
 
     const evidenceCitations = evidence.map((item) => ({
       doc_id: item.docId,
@@ -473,37 +553,50 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         ? citations
         : evidenceCitations;
 
-    const fallbackResponse = shouldOverride
-      ? {
-          answer: `Here is the recent job history based on the latest notes and events:\\n${mergedEvidence
-            .slice(0, 6)
-            .map((item) => `- ${item.text}`)
-            .join('\\n')}`,
-          citations: mergedEvidence.slice(0, 6).map((item) => ({
-            doc_id: item.docId,
-            date: item.date ?? null,
-            type: item.type,
-            snippet: item.text.slice(0, 160),
-          })),
-          follow_ups: [],
-        }
-      : null;
-
-    const assistantContent = fallbackResponse?.answer ?? parsedResponse?.answer ?? content;
+    const assistantContent = parsedResponse?.answer ?? content;
+    const finalAnswer =
+      assistantContent.trim().length > 0
+        ? assistantContent
+        : 'Information not available in the job history.';
+    const userMetadata = JSON.stringify({ type: 'user_message' });
+    const assistantMetadata = JSON.stringify({
+      type: 'assistant_message',
+      citations: normalizedCitations,
+      evidence: evidence.map((item) => item.docId),
+    });
 
     await c.env.D1_DB.prepare(
       `
-      INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO copilot_messages (
+        id, conversation_id, tenant_id, job_id, user_id, role, content,
+        source, model, prompt_version, metadata_json, content_hash
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `.trim()
     )
-      .bind(crypto.randomUUID(), conversationId, tenantId, jobId, userId, 'user', message)
+      .bind(
+        crypto.randomUUID(),
+        conversationId,
+        tenantId,
+        jobId,
+        userId,
+        'user',
+        message,
+        'app',
+        openAiPayload.model,
+        promptVersion,
+        userMetadata,
+        await sha256(message)
+      )
       .run();
 
     await c.env.D1_DB.prepare(
       `
-      INSERT INTO copilot_messages (id, conversation_id, tenant_id, job_id, user_id, role, content)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO copilot_messages (
+        id, conversation_id, tenant_id, job_id, user_id, role, content,
+        source, model, prompt_version, metadata_json, content_hash
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `.trim()
     )
       .bind(
@@ -513,7 +606,12 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         jobId,
         userId,
         'assistant',
-        assistantContent
+        finalAnswer,
+        'app',
+        openAiPayload.model,
+        promptVersion,
+        assistantMetadata,
+        await sha256(finalAnswer)
       )
       .run();
 
@@ -532,9 +630,9 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     return c.json(
       {
         conversation_id: conversationId,
-        answer: assistantContent,
-        citations: fallbackResponse?.citations ?? normalizedCitations,
-        follow_ups: fallbackResponse?.follow_ups ?? parsedResponse?.follow_ups ?? [],
+        answer: finalAnswer,
+        citations: normalizedCitations,
+        follow_ups: parsedResponse?.follow_ups ?? [],
         evidence: evidence.map((item) => ({
           doc_id: item.docId,
           date: item.date,
@@ -553,7 +651,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
               unfilteredMatches,
               vectorMetadata,
               vectorFilterFallbackUsed,
-              fallbackUsed: Boolean(fallbackResponse),
+              fallbackUsed: false,
             }
           : undefined,
       },
