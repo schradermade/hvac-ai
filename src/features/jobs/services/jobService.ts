@@ -789,6 +789,13 @@ class JobService {
         },
       });
 
+      if (data.assignedTechnicianId) {
+        await fetchCopilotJson<{ id: string }>(`/api/jobs/${response.id}/assign`, {
+          method: 'POST',
+          body: { technicianId: data.assignedTechnicianId },
+        });
+      }
+
       const job = await fetchCopilotJson<ApiJob>(`/api/jobs/${response.id}`);
       return this.mapApiJob(job);
     }
@@ -803,6 +810,15 @@ class JobService {
       companyId,
       ...data,
       status: 'scheduled',
+      assignment: data.assignedTechnicianId
+        ? {
+            technicianId: data.assignedTechnicianId,
+            technicianName: technicianName,
+            assignedAt: now,
+            assignedBy: technicianId,
+            assignedByName: technicianName,
+          }
+        : undefined,
       createdBy: technicianId,
       createdByName: technicianName,
       createdAt: now,
@@ -813,6 +829,36 @@ class JobService {
 
     this.jobs.set(job.id, job);
     return job;
+  }
+
+  /**
+   * Add a note to a job
+   */
+  async addNote(jobId: string, content: string): Promise<{ id: string }> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const payload = await fetchCopilotJson<{ id: string }>('/api/ingest/notes', {
+        method: 'POST',
+        body: {
+          entityType: 'job',
+          entityId: jobId,
+          noteType: 'tech',
+          content,
+          jobId,
+        },
+      });
+
+      return { id: payload.id };
+    }
+
+    await this.delay(200);
+    const job = await this.getById(jobId);
+    const updated: Job = {
+      ...job,
+      notes: content,
+      updatedAt: new Date(),
+    };
+    this.jobs.set(jobId, updated);
+    return { id: `note_${Date.now()}` };
   }
 
   /**

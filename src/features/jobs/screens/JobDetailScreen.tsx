@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Spinner, Card } from '@/components/ui';
+import { Spinner, Card, Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJob, useUpdateJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
@@ -20,6 +22,7 @@ import { useAuth } from '@/providers';
 import { AssignJobModal } from '../components/AssignJobModal';
 import { JobActionButtons } from '../components/JobActionButtons';
 import { JobAssignmentBadge } from '../components/JobAssignmentBadge';
+import { jobService } from '../services/jobService';
 import type { RootStackParamList } from '@/navigation/types';
 import type { AppointmentStatus, JobType } from '../types';
 
@@ -47,6 +50,9 @@ export function JobDetailScreen({ route, navigation }: Props) {
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   if (loadingJob) {
     return (
@@ -155,6 +161,26 @@ export function JobDetailScreen({ route, navigation }: Props) {
       console.error('Failed to update status:', error);
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!noteText.trim()) {
+      Alert.alert('Note required', 'Please enter a note before saving.');
+      return;
+    }
+
+    setSavingNote(true);
+    try {
+      await jobService.addNote(job.id, noteText.trim());
+      setNoteText('');
+      setNoteModalVisible(false);
+      Alert.alert('Note saved', 'Your note has been added to the job.');
+    } catch (error) {
+      console.error('Failed to save note:', error);
+      Alert.alert('Save failed', 'Unable to save the note. Please try again.');
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -487,6 +513,14 @@ export function JobDetailScreen({ route, navigation }: Props) {
           <View style={styles.sectionHeaderContainer}>
             <Ionicons name="document-text-outline" size={24} color={colors.primary} />
             <Text style={styles.sectionTitle}>Job Details</Text>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={() => setNoteModalVisible(true)}
+              style={styles.addNoteButton}
+            >
+              Add Note
+            </Button>
           </View>
 
           <Card style={styles.infoCard}>
@@ -557,6 +591,39 @@ export function JobDetailScreen({ route, navigation }: Props) {
         jobId={job.id}
         onClose={() => setAssignModalVisible(false)}
       />
+
+      <Modal
+        visible={noteModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setNoteModalVisible(false)}
+      >
+        <SafeAreaView style={styles.noteModalContainer}>
+          <View style={styles.noteModalHeader}>
+            <Text style={styles.noteModalTitle}>Add Note</Text>
+            <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
+              <Ionicons name="close" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.noteInput}
+            placeholder="Add a technician note..."
+            placeholderTextColor={colors.textMuted}
+            value={noteText}
+            onChangeText={setNoteText}
+            multiline
+            textAlignVertical="top"
+          />
+          <View style={styles.noteActions}>
+            <Button variant="ghost" onPress={() => setNoteModalVisible(false)}>
+              Cancel
+            </Button>
+            <Button onPress={handleSaveNote} loading={savingNote}>
+              Save Note
+            </Button>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -724,6 +791,9 @@ const styles = StyleSheet.create({
     gap: spacing[2],
     paddingHorizontal: spacing[4],
     marginBottom: spacing[3],
+  },
+  addNoteButton: {
+    marginLeft: 'auto',
   },
   sectionTitle: {
     fontSize: typography.fontSize.lg,
@@ -943,5 +1013,39 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.surface,
+  },
+  noteModalContainer: {
+    flex: 1,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
+  },
+  noteModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing[4],
+  },
+  noteModalTitle: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  noteInput: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[3],
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    minHeight: 160,
+  },
+  noteActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing[2],
+    marginTop: spacing[3],
   },
 });

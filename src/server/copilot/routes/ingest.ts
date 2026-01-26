@@ -243,7 +243,10 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
       return c.json({ error: 'Idempotency key already used' }, 409);
     }
 
-    if (c.env.VECTORIZE_INDEX && c.env.OPENAI_API_KEY) {
+    const reindex = async () => {
+      if (!c.env.VECTORIZE_INDEX || !c.env.OPENAI_API_KEY) {
+        return;
+      }
       try {
         await reindexJobEvidence({
           db: c.env.D1_DB,
@@ -254,11 +257,17 @@ export function registerIngestRoutes(app: Hono<AppEnv>) {
         });
       } catch (error) {
         if (error instanceof JobNotFoundError) {
-          return c.json({ error: 'Job not found' }, 404);
+          console.error('Reindex skipped: job not found', error);
+          return;
         }
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        return c.json({ error: message }, 500);
+        console.error('Failed to reindex job evidence:', error);
       }
+    };
+
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(reindex());
+    } else {
+      await reindex();
     }
 
     return c.json({ id }, 201);

@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Input, Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useClientList } from '@/features/clients';
+import { useTechnicians } from '@/features/technicians';
 import type { Job, JobFormData, JobType } from '../types';
 
 /**
@@ -48,6 +49,13 @@ const JOB_TYPES: Array<{
 export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormProps) {
   const { data: clientsData, isLoading: clientsLoading } = useClientList();
   const clients = useMemo(() => clientsData?.items || [], [clientsData?.items]);
+  const { data: techniciansData, isLoading: techniciansLoading } = useTechnicians({
+    status: 'active',
+  });
+  const technicians = useMemo(
+    () => techniciansData?.technicians || [],
+    [techniciansData?.technicians]
+  );
 
   // Default to 2 hours from now
   const now = new Date();
@@ -56,6 +64,7 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
 
   const [formData, setFormData] = useState<JobFormData>({
     clientId: job?.clientId || '',
+    assignedTechnicianId: job?.assignment?.technicianId,
     type: job?.type || 'maintenance',
     scheduledStart: job?.scheduledStart || defaultStart,
     scheduledEnd: job?.scheduledEnd || defaultEnd,
@@ -66,7 +75,9 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showTechnicianPicker, setShowTechnicianPicker] = useState(false);
   const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [technicianSearchQuery, setTechnicianSearchQuery] = useState('');
 
   // Filter clients based on search query
   const filteredClients = useMemo(() => {
@@ -90,8 +101,23 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
     });
   }, [clients, clientSearchQuery]);
 
+  const filteredTechnicians = useMemo(() => {
+    if (!technicianSearchQuery.trim()) {
+      return technicians;
+    }
+
+    const query = technicianSearchQuery.toLowerCase();
+    return technicians.filter((tech) => {
+      const name = `${tech.firstName} ${tech.lastName}`.toLowerCase();
+      const email = tech.email.toLowerCase();
+      const phone = tech.phone.toLowerCase();
+      return name.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }, [technicians, technicianSearchQuery]);
+
   const selectedClient = clients.find((c) => c.id === formData.clientId);
   const selectedType = JOB_TYPES.find((t) => t.value === formData.type);
+  const selectedTechnician = technicians.find((t) => t.id === formData.assignedTechnicianId);
 
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
@@ -187,6 +213,30 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
                   <Text style={styles.selectButtonIcon}>›</Text>
                 </TouchableOpacity>
                 {errors.clientId && <Text style={styles.errorText}>{errors.clientId}</Text>}
+              </View>
+
+              {/* Technician Selector */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Assign Technician</Text>
+                <TouchableOpacity
+                  style={styles.selectButton}
+                  onPress={() => setShowTechnicianPicker(true)}
+                  disabled={techniciansLoading}
+                >
+                  <Text
+                    style={[
+                      styles.selectButtonText,
+                      !selectedTechnician && styles.selectButtonPlaceholder,
+                    ]}
+                  >
+                    {techniciansLoading
+                      ? 'Loading technicians...'
+                      : selectedTechnician
+                        ? `${selectedTechnician.firstName} ${selectedTechnician.lastName}`
+                        : 'Select a technician...'}
+                  </Text>
+                  <Text style={styles.selectButtonIcon}>›</Text>
+                </TouchableOpacity>
               </View>
 
               {/* Job Type Selector */}
@@ -335,6 +385,81 @@ export function JobForm({ job, onSubmit, onCancel, isLoading = false }: JobFormP
                     </Text>
                   </View>
                   {formData.clientId === item.id && (
+                    <Ionicons name="checkmark" size={24} color={colors.primary} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
+            contentContainerStyle={styles.listContent}
+          />
+        </SafeAreaView>
+      </Modal>
+
+      {/* Technician Picker Modal */}
+      <Modal
+        visible={showTechnicianPicker}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowTechnicianPicker(false);
+          setTechnicianSearchQuery('');
+        }}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowTechnicianPicker(false);
+                setTechnicianSearchQuery('');
+              }}
+            >
+              <Text style={styles.modalClose}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select Technician</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowTechnicianPicker(false);
+                setTechnicianSearchQuery('');
+              }}
+            >
+              <Text style={styles.modalClose}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search technicians..."
+              placeholderTextColor={colors.textMuted}
+              value={technicianSearchQuery}
+              onChangeText={setTechnicianSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+          <FlatList
+            data={filteredTechnicians}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.listItem,
+                  formData.assignedTechnicianId === item.id && styles.listItemSelected,
+                ]}
+                onPress={() => {
+                  updateField('assignedTechnicianId', item.id);
+                  setShowTechnicianPicker(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.listItemContent}>
+                  <View style={styles.listItemText}>
+                    <Text style={styles.listItemTitle}>
+                      {item.firstName} {item.lastName}
+                    </Text>
+                    <Text style={styles.listItemSubtitle}>{item.email}</Text>
+                  </View>
+                  {formData.assignedTechnicianId === item.id && (
                     <Ionicons name="checkmark" size={24} color={colors.primary} />
                   )}
                 </View>

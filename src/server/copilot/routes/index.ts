@@ -5,7 +5,6 @@ import type { AppEnv } from '../workerTypes';
 import { registerChatRoutes } from './chat';
 import { registerClientRoutes } from './clients';
 import { registerContextRoutes } from './context';
-import { registerDebugRoutes } from './debug';
 import { registerIngestRoutes } from './ingest';
 import { registerJobRoutes } from './jobs';
 import { registerTechnicianRoutes } from './technicians';
@@ -16,14 +15,6 @@ export function createCopilotRouter() {
   const router = new Hono<AppEnv>();
 
   router.use('*', async (c, next) => {
-    const path = c.req.path;
-    const adminToken = c.req.header('x-admin-token');
-    const expectedAdmin = c.env.VECTORIZE_ADMIN_TOKEN;
-
-    if (path.includes('/debug/') && expectedAdmin && adminToken === expectedAdmin) {
-      return next();
-    }
-
     const allowDevAuth = c.env.ALLOW_DEV_AUTH === '1';
     const token = c.req.header('Cf-Access-Jwt-Assertion');
     const bearer = c.req.header('Authorization');
@@ -99,7 +90,6 @@ export function createCopilotRouter() {
   registerContextRoutes(router);
   registerSessionRoutes(router);
   registerChatRoutes(router);
-  registerDebugRoutes(router);
   registerClientRoutes(router);
   registerJobRoutes(router);
   registerTechnicianRoutes(router);

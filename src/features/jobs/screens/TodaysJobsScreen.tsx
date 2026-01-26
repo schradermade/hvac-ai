@@ -58,7 +58,6 @@ export function TodaysJobsScreen() {
   const [isDateSelected, setIsDateSelected] = useState(true);
   const [hasDraftSelection, setHasDraftSelection] = useState(true);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  const [showDebug, setShowDebug] = useState(false);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const [appliedStartDate, setAppliedStartDate] = useState<string>(() => todayKey);
   const [appliedEndDate, setAppliedEndDate] = useState<string>(() => todayKey);
@@ -825,29 +824,6 @@ export function TodaysJobsScreen() {
         </TouchableOpacity>
       )}
 
-      {__DEV__ && (
-        <View style={styles.debugFooter}>
-          <TouchableOpacity onPress={() => setShowDebug((prev) => !prev)}>
-            <Text style={styles.debugToggle}>Debug: {showDebug ? 'Hide' : 'Show'}</Text>
-          </TouchableOpacity>
-          {showDebug && (
-            <>
-              <Text style={styles.debugText} numberOfLines={6}>
-                {JSON.stringify(jobs[0] ?? null)}
-              </Text>
-              <TouchableOpacity
-                style={styles.debugButton}
-                onPress={() => {
-                  console.log('Jobs debug:', JSON.stringify(jobs[0] ?? null, null, 2));
-                }}
-              >
-                <Text style={styles.debugButtonText}>Log First Job JSON</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      )}
-
       {/* Create Job Modal */}
       <Modal
         visible={showForm}
@@ -1003,41 +979,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
-  },
-  debugFooter: {
-    position: 'absolute',
-    left: spacing[3],
-    right: spacing[3],
-    bottom: spacing[2],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[2],
-    borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-  },
-  debugToggle: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  debugText: {
-    marginTop: spacing[1],
-    color: '#fff',
-    fontSize: 10,
-    lineHeight: 13,
-    fontFamily: typography.mono,
-  },
-  debugButton: {
-    marginTop: spacing[1],
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: borderRadius.sm,
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
-  },
-  debugButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: typography.fontWeight.semibold,
   },
   modalContainer: {
     flex: 1,

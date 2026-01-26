@@ -72,6 +72,7 @@ export interface JobFormData {
   scheduledEnd: Date;
   description: string;
   notes?: string;
+  assignedTechnicianId?: string;
 }
 
 /**
