@@ -125,18 +125,41 @@ class AuthService {
       refresh_token: string;
       expires_in: number;
       refresh_expires_at: string;
+      user?: {
+        id: string;
+        email: string;
+        name: string;
+        role: AuthUser['role'];
+        tenantId: string;
+      };
     };
 
     const expiresAt = new Date(Date.now() + payload.expires_in * 1000);
 
-    const currentUser = (await getCurrentUser()) ?? {
-      id: 'unknown',
-      email: 'unknown@example.com',
-      firstName: 'Unknown',
-      lastName: 'User',
-      companyId: 'unknown',
-      role: 'technician',
-    };
+    const mappedUser = payload.user
+      ? (() => {
+          const [firstName, ...lastNameParts] = payload.user.name.trim().split(/\s+/);
+          const lastName = lastNameParts.join(' ') || 'User';
+          return {
+            id: payload.user.id,
+            email: payload.user.email,
+            firstName: firstName || 'Unknown',
+            lastName,
+            companyId: payload.user.tenantId,
+            role: payload.user.role,
+          } as AuthUser;
+        })()
+      : undefined;
+
+    const currentUser = mappedUser ??
+      (await getCurrentUser()) ?? {
+        id: 'unknown',
+        email: 'unknown@example.com',
+        firstName: 'Unknown',
+        lastName: 'User',
+        companyId: 'unknown',
+        role: 'technician',
+      };
 
     return {
       token: payload.access_token,

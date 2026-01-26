@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           try {
             const refreshed = await authService.refreshToken();
             await authStorage.saveAccountSession(
-              session.user,
+              refreshed.user,
               refreshed.token,
               refreshed.expiresAt,
               refreshed.refreshToken,
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             );
 
             setState({
-              user: session.user,
+              user: refreshed.user,
               isAuthenticated: true,
               isLoading: false,
               error: null,

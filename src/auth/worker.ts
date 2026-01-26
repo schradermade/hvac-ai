@@ -97,6 +97,19 @@ type AuthUser = {
   tenantId: string;
 };
 
+async function getUserById(env: AuthEnv, id: string) {
+  return env.AUTH_DB.prepare(
+    `
+    SELECT id, email, name, role, tenant_id
+    FROM users
+    WHERE id = ?
+    LIMIT 1
+    `.trim()
+  )
+    .bind(id)
+    .first<{ id: string; email: string; name: string; role: string; tenant_id: string }>();
+}
+
 async function upsertUser(env: AuthEnv, payload: AuthUser) {
   await env.AUTH_DB.prepare(
     `
@@ -105,7 +118,7 @@ async function upsertUser(env: AuthEnv, payload: AuthUser) {
     ON CONFLICT(id) DO UPDATE SET
       email = excluded.email,
       name = excluded.name,
-      role = excluded.role,
+      role = COALESCE(users.role, excluded.role),
       tenant_id = excluded.tenant_id,
       updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     `.trim()
@@ -264,13 +277,21 @@ app.post('/auth/exchange', async (c) => {
 
   const tenantId = claims.tenant_id ?? c.env.AUTH_DEFAULT_TENANT_ID ?? 'tenant_default';
   const role = claims.roles?.[0] ?? 'technician';
-  const user = await upsertUser(c.env, {
+  await upsertUser(c.env, {
     id: claims.sub,
     email: claims.email ?? 'unknown@example.com',
     name: claims.name ?? 'Unknown User',
     role,
     tenantId,
   });
+  const userRow = await getUserById(c.env, claims.sub);
+  const user = {
+    id: claims.sub,
+    email: userRow?.email ?? claims.email ?? 'unknown@example.com',
+    name: userRow?.name ?? claims.name ?? 'Unknown User',
+    role: userRow?.role ?? role,
+    tenantId: userRow?.tenant_id ?? tenantId,
+  };
 
   const accessToken = await issueAccessToken(c.env, user);
   const refresh = await issueRefreshToken(c.env, user);
@@ -328,13 +349,7 @@ app.post('/auth/refresh', async (c) => {
     .bind(row.id)
     .run();
 
-  const userRow = await c.env.AUTH_DB.prepare(
-    `
-    SELECT id, email, name, role, tenant_id FROM users WHERE id = ?
-    `.trim()
-  )
-    .bind(row.user_id)
-    .first<{ id: string; email: string; name: string; role: string; tenant_id: string }>();
+  const userRow = await getUserById(c.env, row.user_id);
 
   if (!userRow) {
     return c.json({ error: 'User not found' }, 404);
@@ -351,12 +366,23 @@ app.post('/auth/refresh', async (c) => {
   const accessToken = await issueAccessToken(c.env, user);
   const refresh = await issueRefreshToken(c.env, user);
 
-  return c.json({
-    access_token: accessToken,
-    expires_in: parseNumber(c.env.AUTH_ACCESS_TOKEN_TTL_MIN, 15) * 60,
-    refresh_token: refresh.token,
-    refresh_expires_at: refresh.expiresAt,
-  });
+  return c.json(
+    {
+      access_token: accessToken,
+      expires_in: parseNumber(c.env.AUTH_ACCESS_TOKEN_TTL_MIN, 15) * 60,
+      refresh_token: refresh.token,
+      refresh_expires_at: refresh.expiresAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    },
+    200,
+    jsonHeaders
+  );
 });
 
 app.post('/auth/logout', async (c) => {
