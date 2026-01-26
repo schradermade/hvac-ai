@@ -277,3 +277,77 @@ Date: 2026-01-21
 
 - Role changes require a fresh login/refresh to take effect in the app.
   - With the auth fix, roles no longer revert to `technician`, but the app still needs a new token to pick up changes.
+
+## 2026-01-27 Updates
+
+### What we completed
+
+- **Copilot chat persistence + streaming**
+  - Added D1 tables for conversations/messages with audit metadata.
+  - Chat now supports streaming responses and stores user/assistant messages.
+  - Conversation history is fetched on open to preserve context.
+  - Files:
+    - `db/migrations/0005_copilot_conversations.sql`
+    - `db/migrations/0006_copilot_message_audit.sql`
+    - `src/server/copilot/routes/chat.ts`
+    - `src/features/jobs/services/jobCopilotService.ts`
+    - `src/features/jobs/hooks/useJobCopilot.ts`
+
+- **Evidence pipeline hardening**
+  - Evidence now includes author name/email for notes.
+  - Fixed SQL ordering ambiguity in evidence queries.
+  - Files:
+    - `src/server/copilot/jobEvidence.ts`
+    - `src/server/copilot/routes/chat.ts`
+
+- **Chat UI upgrades**
+  - Sources are collapsible (collapsed by default).
+  - Each source is a bounded card with snippet, divider, author, and date.
+  - Source count is shown in a circular badge.
+  - Files:
+    - `src/features/diagnostic/components/MessageBubble.tsx`
+    - `src/features/diagnostic/types.ts`
+
+- **Chat list stability**
+  - Non-inverted list with `maintainVisibleContentPosition` to keep the Sources header anchored on expand/collapse.
+  - Chat opens to latest message consistently.
+  - File:
+    - `src/features/jobs/components/JobCopilotMessageList.tsx`
+
+- **Job detail layout refinements**
+  - Job Details now focuses on status/type/equipment + description.
+  - Removed redundant client/assignment/schedule fields from Job Details.
+  - Start/Complete and AI Help buttons share a single row; AI footnote shown below.
+  - File:
+    - `src/features/jobs/screens/JobDetailScreen.tsx`
+
+- **Auth user naming**
+  - Added `first_name` / `last_name` to auth DB with backfill from `name`.
+  - Auth worker now stores and returns first/last name, and embeds them in JWT.
+  - Mobile auth parsing prefers first/last name when present.
+  - Files:
+    - `db/auth/0002_auth_user_names.sql`
+    - `src/auth/worker.ts`
+    - `src/features/auth/services/authService.ts`
+
+### Current state (verified)
+
+- Copilot chat persists between opens and streams responses.
+- Sources render in a compact, skimmable format with author/date.
+- Sources expansion no longer shifts the header position.
+- Job details screen is less redundant and more compact.
+
+### Still needs to be done
+
+1. **Backfill hvacops user names**
+   - My Profile reads from `hvacops.users`; ensure first/last names are populated there.
+2. **Deploy auth + API workers after schema changes**
+   - `wrangler deploy --config wrangler.auth.toml`
+   - `wrangler deploy`
+3. **Role/tenant admin UI**
+   - Provide UI/API to manage roles and profile fields.
+
+### Known issues / follow-ups
+
+- My Profile may still show blank names until `hvacops.users` is updated or synced.
+- Chat position is not preserved between leaving and re-entering (intentional for now).
