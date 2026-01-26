@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import {
   FlatList,
   View,
@@ -13,6 +6,7 @@ import {
   StyleSheet,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  InteractionManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '@/components/ui';
@@ -40,24 +34,34 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
   ({ messages, currentUserId, scrollKey, bottomInset = 0 }, ref) => {
     const flatListRef = useRef<FlatList>(null);
     const isAtBottomRef = useRef(true);
-    const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
-    const isInverted = true;
+    const hasInitialScrollRef = useRef(false);
+    const scrollKeyRef = useRef<string | null>(null);
+
+    if (scrollKeyRef.current !== scrollKey) {
+      scrollKeyRef.current = scrollKey;
+      hasInitialScrollRef.current = false;
+    }
 
     useImperativeHandle(ref, () => ({
       scrollToLatest: () => {
         if (!isAtBottomRef.current) {
           return;
         }
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
       },
     }));
 
     useEffect(() => {
       if (messages.length === 0) return;
-      requestAnimationFrame(() => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+      if (hasInitialScrollRef.current) return;
+      const scrollToLatest = () => {
+        if (hasInitialScrollRef.current) return;
+        flatListRef.current?.scrollToEnd({ animated: false });
         isAtBottomRef.current = true;
-      });
+        hasInitialScrollRef.current = true;
+      };
+      requestAnimationFrame(scrollToLatest);
+      InteractionManager.runAfterInteractions(scrollToLatest);
     }, [messages.length, scrollKey]);
 
     const renderItem = useCallback(
@@ -92,26 +96,34 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
     return (
       <FlatList
         ref={flatListRef}
-        data={reversedMessages}
+        data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: spacing[2] + bottomInset }]}
         style={styles.list}
-        inverted={isInverted}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         initialNumToRender={12}
         maxToRenderPerBatch={12}
         windowSize={7}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+        onLayout={() => {
+          if (!hasInitialScrollRef.current && messages.length > 0) {
+            flatListRef.current?.scrollToEnd({ animated: false });
+            isAtBottomRef.current = true;
+            hasInitialScrollRef.current = true;
+          }
+        }}
         onContentSizeChange={() => {
           if (isAtBottomRef.current) {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+            flatListRef.current?.scrollToEnd({ animated: true });
           }
         }}
         onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const { contentOffset } = event.nativeEvent;
+          const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
           const paddingToBottom = 40;
-          isAtBottomRef.current = contentOffset.y <= paddingToBottom;
+          isAtBottomRef.current =
+            layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
         }}
         scrollEventThrottle={16}
       />

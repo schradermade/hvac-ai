@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/components/ui';
 import type { Message } from '../types';
@@ -40,6 +40,7 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
   const isOwnMessage = message.senderId === currentUserId;
   const isAI = message.senderId === 'ai' || message.role === 'assistant';
   const isSystem = message.senderId === 'system';
+  const [sourcesExpanded, setSourcesExpanded] = useState(false);
 
   // System messages (join/leave events)
   if (isSystem) {
@@ -109,12 +110,33 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
           </View>
           {isAI && !message.isLoading && message.sources?.length ? (
             <View style={styles.sourcesCard}>
-              <Text style={styles.sourcesTitle}>Sources</Text>
-              {message.sources.map((source, index) => (
-                <Text key={`${source.snippet}-${index}`} style={styles.sourceLine}>
-                  {formatSource(source)}
-                </Text>
-              ))}
+              <TouchableOpacity
+                style={styles.sourcesHeader}
+                onPress={() => setSourcesExpanded((prev) => !prev)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.sourcesMeta}>
+                  <Text style={styles.sourcesTitle}>Sources</Text>
+                  <Text style={styles.sourcesCount}>{message.sources.length}</Text>
+                </View>
+                <Ionicons
+                  name={sourcesExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={colors.textMuted}
+                />
+              </TouchableOpacity>
+              <View
+                style={[
+                  styles.sourcesBody,
+                  sourcesExpanded ? styles.sourcesBodyExpanded : styles.sourcesBodyCollapsed,
+                ]}
+              >
+                {message.sources.map((source, index) => (
+                  <Text key={`${source.snippet}-${index}`} style={styles.sourceLine}>
+                    {formatSource(source)}
+                  </Text>
+                ))}
+              </View>
             </View>
           ) : null}
           <Text
@@ -251,19 +273,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  sourcesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing[2],
+  },
+  sourcesMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
   sourcesTitle: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    marginBottom: spacing[2],
+  },
+  sourcesCount: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    fontWeight: typography.fontWeight.semibold,
+  },
+  sourcesBody: {
+    overflow: 'hidden',
+  },
+  sourcesBodyExpanded: {
+    marginTop: spacing[2],
+    opacity: 1,
+    maxHeight: 4000,
+  },
+  sourcesBodyCollapsed: {
+    marginTop: 0,
+    opacity: 0,
+    maxHeight: 0,
   },
   sourceLine: {
     fontSize: typography.fontSize.sm,
     color: colors.textPrimary,
     lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
-    marginBottom: spacing[1],
+    marginTop: spacing[2],
   },
   // System messages
   systemMessageContainer: {
