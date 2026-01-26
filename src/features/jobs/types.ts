@@ -8,6 +8,19 @@ import type { Auditable } from '@/lib/types';
 export type JobType = 'maintenance' | 'repair' | 'installation' | 'inspection' | 'emergency';
 
 /**
+ * Job note entry (auditable timeline item)
+ */
+export type JobNote = {
+  id: string;
+  noteType: string;
+  content: string;
+  createdAt: Date;
+  authorId?: string | null;
+  authorName?: string | null;
+  authorEmail?: string | null;
+};
+
+/**
  * Appointment status
  */
 export type AppointmentStatus =

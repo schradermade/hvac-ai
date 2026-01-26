@@ -4,6 +4,7 @@ import type {
   JobFormData,
   JobFilters,
   JobListResponse,
+  JobNote,
   JobType,
 } from '../types';
 import { fetchCopilotJson } from '@/lib/api/copilotApi';
@@ -859,6 +860,57 @@ class JobService {
     };
     this.jobs.set(jobId, updated);
     return { id: `note_${Date.now()}` };
+  }
+
+  /**
+   * Get notes for a job
+   */
+  async listNotes(jobId: string): Promise<{ items: JobNote[]; total: number }> {
+    if (process.env.EXPO_PUBLIC_COPILOT_API_URL) {
+      const data = await fetchCopilotJson<{
+        items: Array<{
+          id: string;
+          note_type: string;
+          content: string;
+          created_at: string;
+          author_user_id: string | null;
+          author_name: string | null;
+          author_email: string | null;
+        }>;
+        total: number;
+      }>(`/api/jobs/${jobId}/notes`);
+
+      const items = (data.items ?? []).map((note) => ({
+        id: note.id,
+        noteType: note.note_type,
+        content: note.content,
+        createdAt: new Date(note.created_at),
+        authorId: note.author_user_id,
+        authorName: note.author_name,
+        authorEmail: note.author_email,
+      }));
+
+      return { items, total: data.total ?? items.length };
+    }
+
+    await this.delay(200);
+    const job = await this.getById(jobId);
+    if (!job.notes) {
+      return { items: [], total: 0 };
+    }
+
+    return {
+      items: [
+        {
+          id: `note_${jobId}`,
+          noteType: 'tech',
+          content: job.notes,
+          createdAt: job.updatedAt ?? job.createdAt,
+          authorName: job.modifiedByName ?? job.createdByName,
+        },
+      ],
+      total: 1,
+    };
   }
 
   /**

@@ -13,9 +13,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { Spinner, Card, Button } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
-import { useJob, useUpdateJob } from '../hooks/useJobs';
+import { useJob, useJobNotes, useUpdateJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
 import { useEquipment } from '@/features/equipment';
 import { useAuth } from '@/providers';
@@ -44,15 +45,18 @@ export function JobDetailScreen({ route, navigation }: Props) {
   const { jobId } = route.params;
   const { user } = useAuth();
   const { data: job, isLoading: loadingJob } = useJob(jobId);
+  const { data: notesData, isLoading: loadingNotes } = useJobNotes(jobId);
   const { data: client, isLoading: loadingClient } = useClient(job?.clientId || '');
   const { data: equipment, isLoading: loadingEquipment } = useEquipment(job?.equipmentId || '');
   const updateJobMutation = useUpdateJob();
+  const queryClient = useQueryClient();
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+  const notes = notesData?.items ?? [];
 
   if (loadingJob) {
     return (
@@ -175,6 +179,7 @@ export function JobDetailScreen({ route, navigation }: Props) {
       await jobService.addNote(job.id, noteText.trim());
       setNoteText('');
       setNoteModalVisible(false);
+      queryClient.invalidateQueries({ queryKey: ['jobs', 'detail', job.id, 'notes'] });
       Alert.alert('Note saved', 'Your note has been added to the job.');
     } catch (error) {
       console.error('Failed to save note:', error);
@@ -537,6 +542,40 @@ export function JobDetailScreen({ route, navigation }: Props) {
                 </View>
               )}
             </View>
+          </Card>
+        </View>
+
+        {/* Notes Timeline */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderContainer}>
+            <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Technician Notes</Text>
+          </View>
+
+          <Card style={styles.infoCard}>
+            {loadingNotes ? (
+              <View style={styles.notesLoading}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.notesLoadingText}>Loading notes...</Text>
+              </View>
+            ) : notes.length === 0 ? (
+              <Text style={styles.emptyNotesText}>No notes have been added yet.</Text>
+            ) : (
+              <View style={styles.notesList}>
+                {notes.map((note) => {
+                  const authorLabel = note.authorName || note.authorEmail || 'Unknown technician';
+                  return (
+                    <View key={note.id} style={styles.noteItem}>
+                      <View style={styles.noteHeader}>
+                        <Text style={styles.noteAuthor}>{authorLabel}</Text>
+                        <Text style={styles.noteTimestamp}>{formatDateTime(note.createdAt)}</Text>
+                      </View>
+                      <Text style={styles.noteContent}>{note.content}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </Card>
         </View>
 
@@ -1047,5 +1086,48 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing[2],
     marginTop: spacing[3],
+  },
+  notesLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[2],
+  },
+  notesLoadingText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  emptyNotesText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  notesList: {
+    gap: spacing[4],
+  },
+  noteItem: {
+    gap: spacing[2],
+    paddingBottom: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  noteAuthor: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  noteTimestamp: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+  },
+  noteContent: {
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    lineHeight: 20,
   },
 });

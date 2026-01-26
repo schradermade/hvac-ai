@@ -16,6 +16,7 @@ const jobKeys = {
     [...jobKeys.lists(), companyId, 'client', clientId] as const,
   details: () => [...jobKeys.all, 'detail'] as const,
   detail: (id: string) => [...jobKeys.details(), id] as const,
+  notes: (id: string) => [...jobKeys.details(), id, 'notes'] as const,
 };
 
 /**
@@ -54,6 +55,17 @@ export function useJob(id: string) {
   return useQuery({
     queryKey: jobKeys.detail(id),
     queryFn: () => jobService.getById(id),
+    enabled: !!id,
+  });
+}
+
+/**
+ * Hook for getting notes for a job
+ */
+export function useJobNotes(id: string) {
+  return useQuery({
+    queryKey: jobKeys.notes(id),
+    queryFn: () => jobService.listNotes(id),
     enabled: !!id,
   });
 }

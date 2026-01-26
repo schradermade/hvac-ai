@@ -16,6 +16,16 @@ type JobRow = {
   updated_at: string;
 };
 
+type NoteRow = {
+  id: string;
+  note_type: string;
+  content: string;
+  created_at: string;
+  author_user_id: string | null;
+  author_name: string | null;
+  author_email: string | null;
+};
+
 function parseDateParam(value: string | undefined): string | null {
   if (!value) return null;
   const date = new Date(value);
@@ -230,5 +240,50 @@ export function registerJobRoutes(app: Hono<AppEnv>) {
       .run();
 
     return c.json({ id }, 200);
+  });
+
+  app.get('/jobs/:id/notes', async (c) => {
+    const tenantId = c.get('tenantId');
+    const id = c.req.param('id');
+
+    const job = await c.env.D1_DB.prepare(
+      `
+      SELECT id FROM jobs
+      WHERE tenant_id = ? AND id = ?
+      LIMIT 1
+      `.trim()
+    )
+      .bind(tenantId, id)
+      .first<{ id: string }>();
+
+    if (!job) {
+      return c.json({ error: 'Job not found' }, 404);
+    }
+
+    const result = await c.env.D1_DB.prepare(
+      `
+      SELECT
+        n.id,
+        n.note_type,
+        n.content,
+        n.created_at,
+        n.author_user_id,
+        NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), '') AS author_name,
+        u.email AS author_email
+      FROM notes n
+      LEFT JOIN users u
+        ON u.id = n.author_user_id
+       AND u.tenant_id = n.tenant_id
+      WHERE n.tenant_id = ? AND n.entity_type = 'job' AND n.entity_id = ?
+      ORDER BY n.created_at DESC
+      `.trim()
+    )
+      .bind(tenantId, id)
+      .all<NoteRow>();
+
+    return c.json({
+      items: result.results ?? [],
+      total: result.results?.length ?? 0,
+    });
   });
 }
