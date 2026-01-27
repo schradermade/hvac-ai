@@ -1,6 +1,6 @@
 # HVACOps LLM Playbook
 
-This playbook is a practical, end-to-end guide for designing, building, and operating LLM-powered features in HVACOps. It is written for real-world constraints: noisy data, safety risks, latency budgets, and the need for trust. It covers what matters, why it matters, how it is implemented, and the tradeoffs you accept.
+This playbook is a practical, end-to-end guide for designing, building, and operating LLM-powered features in HVACOps. It is written for real-world constraints: noisy data, safety risks, latency budgets, and the need for trust. The goal is not just “get answers from a model,” but to build a system that consistently produces safe, accurate, useful outcomes.
 
 ---
 
@@ -134,7 +134,7 @@ LLM responses should never be the only path. Define fallbacks for:
 
 ### Token budgeting
 
-Every model has a context limit. You must allocate tokens intentionally:
+Every model has a context limit. You must allocate tokens intentionally.
 
 Example budget:
 

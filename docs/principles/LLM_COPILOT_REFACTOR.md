@@ -111,120 +111,97 @@ Defines:
 
 **Why:** This eliminates hard‑coded parameters spread across files. Changing models or prompt versions becomes a config edit, not a route edit.
 
----
-
-### Phase 2: Retrieval Abstraction
-
-**Goal:** Swap retrieval strategies without touching chat logic.
-
-**Create:** `src/server/copilot/retrieval/types.ts`
-
-Defines:
-
-```ts
-interface Retriever {
-  retrieve(input: { query: string; tenantId: string; jobId: string }): Promise<RetrieverResult>;
-  debug?: () => DebugInfo;
-}
-```
-
-**Implementations:**
-
-- `vectorRetriever.ts` (existing Vectorize code moved here)
-- `keywordRetriever.ts` (new keyword search over D1 for exact IDs/parts)
-- `hybridRetriever.ts` (merges + re‑ranks)
-
-**Why:** Vectorize logic is currently intertwined with route logic. Extraction enables experimentation with retrieval strategies safely.
+**Status:** **Complete.** Config module added and wired into chat + embeddings.
 
 ---
 
-### Phase 3: Prompt Builder + Versioning
+### Phase 2: Retrieval, Prompt, Model, Parser, Orchestrator Scaffolding
 
-**Goal:** Isolate prompt construction, enforce versioning.
+**Goal:** Establish stable interfaces and module boundaries without changing runtime behavior.
 
-**Create:**
+**Created:**
 
-- `promptVersions.ts`: contains versioned prompt templates.
-- `promptBuilder.ts`: builds prompt from context + evidence + history.
+- `models/modelProvider.ts` + `models/openaiProvider.ts`
+- `retrieval/types.ts` + `retrieval/vectorRetriever.ts` + placeholders for keyword/hybrid
+- `prompts/promptVersions.ts` + `prompts/promptBuilder.ts`
+- `parsing/responseParser.ts`
+- `orchestrator/copilotOrchestrator.ts`
+- `persistence/conversationStore.ts` + `persistence/messageStore.ts`
 
-**Why:** Today, prompt assembly is embedded in the route. This makes prompt updates risky and untestable. A builder allows prompt evolution and A/B testing.
+**Why:** This provides the foundation for future refactors with minimal risk.
 
----
-
-### Phase 4: Model Provider Layer
-
-**Goal:** Swap LLM providers without touching orchestration.
-
-**Create:**
-
-- `modelProvider.ts` interface
-- `openaiProvider.ts` implementation
-
-`ModelProvider` handles:
-
-- Request construction
-- Streaming vs non‑streaming
-- Error normalization
-
-**Why:** This removes OpenAI‑specific logic from the route and creates a single integration layer.
+**Status:** **Complete.** Interfaces and scaffolding committed.
 
 ---
 
-### Phase 5: Response Parsing + Normalization
+### Phase 3: Centralize Parsing
 
-**Goal:** Eliminate duplication and enforce schema.
+**Goal:** Eliminate duplicate JSON parsing logic in streaming and non‑streaming paths.
 
-**Create:**
+**Change:** Use `parsing/responseParser.ts` in `routes/chat.ts`.
 
-- `responseParser.ts` (JSON parsing, schema validation)
-- `citationNormalizer.ts` (merge citations with evidence)
-
-**Why:** Both streaming and non‑streaming paths currently duplicate parsing. Centralizing this is key to reliability.
+**Status:** **Complete.** Chat route now uses the shared parser.
 
 ---
 
-### Phase 6: Orchestrator
+### Phase 4: Retrieval Abstraction Wiring
 
-**Goal:** Centralize pipeline flow.
+**Goal:** Replace inline Vectorize logic in `chat.ts` with the `Retriever` interface.
 
-**Create:** `copilotOrchestrator.ts`
+**Work:**
 
-Handles:
+- Move Vectorize retrieval into `vectorRetriever`
+- Use `config.retrieval.mode` to select retriever
+- Route uses retriever output instead of direct Vectorize calls
 
-- context loading
-- retrieval
-- prompt building
-- model invocation
-- response parsing
-- returning structured output to route
-
-**Why:** The route should not be the orchestrator. It should only handle HTTP details.
+**Status:** **Pending.**
 
 ---
 
-### Phase 7: Persistence Layer
+### Phase 5: Prompt Builder Wiring
 
-**Goal:** Separate data storage from inference logic.
+**Goal:** Replace inline prompt assembly with `buildPrompt`.
 
-**Create:**
+**Work:**
 
-- `conversationStore.ts`
-- `messageStore.ts`
+- Use prompt builder in chat route
+- Remove system prompt logic from route
 
-These modules handle D1 reads/writes for conversations and messages.
+**Status:** **Pending.**
+
+---
+
+### Phase 6: Model Provider Wiring
+
+**Goal:** Replace direct OpenAI calls in `chat.ts` with the provider interface.
+
+**Work:**
+
+- Call `openAIProvider.complete(...)`
+- Use config for model and temperature
+
+**Status:** **Pending.**
+
+---
+
+### Phase 7: Persistence Wiring
+
+**Goal:** Use conversation/message store helpers instead of inline SQL.
+
+**Work:**
+
+- Replace raw SQL writes with store calls
+- Keep schema identical
+
+**Status:** **Pending.**
 
 ---
 
 ### Phase 8: Thin Route
 
-**Goal:** Reduce `chat.ts` to:
+**Goal:** Reduce `chat.ts` to input validation + orchestration + response.
 
-- input validation
-- orchestrator invocation
-- persistence
-- HTTP response
-
-This makes the route stable even as internal components evolve.
+**Status:** **Pending.**
 
 ---
 
@@ -238,6 +215,8 @@ Add tests for:
 - Response parsing (schema, fallback cases)
 - Retrieval adapters (mocked)
 - Orchestrator flow (integration tests)
+
+**Status:** **Pending.**
 
 ---
 
@@ -268,4 +247,4 @@ This meets the target **97–98 modularity score** by removing tight coupling an
 
 ## Status
 
-Plan documented. Implementation has not started.
+Step 1–3 completed. Remaining phases are staged and ready for execution.
