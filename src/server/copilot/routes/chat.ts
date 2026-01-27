@@ -7,8 +7,9 @@ import {
   queryVectorizeWithFilterCandidates,
   toEvidenceChunks,
 } from '../vectorize';
-import { buildSystemPrompt, callOpenAI, extractJsonPayload } from '../services/ai';
+import { buildSystemPrompt, callOpenAI } from '../services/ai';
 import { defaultCopilotConfig } from '../config/copilotConfig';
+import { parseResponse } from '../parsing/responseParser';
 import type { AppEnv } from '../workerTypes';
 
 type ConversationRow = {
@@ -397,19 +398,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         }
       }
 
-      const payloadText = extractJsonPayload(fullContent);
-      let parsedResponse: {
-        answer?: string;
-        citations?: unknown[];
-        follow_ups?: unknown[];
-      } | null = null;
-      try {
-        parsedResponse = JSON.parse(payloadText);
-      } catch {
-        parsedResponse = null;
-      }
-
-      const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
+      const parsedResponse = parseResponse({ content: fullContent });
+      const citations = parsedResponse.citations;
 
       const evidenceCitations = evidence.map((item) => ({
         doc_id: item.docId,
@@ -447,7 +437,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
             })
           : evidenceCitations;
 
-      const assistantContent = parsedResponse?.answer ?? fullContent;
+      const assistantContent = parsedResponse.answer || fullContent;
       const finalAnswer =
         assistantContent.trim().length > 0
           ? assistantContent
@@ -523,7 +513,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         conversation_id: conversationId,
         answer: finalAnswer,
         citations: normalizedCitations,
-        follow_ups: fallbackResponse?.follow_ups ?? parsedResponse?.follow_ups ?? [],
+        follow_ups: parsedResponse.followUps,
         evidence: evidence.map((item) => ({
           doc_id: item.docId,
           date: item.date,
@@ -548,17 +538,8 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
 
     const aiResponse = await callOpenAI(c.env.OPENAI_API_KEY, openAiPayload);
     const content = aiResponse.choices[0]?.message?.content ?? '';
-    const payloadText = extractJsonPayload(content);
-    let parsedResponse: { answer?: string; citations?: unknown[]; follow_ups?: unknown[] } | null =
-      null;
-
-    try {
-      parsedResponse = JSON.parse(payloadText);
-    } catch {
-      parsedResponse = null;
-    }
-
-    const citations = Array.isArray(parsedResponse?.citations) ? parsedResponse?.citations : [];
+    const parsedResponse = parseResponse({ content });
+    const citations = parsedResponse.citations;
 
     const evidenceCitations = evidence.map((item) => ({
       doc_id: item.docId,
@@ -596,7 +577,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           })
         : evidenceCitations;
 
-    const assistantContent = parsedResponse?.answer ?? content;
+    const assistantContent = parsedResponse.answer || content;
     const finalAnswer =
       assistantContent.trim().length > 0
         ? assistantContent
@@ -675,7 +656,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         conversation_id: conversationId,
         answer: finalAnswer,
         citations: normalizedCitations,
-        follow_ups: parsedResponse?.follow_ups ?? [],
+        follow_ups: parsedResponse.followUps,
         evidence: evidence.map((item) => ({
           doc_id: item.docId,
           date: item.date,
