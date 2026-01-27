@@ -8,6 +8,7 @@ import {
   toEvidenceChunks,
 } from '../vectorize';
 import { buildSystemPrompt, callOpenAI, extractJsonPayload } from '../services/ai';
+import { defaultCopilotConfig } from '../config/copilotConfig';
 import type { AppEnv } from '../workerTypes';
 
 type ConversationRow = {
@@ -179,7 +180,11 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     let vectorFilterErrors: Array<{ filter: Record<string, unknown>; message: string }> = [];
 
     if (c.env.VECTORIZE_INDEX) {
-      const embeddingResponse = await fetchOpenAIEmbedding(c.env.OPENAI_API_KEY, message);
+      const embeddingResponse = await fetchOpenAIEmbedding(
+        c.env.OPENAI_API_KEY,
+        message,
+        defaultCopilotConfig.model.embeddingModel
+      );
       const embedding = embeddingResponse.data[0]?.embedding;
       embeddingVector = embedding ?? null;
 
@@ -196,7 +201,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           c.env.VECTORIZE_INDEX,
           embedding,
           {
-            topK: 6,
+            topK: defaultCopilotConfig.retrieval.topK,
             filters: filterCandidates,
             acceptMatch: (match) =>
               match.metadata?.tenant_id === tenantId && match.metadata?.job_id === jobId,
@@ -209,7 +214,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
 
         if (vectorMatchCount === 0) {
           const fallbackMatches = await queryVectorize(c.env.VECTORIZE_INDEX, embedding, {
-            topK: 10,
+            topK: defaultCopilotConfig.retrieval.fallbackTopK,
           });
           const filteredFallback = fallbackMatches.filter(
             (match) => match.metadata?.tenant_id === tenantId && match.metadata?.job_id === jobId
@@ -229,7 +234,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
 
     if (debugEnabled && c.env.VECTORIZE_INDEX && embeddingVector) {
       const matches = await queryVectorize(c.env.VECTORIZE_INDEX, embeddingVector, {
-        topK: 3,
+        topK: Math.min(defaultCopilotConfig.retrieval.topK, 3),
       });
       unfilteredMatches = matches.map((match) => ({
         id: match.id,
@@ -286,10 +291,10 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       FROM copilot_messages
       WHERE conversation_id = ?
       ORDER BY created_at DESC
-      LIMIT 25
+      LIMIT ?
       `.trim()
     )
-      .bind(conversationId)
+      .bind(conversationId, defaultCopilotConfig.retrieval.historyLimit)
       .all<MessageRow>();
 
     const historyMessages = (historyResult.results ?? []).reverse().map((row) => ({
@@ -297,11 +302,11 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       content: row.content,
     }));
 
-    const promptVersion = 'copilot.v1';
-    const openAiPayload = {
-      model: 'gpt-4o',
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
+    const promptVersion = defaultCopilotConfig.prompt.version;
+    const openAiPayload: Record<string, unknown> = {
+      model: defaultCopilotConfig.model.model,
+      temperature: defaultCopilotConfig.model.temperature,
+      response_format: { type: defaultCopilotConfig.model.responseFormat },
       messages: [
         { role: 'system', content: buildSystemPrompt() },
         {
@@ -314,6 +319,14 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         { role: 'user', content: message },
       ],
     };
+
+    if (defaultCopilotConfig.model.topP !== undefined) {
+      openAiPayload.top_p = defaultCopilotConfig.model.topP;
+    }
+
+    if (defaultCopilotConfig.model.maxTokens !== undefined) {
+      openAiPayload.max_tokens = defaultCopilotConfig.model.maxTokens;
+    }
 
     const wantsStream = body?.stream === true;
 

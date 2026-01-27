@@ -33,7 +33,7 @@ export interface EvidenceChunk {
   score: number;
 }
 
-export async function fetchOpenAIEmbedding(apiKey: string, input: string) {
+export async function fetchOpenAIEmbedding(apiKey: string, input: string, model: string) {
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -41,7 +41,7 @@ export async function fetchOpenAIEmbedding(apiKey: string, input: string) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'text-embedding-3-small',
+      model,
       input,
     }),
   });
