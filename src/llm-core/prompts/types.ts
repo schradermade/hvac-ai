@@ -1,6 +1,1 @@
-export type ChatRole = 'system' | 'user' | 'assistant';
-
-export interface ChatMessage {
-  role: ChatRole;
-  content: string;
-}
+export type { ChatRole, ChatMessage } from '../models/types';
