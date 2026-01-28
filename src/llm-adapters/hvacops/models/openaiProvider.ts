@@ -6,7 +6,10 @@ import type {
 } from '../../../llm-core/models/types';
 import { callOpenAI } from '../services/ai';
 
-type OpenAIResponse = { choices: Array<{ message?: { content?: string } }> };
+type OpenAIResponse = {
+  choices: Array<{ message?: { content?: string } }>;
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+};
 
 export function createOpenAIProvider(apiKey: string): ModelProvider {
   return {
@@ -28,7 +31,17 @@ export function createOpenAIProvider(apiKey: string): ModelProvider {
       }
 
       const response = (await callOpenAI(apiKey, payload)) as OpenAIResponse;
-      return { content: response.choices[0]?.message?.content ?? '' };
+      return {
+        content: response.choices[0]?.message?.content ?? '',
+        usage: response.usage
+          ? {
+              inputTokens: response.usage.prompt_tokens,
+              outputTokens: response.usage.completion_tokens,
+              totalTokens: response.usage.total_tokens,
+            }
+          : undefined,
+        raw: response,
+      };
     },
     async *stream(request: ChatRequest): AsyncIterable<ChatStreamChunk> {
       const payload: Record<string, unknown> = {

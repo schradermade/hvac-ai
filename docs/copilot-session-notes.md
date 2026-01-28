@@ -118,6 +118,58 @@ Date: 2026-01-21
 
 - Remote D1 schema + seed:
   - `wrangler d1 execute hvacops --remote --file db/migrations/0001_copilot_core.sql`
+
+## 2026-01-28 Updates
+
+- **LLM portability architecture implemented (core + adapter split)**
+  - Created `src/llm-core/` for portable logic (prompts, parsing, config, orchestration, retrieval types, telemetry types).
+  - Created `src/llm-adapters/hvacops/` for app-specific logic (context/evidence, retrieval, model provider, persistence, routes, telemetry).
+  - Added adapter entrypoint + env interface for portability:
+    - `src/llm-adapters/hvacops/register.ts`
+    - `src/llm-adapters/hvacops/types/env.ts`
+
+- **Refactor phases completed**
+  - Phase 1: moved prompts/parsing/config into `llm-core`.
+  - Phase 2: core orchestrator + model types + re-exports for compatibility.
+  - Phase 3: adapterized OpenAI provider + Vectorize helpers/retriever.
+  - Phase 4: adapterized context/evidence and persistence stores.
+  - Phase 5: moved chat route to adapter + thin server route.
+  - Phase 6: added core tests + adapter integration tests.
+
+- **New docs**
+  - `docs/principles/LLM_PORTABLE_ARCH.md` (architecture + mapping)
+  - `docs/principles/LLM_PORTABLE_ARCH_PROGRESS.md` (progress tracker)
+  - `docs/principles/LLM_PORTABILITY_LESSON.md` (master educational lesson)
+
+- **LLM test harness**
+  - Added `jest.llm.config.js`, `tsconfig.jest.json`, `scripts/test-llm.sh`
+  - Added `test:llm` script in `package.json`
+  - Installed `ts-jest` for isolated LLM tests
+  - Tests pass via `npm run test:llm`
+
+- **Streaming + provider wiring**
+  - Streaming path now uses provider stream; non-streaming uses core orchestrator.
+  - Persistence wired through adapter stores (no raw SQL in route).
+
+- **Telemetry hooks**
+  - Core telemetry interface added: `src/llm-core/telemetry/types.ts`
+  - Orchestrator emits lifecycle events + latency and token usage.
+  - OpenAI provider returns usage in `ChatCompletion`.
+  - Adapter console telemetry added: `src/llm-adapters/hvacops/telemetry/logger.ts`
+  - Chat route emits retrieval + streaming events with requestId.
+
+- **Portability polish**
+  - Adapter no longer depends on server `workerTypes` for Vectorize types.
+  - Adapter exports `registerLLMRoutes` and `LLMAdapterEnv`.
+
+- **Commits pushed (selected)**
+  - Scaffold/move core logic
+  - Adapterize model/retrieval
+  - Adapterize context/persistence
+  - Move chat route into adapter
+  - Add LLM tests + configs
+  - Add adapter entrypoint + env types
+  - Add master lesson doc
   - `wrangler d1 execute hvacops --remote --file db/migrations/0002_seed_copilot_sample.sql`
 
 - Vectorize index:

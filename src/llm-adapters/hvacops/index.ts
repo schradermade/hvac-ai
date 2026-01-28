@@ -9,3 +9,4 @@ export * from './services/ai';
 export * from './routes/chatRoute';
 export * from './types/env';
 export * from './register';
+export * from './telemetry/logger';

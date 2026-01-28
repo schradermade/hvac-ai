@@ -17,12 +17,19 @@ export interface ChatRequest {
 export interface ChatCompletion {
   content: string;
   raw?: unknown;
+  usage?: TokenUsage;
 }
 
 export interface ChatStreamChunk {
   delta: string;
   done?: boolean;
   raw?: unknown;
+}
+
+export interface TokenUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
 }
 
 export interface ModelProvider {

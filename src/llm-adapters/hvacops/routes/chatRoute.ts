@@ -19,6 +19,7 @@ import {
   touchConversation,
 } from '../persistence/conversationStore';
 import { saveMessage } from '../persistence/messageStore';
+import { createConsoleTelemetry } from '../telemetry/logger';
 import type { ConversationRecord } from '../persistence/conversationStore';
 import type { LLMAdapterEnv } from '../types/env';
 
@@ -279,6 +280,21 @@ export function registerChatRoutes<T extends LLMAdapterEnv>(app: Hono<T>) {
     const promptVersion = defaultCopilotConfig.prompt.version;
     const modelName = defaultCopilotConfig.model.model;
     const provider = createOpenAIProvider(c.env.OPENAI_API_KEY);
+    const telemetry = createConsoleTelemetry();
+    const requestId = crypto.randomUUID();
+
+    telemetry.emit({
+      name: 'llm.retrieval.completed',
+      requestId,
+      timestamp: new Date().toISOString(),
+      payload: {
+        vectorizeEnabled,
+        evidenceCount: evidence.length,
+        vectorMatches: vectorMatchCount,
+        vectorFilterUsed,
+        vectorFilterFallbackUsed,
+      },
+    });
 
     const wantsStream = body?.stream === true;
 
@@ -320,8 +336,24 @@ export function registerChatRoutes<T extends LLMAdapterEnv>(app: Hono<T>) {
             await sendEvent('delta', { delta: chunk.delta });
           }
         }
+        telemetry.emit({
+          name: 'llm.stream.completed',
+          requestId,
+          timestamp: new Date().toISOString(),
+          payload: {
+            model: modelName,
+          },
+        });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Streaming failed';
+        telemetry.emit({
+          name: 'llm.stream.failed',
+          requestId,
+          timestamp: new Date().toISOString(),
+          payload: {
+            error: message,
+          },
+        });
         await sendEvent('error', { error: message });
         await writer.close();
         return new Response(stream.readable, {
@@ -444,9 +476,9 @@ export function registerChatRoutes<T extends LLMAdapterEnv>(app: Hono<T>) {
     }
 
     const orchestratorResponse = await runCopilotOrchestrator(
-      { model: provider },
+      { model: provider, telemetry },
       {
-        requestId: crypto.randomUUID(),
+        requestId,
         userInput: message,
         context: snapshot,
         evidenceText,
