@@ -23,16 +23,16 @@ This document tracks execution progress against the portable LLM architecture pl
 
 ## Phase 2 — Refactor orchestrator to core contracts
 
-- [ ] Orchestrator accepts `CopilotRequest`
-- [ ] Orchestrator returns `CopilotResponse`
-- [ ] Add core `types.ts` for orchestration
+- [x] Orchestrator accepts `CopilotRequest`
+- [x] Orchestrator returns `CopilotResponse`
+- [x] Add core `types.ts` for orchestration
 
 ## Phase 3 — Adapterize model + retrieval
 
-- [ ] Move OpenAI provider into adapter
-- [ ] Move Vectorize helpers into adapter
-- [ ] Implement core `ModelProvider` in adapter
-- [ ] Implement core `Retriever` in adapter
+- [x] Move OpenAI provider into adapter
+- [x] Move Vectorize helpers into adapter
+- [x] Implement core `ModelProvider` in adapter
+- [x] Implement core `Retriever` in adapter
 
 ## Phase 4 — Move context + persistence into adapter
 
