@@ -6,7 +6,7 @@ import {
   toEvidenceChunks,
 } from '../vectorize';
 import type { VectorizeIndex } from '../workerTypes';
-import { defaultCopilotConfig } from '../config/copilotConfig';
+import { defaultCopilotConfig } from '../../../llm-core/config/defaults';
 
 type VectorDebug = {
   vectorizeEnabled: boolean;

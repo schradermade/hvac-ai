@@ -1,8 +1,8 @@
-import type { CopilotConfig } from '../config/copilotConfig';
+import type { CopilotConfig } from '../../../llm-core/config/types';
 import type { ModelProvider } from '../models/modelProvider';
 import type { Retriever } from '../retrieval/types';
-import { buildPrompt } from '../prompts/promptBuilder';
-import { parseResponse } from '../parsing/responseParser';
+import { buildPrompt } from '../../../llm-core/prompts/buildPrompt';
+import { parseResponse } from '../../../llm-core/parsing/responseParser';
 
 export type OrchestratorDeps = {
   config: CopilotConfig;

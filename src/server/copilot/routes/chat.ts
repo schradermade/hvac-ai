@@ -8,8 +8,8 @@ import {
   toEvidenceChunks,
 } from '../vectorize';
 import { buildSystemPrompt, callOpenAI } from '../services/ai';
-import { defaultCopilotConfig } from '../config/copilotConfig';
-import { parseResponse } from '../parsing/responseParser';
+import { defaultCopilotConfig } from '../../../llm-core/config/defaults';
+import { parseResponse } from '../../../llm-core/parsing/responseParser';
 import type { AppEnv } from '../workerTypes';
 
 type ConversationRow = {

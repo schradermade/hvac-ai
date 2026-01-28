@@ -6,6 +6,8 @@ This folder groups the core documents that define how we design and implement en
 
 - `docs/principles/ai/LLM_PLAYBOOK.md` — Master playbook for LLM system design, safety, evals, and ops.
 - `docs/principles/LLM_COPILOT_REFACTOR.md` — Refactor plan to reach 97–98 modularity for Copilot.
+- `docs/principles/LLM_PORTABLE_ARCH.md` — Portable LLM core + adapter architecture and file mapping.
+- `docs/principles/LLM_PORTABLE_ARCH_PROGRESS.md` — Progress tracker for the portable architecture work.
 
 ## Architecture Implementations
 

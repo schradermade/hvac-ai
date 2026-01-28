@@ -1,5 +1,5 @@
-import type { ChatMessage } from '../models/modelProvider';
-import { promptVersions, type PromptVersion } from './promptVersions';
+import type { ChatMessage } from './types';
+import { promptVersions, type PromptVersion } from './versions';
 
 export type PromptContext = {
   snapshot: Record<string, unknown>;
