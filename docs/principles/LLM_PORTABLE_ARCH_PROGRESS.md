@@ -36,9 +36,9 @@ This document tracks execution progress against the portable LLM architecture pl
 
 ## Phase 4 — Move context + persistence into adapter
 
-- [ ] Move job context builder
-- [ ] Move evidence builder
-- [ ] Move conversation/message stores
+- [x] Move job context builder
+- [x] Move evidence builder
+- [x] Move conversation/message stores
 
 ## Phase 5 — Thin HTTP route
 
