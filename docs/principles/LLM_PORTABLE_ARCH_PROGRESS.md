@@ -12,7 +12,7 @@ This document tracks execution progress against the portable LLM architecture pl
 
 - [x] Create `src/llm-core/` directories
 - [x] Create `src/llm-adapters/hvacops/` directories
-- [ ] Add adapter index exports (temporary)
+- [x] Add adapter index exports (temporary)
 
 ## Phase 1 — Move pure logic into core
 
@@ -42,8 +42,8 @@ This document tracks execution progress against the portable LLM architecture pl
 
 ## Phase 5 — Thin HTTP route
 
-- [ ] Move chat route to adapter
-- [ ] Update server route to call adapter
+- [x] Move chat route to adapter
+- [x] Update server route to call adapter
 
 ## Phase 6 — Tests
 
