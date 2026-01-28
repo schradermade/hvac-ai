@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { AccessAuthError, authenticateAccessToken } from '../auth/access';
 import { authenticateAppJwt } from '../auth/jwt';
 import type { AppEnv } from '../workerTypes';
-import { registerChatRoutes } from './chat';
+import { registerLLMRoutes } from '../../../llm-adapters/hvacops/register';
 import { registerClientRoutes } from './clients';
 import { registerContextRoutes } from './context';
 import { registerIngestRoutes } from './ingest';
@@ -89,7 +89,7 @@ export function createCopilotRouter() {
 
   registerContextRoutes(router);
   registerSessionRoutes(router);
-  registerChatRoutes(router);
+  registerLLMRoutes(router);
   registerClientRoutes(router);
   registerJobRoutes(router);
   registerTechnicianRoutes(router);

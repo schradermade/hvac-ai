@@ -5,7 +5,7 @@ import {
   queryVectorizeWithFilterCandidates,
   toEvidenceChunks,
 } from './vectorizeClient';
-import type { VectorizeIndex } from '../../../server/copilot/workerTypes';
+import type { VectorizeIndex } from './vectorizeClient';
 import { defaultCopilotConfig } from '../../../llm-core/config/defaults';
 
 type VectorDebug = {

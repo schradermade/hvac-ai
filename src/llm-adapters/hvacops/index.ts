@@ -6,3 +6,6 @@ export * from './persistence/messageStore';
 export * from './retrieval/vectorRetriever';
 export * from './retrieval/vectorizeClient';
 export * from './services/ai';
+export * from './routes/chatRoute';
+export * from './types/env';
+export * from './register';

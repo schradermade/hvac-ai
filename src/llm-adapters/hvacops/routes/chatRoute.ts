@@ -20,7 +20,7 @@ import {
 } from '../persistence/conversationStore';
 import { saveMessage } from '../persistence/messageStore';
 import type { ConversationRecord } from '../persistence/conversationStore';
-import type { AppEnv } from '../../../server/copilot/workerTypes';
+import type { LLMAdapterEnv } from '../types/env';
 
 type MessageRow = {
   role: string;
@@ -83,7 +83,7 @@ function formatEvidenceForPrompt(
   return sections.join('\n\n');
 }
 
-export function registerChatRoutes(app: Hono<AppEnv>) {
+export function registerChatRoutes<T extends LLMAdapterEnv>(app: Hono<T>) {
   app.get('/jobs/:jobId/ai/conversation', async (c) => {
     const tenantId = c.get('tenantId');
     const userId = c.get('userId');
