@@ -7,7 +7,7 @@ import {
   queryVectorizeWithFilterCandidates,
   toEvidenceChunks,
 } from '../retrieval/vectorizeClient';
-import { buildSystemPrompt, callOpenAI } from '../../../server/copilot/services/ai';
+import { buildSystemPrompt, callOpenAI } from '../services/ai';
 import { defaultCopilotConfig } from '../../../llm-core/config/defaults';
 import { parseResponse } from '../../../llm-core/parsing/responseParser';
 import type { AppEnv } from '../../../server/copilot/workerTypes';

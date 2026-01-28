@@ -47,7 +47,7 @@ This document tracks execution progress against the portable LLM architecture pl
 
 ## Phase 6 — Tests
 
-- [ ] Prompt snapshot tests
-- [ ] Parser tests
-- [ ] Orchestrator tests (fakes)
-- [ ] Adapter integration tests (D1/Vectorize mocks)
+- [x] Prompt snapshot tests
+- [x] Parser tests
+- [x] Orchestrator tests (fakes)
+- [x] Adapter integration tests (D1/Vectorize mocks)

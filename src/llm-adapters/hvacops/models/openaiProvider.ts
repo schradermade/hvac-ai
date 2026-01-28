@@ -1,5 +1,5 @@
 import type { ChatCompletion, ChatRequest, ModelProvider } from '../../../llm-core/models/types';
-import { callOpenAI } from '../../../server/copilot/services/ai';
+import { callOpenAI } from '../services/ai';
 
 type OpenAIResponse = { choices: Array<{ message?: { content?: string } }> };
 

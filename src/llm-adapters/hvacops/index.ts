@@ -5,3 +5,4 @@ export * from './persistence/conversationStore';
 export * from './persistence/messageStore';
 export * from './retrieval/vectorRetriever';
 export * from './retrieval/vectorizeClient';
+export * from './services/ai';
