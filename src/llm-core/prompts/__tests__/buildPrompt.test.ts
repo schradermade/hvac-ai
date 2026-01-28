@@ -20,7 +20,7 @@ describe('buildPrompt', () => {
   },
   {
     "content": "Structured context:
-{\\"job\\":{\\"id\\":\\"job_1\\"}}
+{"job":{"id":"job_1"}}
 
 Evidence (labeled sections):
 Evidence block",
