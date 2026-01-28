@@ -14,7 +14,7 @@ export async function findConversation(
   return db
     .prepare(
       `
-      SELECT id, tenant_id, job_id, user_id
+      SELECT id, tenant_id AS tenantId, job_id AS jobId, user_id AS userId
       FROM copilot_conversations
       WHERE tenant_id = ? AND job_id = ? AND user_id = ?
       ORDER BY updated_at DESC
@@ -33,7 +33,7 @@ export async function findConversationById(
   return db
     .prepare(
       `
-      SELECT id, tenant_id, job_id, user_id
+      SELECT id, tenant_id AS tenantId, job_id AS jobId, user_id AS userId
       FROM copilot_conversations
       WHERE tenant_id = ? AND id = ?
       LIMIT 1

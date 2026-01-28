@@ -19,7 +19,14 @@ export interface ChatCompletion {
   raw?: unknown;
 }
 
+export interface ChatStreamChunk {
+  delta: string;
+  done?: boolean;
+  raw?: unknown;
+}
+
 export interface ModelProvider {
   name: string;
   complete: (request: ChatRequest) => Promise<ChatCompletion>;
+  stream?: (request: ChatRequest) => AsyncIterable<ChatStreamChunk>;
 }

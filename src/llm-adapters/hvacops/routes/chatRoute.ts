@@ -7,17 +7,20 @@ import {
   queryVectorizeWithFilterCandidates,
   toEvidenceChunks,
 } from '../retrieval/vectorizeClient';
-import { buildSystemPrompt, callOpenAI } from '../services/ai';
 import { defaultCopilotConfig } from '../../../llm-core/config/defaults';
 import { parseResponse } from '../../../llm-core/parsing/responseParser';
+import { runCopilotOrchestrator } from '../../../llm-core/orchestration/orchestrator';
+import { buildPrompt } from '../../../llm-core/prompts/buildPrompt';
+import { createOpenAIProvider } from '../models/openaiProvider';
+import {
+  ensureConversation,
+  findConversation,
+  findConversationById,
+  touchConversation,
+} from '../persistence/conversationStore';
+import { saveMessage } from '../persistence/messageStore';
+import type { ConversationRecord } from '../persistence/conversationStore';
 import type { AppEnv } from '../../../server/copilot/workerTypes';
-
-type ConversationRow = {
-  id: string;
-  tenant_id: string;
-  job_id: string;
-  user_id: string;
-};
 
 type MessageRow = {
   role: string;
@@ -87,33 +90,14 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     const jobId = c.req.param('jobId');
     const requestedId = c.req.query('conversationId');
 
-    let conversation: ConversationRow | null = null;
+    let conversation: ConversationRecord | null = null;
     if (requestedId) {
-      conversation = await c.env.D1_DB.prepare(
-        `
-        SELECT id, tenant_id, job_id, user_id
-        FROM copilot_conversations
-        WHERE tenant_id = ? AND id = ?
-        LIMIT 1
-        `.trim()
-      )
-        .bind(tenantId, requestedId)
-        .first<ConversationRow>();
+      conversation = await findConversationById(c.env.D1_DB, tenantId, requestedId);
     } else {
-      conversation = await c.env.D1_DB.prepare(
-        `
-        SELECT id, tenant_id, job_id, user_id
-        FROM copilot_conversations
-        WHERE tenant_id = ? AND job_id = ? AND user_id = ?
-        ORDER BY updated_at DESC
-        LIMIT 1
-        `.trim()
-      )
-        .bind(tenantId, jobId, userId)
-        .first<ConversationRow>();
+      conversation = await findConversation(c.env.D1_DB, tenantId, jobId, userId);
     }
 
-    if (!conversation || conversation.job_id !== jobId) {
+    if (!conversation || conversation.jobId !== jobId) {
       return c.json({ conversation_id: null, messages: [] }, 200);
     }
 
@@ -262,27 +246,16 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         ? conversationIdInput.trim()
         : crypto.randomUUID();
 
-    const existingConversation = await c.env.D1_DB.prepare(
-      `
-      SELECT id, tenant_id, job_id, user_id
-      FROM copilot_conversations
-      WHERE tenant_id = ? AND id = ?
-      LIMIT 1
-      `.trim()
-    )
-      .bind(tenantId, conversationId)
-      .first<ConversationRow>();
+    const existingConversation = await findConversationById(c.env.D1_DB, tenantId, conversationId);
 
     if (!existingConversation) {
-      await c.env.D1_DB.prepare(
-        `
-        INSERT INTO copilot_conversations (id, tenant_id, job_id, user_id)
-        VALUES (?, ?, ?, ?)
-        `.trim()
-      )
-        .bind(conversationId, tenantId, jobId, userId)
-        .run();
-    } else if (existingConversation.job_id !== jobId) {
+      await ensureConversation(c.env.D1_DB, {
+        id: conversationId,
+        tenantId,
+        jobId,
+        userId,
+      });
+    } else if (existingConversation.jobId !== jobId) {
       return c.json({ error: 'Conversation does not belong to this job' }, 400);
     }
 
@@ -304,36 +277,24 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
     }));
 
     const promptVersion = defaultCopilotConfig.prompt.version;
-    const openAiPayload: Record<string, unknown> = {
-      model: defaultCopilotConfig.model.model,
-      temperature: defaultCopilotConfig.model.temperature,
-      response_format: { type: defaultCopilotConfig.model.responseFormat },
-      messages: [
-        { role: 'system', content: buildSystemPrompt() },
-        {
-          role: 'system',
-          content: `Structured context:\n${JSON.stringify(
-            snapshot
-          )}\n\nEvidence (labeled sections):\n${evidenceText}`,
-        },
-        ...historyMessages,
-        { role: 'user', content: message },
-      ],
-    };
-
-    if (defaultCopilotConfig.model.topP !== undefined) {
-      openAiPayload.top_p = defaultCopilotConfig.model.topP;
-    }
-
-    if (defaultCopilotConfig.model.maxTokens !== undefined) {
-      openAiPayload.max_tokens = defaultCopilotConfig.model.maxTokens;
-    }
+    const modelName = defaultCopilotConfig.model.model;
+    const provider = createOpenAIProvider(c.env.OPENAI_API_KEY);
 
     const wantsStream = body?.stream === true;
 
     if (wantsStream) {
+      if (!provider.stream) {
+        return c.json({ error: 'Streaming not supported by provider' }, 500);
+      }
+
+      const prompt = buildPrompt(promptVersion, {
+        snapshot,
+        evidenceText,
+        history: historyMessages,
+        userMessage: message,
+      });
+
       const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
       const stream = new TransformStream();
       const writer = stream.writable.getWriter();
 
@@ -342,18 +303,26 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         await writer.write(encoder.encode(payload));
       };
 
-      const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${c.env.OPENAI_API_KEY}`,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ ...openAiPayload, stream: true }),
-      });
+      let fullContent = '';
 
-      if (!openAiResponse.ok || !openAiResponse.body) {
-        const errorText = await openAiResponse.text();
-        await sendEvent('error', { error: errorText || 'Streaming failed' });
+      try {
+        for await (const chunk of provider.stream({
+          model: modelName,
+          temperature: defaultCopilotConfig.model.temperature,
+          topP: defaultCopilotConfig.model.topP,
+          maxTokens: defaultCopilotConfig.model.maxTokens,
+          responseFormat: defaultCopilotConfig.model.responseFormat,
+          messages: prompt,
+        })) {
+          if (chunk.done) break;
+          if (chunk.delta) {
+            fullContent += chunk.delta;
+            await sendEvent('delta', { delta: chunk.delta });
+          }
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Streaming failed';
+        await sendEvent('error', { error: message });
         await writer.close();
         return new Response(stream.readable, {
           headers: {
@@ -362,40 +331,6 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
             Connection: 'keep-alive',
           },
         });
-      }
-
-      const reader = openAiResponse.body.getReader();
-      let buffer = '';
-      let fullContent = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const chunks = buffer.split('\n\n');
-        buffer = chunks.pop() ?? '';
-
-        for (const chunk of chunks) {
-          const line = chunk.split('\n').find((entry) => entry.trim().startsWith('data: '));
-          if (!line) continue;
-          const payload = line.replace(/^data:\s*/, '').trim();
-          if (payload === '[DONE]') {
-            buffer = '';
-            break;
-          }
-          try {
-            const parsed = JSON.parse(payload) as {
-              choices?: Array<{ delta?: { content?: string } }>;
-            };
-            const delta = parsed.choices?.[0]?.delta?.content;
-            if (delta) {
-              fullContent += delta;
-              await sendEvent('delta', { delta });
-            }
-          } catch {
-            // ignore malformed chunks
-          }
-        }
       }
 
       const parsedResponse = parseResponse({ content: fullContent });
@@ -449,65 +384,37 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         evidence: evidence.map((item) => item.docId),
       });
 
-      await c.env.D1_DB.prepare(
-        `
-        INSERT INTO copilot_messages (
-          id, conversation_id, tenant_id, job_id, user_id, role, content,
-          source, model, prompt_version, metadata_json, content_hash
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `.trim()
-      )
-        .bind(
-          crypto.randomUUID(),
-          conversationId,
-          tenantId,
-          jobId,
-          userId,
-          'user',
-          message,
-          'app',
-          openAiPayload.model,
-          promptVersion,
-          userMetadata,
-          await sha256(message)
-        )
-        .run();
+      await saveMessage(c.env.D1_DB, {
+        id: crypto.randomUUID(),
+        conversationId,
+        tenantId,
+        jobId,
+        userId,
+        role: 'user',
+        content: message,
+        source: 'app',
+        model: modelName,
+        promptVersion,
+        metadataJson: userMetadata,
+        contentHash: await sha256(message),
+      });
 
-      await c.env.D1_DB.prepare(
-        `
-        INSERT INTO copilot_messages (
-          id, conversation_id, tenant_id, job_id, user_id, role, content,
-          source, model, prompt_version, metadata_json, content_hash
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `.trim()
-      )
-        .bind(
-          crypto.randomUUID(),
-          conversationId,
-          tenantId,
-          jobId,
-          userId,
-          'assistant',
-          finalAnswer,
-          'app',
-          openAiPayload.model,
-          promptVersion,
-          assistantMetadata,
-          await sha256(finalAnswer)
-        )
-        .run();
+      await saveMessage(c.env.D1_DB, {
+        id: crypto.randomUUID(),
+        conversationId,
+        tenantId,
+        jobId,
+        userId,
+        role: 'assistant',
+        content: finalAnswer,
+        source: 'app',
+        model: modelName,
+        promptVersion,
+        metadataJson: assistantMetadata,
+        contentHash: await sha256(finalAnswer),
+      });
 
-      await c.env.D1_DB.prepare(
-        `
-        UPDATE copilot_conversations
-        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-        WHERE id = ?
-        `.trim()
-      )
-        .bind(conversationId)
-        .run();
+      await touchConversation(c.env.D1_DB, conversationId);
 
       const responsePayload = {
         conversation_id: conversationId,
@@ -536,10 +443,18 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       });
     }
 
-    const aiResponse = await callOpenAI(c.env.OPENAI_API_KEY, openAiPayload);
-    const content = aiResponse.choices[0]?.message?.content ?? '';
-    const parsedResponse = parseResponse({ content });
-    const citations = parsedResponse.citations;
+    const orchestratorResponse = await runCopilotOrchestrator(
+      { model: provider },
+      {
+        requestId: crypto.randomUUID(),
+        userInput: message,
+        context: snapshot,
+        evidenceText,
+        history: historyMessages,
+        config: defaultCopilotConfig,
+      }
+    );
+    const citations = orchestratorResponse.citations;
 
     const evidenceCitations = evidence.map((item) => ({
       doc_id: item.docId,
@@ -577,7 +492,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
           })
         : evidenceCitations;
 
-    const assistantContent = parsedResponse.answer || content;
+    const assistantContent = orchestratorResponse.answer;
     const finalAnswer =
       assistantContent.trim().length > 0
         ? assistantContent
@@ -589,65 +504,37 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
       evidence: evidence.map((item) => item.docId),
     });
 
-    await c.env.D1_DB.prepare(
-      `
-      INSERT INTO copilot_messages (
-        id, conversation_id, tenant_id, job_id, user_id, role, content,
-        source, model, prompt_version, metadata_json, content_hash
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `.trim()
-    )
-      .bind(
-        crypto.randomUUID(),
-        conversationId,
-        tenantId,
-        jobId,
-        userId,
-        'user',
-        message,
-        'app',
-        openAiPayload.model,
-        promptVersion,
-        userMetadata,
-        await sha256(message)
-      )
-      .run();
+    await saveMessage(c.env.D1_DB, {
+      id: crypto.randomUUID(),
+      conversationId,
+      tenantId,
+      jobId,
+      userId,
+      role: 'user',
+      content: message,
+      source: 'app',
+      model: modelName,
+      promptVersion,
+      metadataJson: userMetadata,
+      contentHash: await sha256(message),
+    });
 
-    await c.env.D1_DB.prepare(
-      `
-      INSERT INTO copilot_messages (
-        id, conversation_id, tenant_id, job_id, user_id, role, content,
-        source, model, prompt_version, metadata_json, content_hash
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `.trim()
-    )
-      .bind(
-        crypto.randomUUID(),
-        conversationId,
-        tenantId,
-        jobId,
-        userId,
-        'assistant',
-        finalAnswer,
-        'app',
-        openAiPayload.model,
-        promptVersion,
-        assistantMetadata,
-        await sha256(finalAnswer)
-      )
-      .run();
+    await saveMessage(c.env.D1_DB, {
+      id: crypto.randomUUID(),
+      conversationId,
+      tenantId,
+      jobId,
+      userId,
+      role: 'assistant',
+      content: finalAnswer,
+      source: 'app',
+      model: modelName,
+      promptVersion,
+      metadataJson: assistantMetadata,
+      contentHash: await sha256(finalAnswer),
+    });
 
-    await c.env.D1_DB.prepare(
-      `
-      UPDATE copilot_conversations
-      SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-      WHERE id = ?
-      `.trim()
-    )
-      .bind(conversationId)
-      .run();
+    await touchConversation(c.env.D1_DB, conversationId);
 
     c.header('x-conversation-id', conversationId);
 
@@ -656,7 +543,7 @@ export function registerChatRoutes(app: Hono<AppEnv>) {
         conversation_id: conversationId,
         answer: finalAnswer,
         citations: normalizedCitations,
-        follow_ups: parsedResponse.followUps,
+        follow_ups: orchestratorResponse.followUps,
         evidence: evidence.map((item) => ({
           doc_id: item.docId,
           date: item.date,
