@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { createCopilotRouter } from '@/server/copilot/routes';
-import type { AppEnv } from '@/server/copilot/workerTypes';
+import { createCopilotRouter } from './server/copilot/routes';
+import type { AppEnv } from './server/copilot/workerTypes';
 
 const app = new Hono<AppEnv>();
 

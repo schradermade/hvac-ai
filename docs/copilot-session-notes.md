@@ -122,11 +122,11 @@ Date: 2026-01-21
 ## 2026-01-28 Updates
 
 - **LLM portability architecture implemented (core + adapter split)**
-  - Created `src/llm-core/` for portable logic (prompts, parsing, config, orchestration, retrieval types, telemetry types).
-  - Created `src/llm-adapters/hvacops/` for app-specific logic (context/evidence, retrieval, model provider, persistence, routes, telemetry).
+  - Created `src/worker/llm-core/` for portable logic (prompts, parsing, config, orchestration, retrieval types, telemetry types).
+  - Created `src/worker/llm-adapters/hvacops/` for app-specific logic (context/evidence, retrieval, model provider, persistence, routes, telemetry).
   - Added adapter entrypoint + env interface for portability:
-    - `src/llm-adapters/hvacops/register.ts`
-    - `src/llm-adapters/hvacops/types/env.ts`
+    - `src/worker/llm-adapters/hvacops/register.ts`
+    - `src/worker/llm-adapters/hvacops/types/env.ts`
 
 - **Refactor phases completed**
   - Phase 1: moved prompts/parsing/config into `llm-core`.
@@ -152,10 +152,10 @@ Date: 2026-01-21
   - Persistence wired through adapter stores (no raw SQL in route).
 
 - **Telemetry hooks**
-  - Core telemetry interface added: `src/llm-core/telemetry/types.ts`
+  - Core telemetry interface added: `src/worker/llm-core/telemetry/types.ts`
   - Orchestrator emits lifecycle events + latency and token usage.
   - OpenAI provider returns usage in `ChatCompletion`.
-  - Adapter console telemetry added: `src/llm-adapters/hvacops/telemetry/logger.ts`
+  - Adapter console telemetry added: `src/worker/llm-adapters/hvacops/telemetry/logger.ts`
   - Chat route emits retrieval + streaming events with requestId.
 
 - **Portability polish**
@@ -228,6 +228,21 @@ R2 Bucket (hvacops-llm-logs)
 
 - Logpush requires Workers Paid (minimum $5/month).
 - We can later export R2 logs into Datadog/BigQuery if needed.
+
+## 2026-01-29 Updates
+
+- **Worker code consolidated under `src/worker/`**
+  - Moved Worker runtime code into a single root:
+    - `src/worker/server/`
+    - `src/worker/llm-core/`
+    - `src/worker/llm-adapters/`
+  - Worker entrypoint moved to `src/worker/index.ts`.
+  - `wrangler.toml` updated to use `main = "src/worker/index.ts"`.
+  - LLM Jest config updated to point at new roots.
+
+- **Observability**
+  - `wrangler.toml` includes `[observability] enabled = true`.
+  - `test:llm` passes after move.
 
 ## 2026-01-25 Updates
 

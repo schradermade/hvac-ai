@@ -9,12 +9,14 @@ export function createConsoleTelemetry(options?: {
 
   return {
     emit(event: TelemetryEvent) {
-      const message = `${prefix} ${event.name} requestId=${event.requestId}`;
-      if (includePayload) {
-        console.log(message, event.payload ?? {});
-      } else {
-        console.log(message);
-      }
+      const payload = includePayload ? (event.payload ?? {}) : undefined;
+      const output = {
+        name: event.name,
+        requestId: event.requestId,
+        timestamp: event.timestamp ?? new Date().toISOString(),
+        ...(payload ? { payload } : {}),
+      };
+      console.log(`${prefix} ${JSON.stringify(output)}`);
     },
   };
 }

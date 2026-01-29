@@ -10,8 +10,8 @@ This document tracks execution progress against the portable LLM architecture pl
 
 ## Phase 0 — Create structure (no behavior change)
 
-- [x] Create `src/llm-core/` directories
-- [x] Create `src/llm-adapters/hvacops/` directories
+- [x] Create `src/worker/llm-core/` directories
+- [x] Create `src/worker/llm-adapters/hvacops/` directories
 - [x] Add adapter index exports (temporary)
 
 ## Phase 1 — Move pure logic into core
