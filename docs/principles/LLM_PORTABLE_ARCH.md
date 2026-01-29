@@ -107,56 +107,56 @@ Adapters must implement these interfaces without changing core semantics.
 
 ### Core (portable)
 
-- `src/server/copilot/config/copilotConfig.ts`
+- `src/worker/server/copilot/config/copilotConfig.ts`
   → `src/worker/llm-core/config/types.ts` + `src/worker/llm-core/config/defaults.ts`
-- `src/server/copilot/prompts/promptBuilder.ts`
+- `src/worker/server/copilot/prompts/promptBuilder.ts`
   → `src/worker/llm-core/prompts/buildPrompt.ts`
-- `src/server/copilot/prompts/promptVersions.ts`
+- `src/worker/server/copilot/prompts/promptVersions.ts`
   → `src/worker/llm-core/prompts/versions.ts`
-- `src/server/copilot/parsing/responseParser.ts`
+- `src/worker/server/copilot/parsing/responseParser.ts`
   → `src/worker/llm-core/parsing/responseParser.ts`
-- `src/server/copilot/models/modelProvider.ts`
+- `src/worker/server/copilot/models/modelProvider.ts`
   → `src/worker/llm-core/models/types.ts`
-- `src/server/copilot/retrieval/types.ts`
+- `src/worker/server/copilot/retrieval/types.ts`
   → `src/worker/llm-core/retrieval/types.ts`
-- `src/server/copilot/orchestrator/copilotOrchestrator.ts`
+- `src/worker/server/copilot/orchestrator/copilotOrchestrator.ts`
   → `src/worker/llm-core/orchestration/orchestrator.ts`
 
 ### Adapter (HVACOps)
 
-- `src/server/copilot/routes/chat.ts`
+- `src/worker/server/copilot/routes/chat.ts`
   → `src/worker/llm-adapters/hvacops/routes/chatRoute.ts`
-- `src/server/copilot/jobContext.ts`
+- `src/worker/server/copilot/jobContext.ts`
   → `src/worker/llm-adapters/hvacops/context/buildContext.ts`
-- `src/server/copilot/jobEvidence.ts`
+- `src/worker/server/copilot/jobEvidence.ts`
   → `src/worker/llm-adapters/hvacops/context/buildEvidence.ts`
-- `src/server/copilot/vectorize.ts`
+- `src/worker/server/copilot/vectorize.ts`
   → `src/worker/llm-adapters/hvacops/retrieval/vectorizeClient.ts`
-- `src/server/copilot/retrieval/vectorRetriever.ts`
+- `src/worker/server/copilot/retrieval/vectorRetriever.ts`
   → `src/worker/llm-adapters/hvacops/retrieval/vectorRetriever.ts`
-- `src/server/copilot/retrieval/keywordRetriever.ts`
+- `src/worker/server/copilot/retrieval/keywordRetriever.ts`
   → `src/worker/llm-adapters/hvacops/retrieval/keywordRetriever.ts`
-- `src/server/copilot/retrieval/hybridRetriever.ts`
+- `src/worker/server/copilot/retrieval/hybridRetriever.ts`
   → `src/worker/llm-adapters/hvacops/retrieval/hybridRetriever.ts`
-- `src/server/copilot/models/openaiProvider.ts`
+- `src/worker/server/copilot/models/openaiProvider.ts`
   → `src/worker/llm-adapters/hvacops/models/openaiProvider.ts`
-- `src/server/copilot/services/ai.ts`
+- `src/worker/server/copilot/services/ai.ts`
   → split:
   - system prompt → `src/worker/llm-core/prompts/versions.ts`
   - `callOpenAI` → `src/worker/llm-adapters/hvacops/models/openaiProvider.ts`
-- `src/server/copilot/persistence/conversationStore.ts`
+- `src/worker/server/copilot/persistence/conversationStore.ts`
   → `src/worker/llm-adapters/hvacops/persistence/conversationStore.ts`
-- `src/server/copilot/persistence/messageStore.ts`
+- `src/worker/server/copilot/persistence/messageStore.ts`
   → `src/worker/llm-adapters/hvacops/persistence/messageStore.ts`
-- `src/server/copilot/indexing.ts`
+- `src/worker/server/copilot/indexing.ts`
   → `src/worker/llm-adapters/hvacops/retrieval/indexing.ts`
 
 ### App‑specific (stays outside core)
 
-- `src/server/copilot/auth/*`
-- `src/server/copilot/search/*`
-- `src/server/copilot/routes/*` (non‑LLM endpoints)
-- `src/server/copilot/workerTypes.ts`
+- `src/worker/server/copilot/auth/*`
+- `src/worker/server/copilot/search/*`
+- `src/worker/server/copilot/routes/*` (non‑LLM endpoints)
+- `src/worker/server/copilot/workerTypes.ts`
 
 ---
 

@@ -62,7 +62,7 @@ These modules are intentionally isolated and reusable.
 ## Planned File Structure
 
 ```
-src/server/copilot/
+src/worker/server/copilot/
   config/
     copilotConfig.ts
   orchestrator/
@@ -98,7 +98,7 @@ This structure ensures each layer has a single reason to change.
 
 **Goal:** Centralize all model, retrieval, and prompt settings.
 
-**Create:** `src/server/copilot/config/copilotConfig.ts`
+**Create:** `src/worker/server/copilot/config/copilotConfig.ts`
 
 Defines:
 

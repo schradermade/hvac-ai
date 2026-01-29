@@ -11,7 +11,7 @@ Date: 2026-01-21
     - `db/migrations/0002_seed_copilot_sample.sql`
 
 - **Worker scaffolding**
-  - Created Worker entry at `src/worker.ts`.
+  - Created Worker entry at `src/worker/index.ts`.
   - Routes implemented:
     - `GET /api/jobs/:jobId/ai/context`
     - `POST /api/jobs/:jobId/ai/session` (stub)
@@ -19,12 +19,12 @@ Date: 2026-01-21
     - `POST /api/vectorize/reindex/job/:jobId`
 
 - **Job context snapshot**
-  - Implemented D1 query helper: `src/server/copilot/jobContext.ts`.
+  - Implemented D1 query helper: `src/worker/server/copilot/jobContext.ts`.
 
 - **Evidence and citations**
   - Added job evidence pipeline with scope expansion:
     - Job-level first, then property-level if sparse, then client-level notes.
-  - File: `src/server/copilot/jobEvidence.ts`.
+  - File: `src/worker/server/copilot/jobEvidence.ts`.
 
 - **OpenAI chat integration**
   - Chat endpoint calls OpenAI and parses JSON output.
@@ -35,7 +35,7 @@ Date: 2026-01-21
     - `VECTORIZE_INDEX` → `hvacops-copilot`
   - Vectorize query in chat pipeline (optional; gated by binding).
   - Added embeddings + upsert pipeline:
-    - `src/server/copilot/indexing.ts`
+    - `src/worker/server/copilot/indexing.ts`
     - Endpoint: `POST /api/vectorize/reindex/job/:jobId`
     - Script: `scripts/vectorizeSeed.js`
 
@@ -64,7 +64,7 @@ Date: 2026-01-21
 
 - **Cloudflare Access auth**
   - New D1 table: `access_identities` (`db/migrations/0003_access_identities.sql`).
-  - Access JWT middleware in `src/server/copilot/auth/access.ts`.
+  - Access JWT middleware in `src/worker/server/copilot/auth/access.ts`.
   - Copilot routes now use Access JWT; dev-only fallback behind `ALLOW_DEV_AUTH=1`.
   - Service token support: `common_name` used when `sub` is empty.
 
@@ -269,9 +269,9 @@ R2 Bucket (hvacops-llm-logs)
     - `src/features/jobs/services/jobService.ts`
     - `src/features/clients/services/clientService.ts`
   - Added worker routes:
-    - `src/server/copilot/routes/jobs.ts` (`GET /api/jobs`, `GET /api/jobs/:id`, `POST /api/jobs`)
-    - `src/server/copilot/routes/clients.ts` (`GET /api/clients`, `GET /api/clients/:id`)
-  - Registered routes in `src/server/copilot/routes/index.ts`.
+    - `src/worker/server/copilot/routes/jobs.ts` (`GET /api/jobs`, `GET /api/jobs/:id`, `POST /api/jobs`)
+    - `src/worker/server/copilot/routes/clients.ts` (`GET /api/clients`, `GET /api/clients/:id`)
+  - Registered routes in `src/worker/server/copilot/routes/index.ts`.
   - API worker deployed after changes.
 
 - **Access blocking removed**
@@ -341,15 +341,15 @@ R2 Bucket (hvacops-llm-logs)
   - Files:
     - `src/features/jobs/screens/JobDetailScreen.tsx`
     - `src/features/jobs/services/jobService.ts`
-    - `src/server/copilot/routes/ingest.ts`
+    - `src/worker/server/copilot/routes/ingest.ts`
 
 - **Technicians + assignments**
   - Added technician API routes (`GET /api/technicians`, `GET /api/technicians/:id`, `POST /api/technicians`).
   - Job create supports optional assignment; added assignment endpoint.
   - Job form supports selecting a technician before create.
   - Files:
-    - `src/server/copilot/routes/technicians.ts`
-    - `src/server/copilot/routes/jobs.ts`
+    - `src/worker/server/copilot/routes/technicians.ts`
+    - `src/worker/server/copilot/routes/jobs.ts`
     - `src/features/jobs/components/JobForm.tsx`
     - `src/features/jobs/types.ts`
 
@@ -357,8 +357,8 @@ R2 Bucket (hvacops-llm-logs)
   - Removed debug footer and `/api/debug/jwks` route from production UI/API.
   - Files:
     - `src/features/jobs/screens/TodaysJobsScreen.tsx`
-    - `src/server/copilot/routes/debug.ts`
-    - `src/server/copilot/routes/index.ts`
+    - `src/worker/server/copilot/routes/debug.ts`
+    - `src/worker/server/copilot/routes/index.ts`
 
 ### Current state (verified)
 
@@ -392,7 +392,7 @@ R2 Bucket (hvacops-llm-logs)
   - Files:
     - `db/migrations/0005_copilot_conversations.sql`
     - `db/migrations/0006_copilot_message_audit.sql`
-    - `src/server/copilot/routes/chat.ts`
+    - `src/worker/server/copilot/routes/chat.ts`
     - `src/features/jobs/services/jobCopilotService.ts`
     - `src/features/jobs/hooks/useJobCopilot.ts`
 
@@ -400,8 +400,8 @@ R2 Bucket (hvacops-llm-logs)
   - Evidence now includes author name/email for notes.
   - Fixed SQL ordering ambiguity in evidence queries.
   - Files:
-    - `src/server/copilot/jobEvidence.ts`
-    - `src/server/copilot/routes/chat.ts`
+    - `src/worker/server/copilot/jobEvidence.ts`
+    - `src/worker/server/copilot/routes/chat.ts`
 
 - **Chat UI upgrades**
   - Sources are collapsible (collapsed by default).
