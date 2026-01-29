@@ -193,6 +193,42 @@ Date: 2026-01-21
 - Should Vectorize results include property/client scope (same rules as evidence)?
 - Should chat logs be persisted in D1 or stored in R2?
 
+## Telemetry plan (Logpush → R2)
+
+**Goal:** Production‑grade LLM telemetry with minimal maintenance. Use Workers Logs + Logpush to deliver structured events into R2 for durable storage, later dashboards, and cost observability.
+
+**What we will log (already emitted by telemetry hooks):**
+
+- LLM lifecycle events (request started/completed/failed)
+- Retrieval metadata (evidence counts, fallback usage)
+- Token usage (input/output/total)
+- Latency (end‑to‑end)
+
+**Pipeline:**
+
+```
+Workers Logs / Trace Events
+      │
+      ▼
+Logpush Job (Workers dataset + fields)
+      │
+      ▼
+R2 Bucket (hvacops-llm-logs)
+```
+
+**Setup steps (when ready):**
+
+1. Create R2 bucket: `hvacops-llm-logs`
+2. Create Logpush job for Workers Logs dataset → R2 destination
+3. Select fields: `event_timestamp`, `script_name`, `request_id`, `message`, `log_level`, `metadata`
+4. Start with sampling if volume is high (e.g., 10–25%)
+5. Verify delivery by inspecting R2 objects
+
+**Notes:**
+
+- Logpush requires Workers Paid (minimum $5/month).
+- We can later export R2 logs into Datadog/BigQuery if needed.
+
 ## 2026-01-25 Updates
 
 ### What we completed

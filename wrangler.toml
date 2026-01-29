@@ -15,3 +15,6 @@ remote = true
 [[services]]
 binding = "AUTH_SERVICE"
 service = "hvacops-auth"
+
+[observability]
+enabled = true
