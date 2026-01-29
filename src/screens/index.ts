@@ -3,5 +3,5 @@
  */
 
 export { EquipmentScreen } from './EquipmentScreen';
-export { HistoryScreen } from './CopilotScreen';
+export { CopilotScreen, CopilotScreen as HistoryScreen } from './CopilotScreen';
 export { SettingsScreen } from './SettingsScreen';

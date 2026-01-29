@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '@/components/ui';
@@ -9,6 +10,50 @@ import { HistoryScreen, SettingsScreen } from '@/screens';
 import type { RootTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+
+/**
+ * Custom label component for Copilot tab with icon on the right
+ */
+function CopilotTabLabel({ focused }: { focused: boolean }) {
+  return (
+    <View style={tabLabelStyles.wrapper}>
+      <View style={tabLabelStyles.container}>
+        <Text style={[tabLabelStyles.label, focused && tabLabelStyles.labelFocused]}>COPILOT</Text>
+        <Ionicons
+          name="sparkles"
+          size={12}
+          color={focused ? '#FFFFFF' : colors.textMuted}
+          style={{ marginLeft: 4 }}
+        />
+      </View>
+    </View>
+  );
+}
+
+const tabLabelStyles = StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 21,
+    fontWeight: '800',
+    letterSpacing: -1.05,
+    color: colors.textMuted,
+  },
+  labelFocused: {
+    color: '#FFFFFF',
+  },
+});
 
 /**
  * TabNavigator
@@ -83,11 +128,8 @@ export function TabNavigator() {
         component={HistoryScreen}
         options={{
           title: 'AI',
-          tabBarLabel: 'Copilot',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name="sparkles-outline" size={22} color={focused ? '#FFFFFF' : color} />
-          ),
-          tabBarActiveTintColor: '#FFFFFF',
+          tabBarLabel: ({ focused }) => <CopilotTabLabel focused={focused} />,
+          tabBarIcon: () => null,
           tabBarItemStyle: {
             borderRightWidth: 1,
             borderRightColor: colors.border,
@@ -95,7 +137,7 @@ export function TabNavigator() {
             borderTopColor: '#D4D7FB',
             backgroundColor: '#D4D7FB',
           },
-          tabBarActiveBackgroundColor: '#9B9EF6',
+          tabBarActiveBackgroundColor: '#4E56D9',
         }}
       />
       <Tab.Screen

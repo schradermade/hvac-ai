@@ -28,9 +28,10 @@ const copilotPalette = {
 } as const;
 
 export function JobCopilotScreen({ route }: Props) {
-  const { jobId } = route.params;
+  const { jobId, initialPrompt } = route.params;
   const { user } = useAuth();
   const listRef = useRef<JobCopilotMessageListHandle>(null);
+  const seededPromptRef = useRef(false);
   const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const { data: job, isLoading: jobLoading } = useJob(jobId);
@@ -40,6 +41,14 @@ export function JobCopilotScreen({ route }: Props) {
     user?.id || 'user',
     user ? `${user.firstName} ${user.lastName}` : undefined
   );
+
+  useEffect(() => {
+    if (!initialPrompt || seededPromptRef.current) {
+      return;
+    }
+    seededPromptRef.current = true;
+    sendMessage(initialPrompt);
+  }, [initialPrompt, sendMessage]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
