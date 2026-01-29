@@ -4,7 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers';
-import { Card, Spinner } from '@/components/ui';
+import { Spinner } from '@/components/ui';
 import { colors, spacing, typography, borderRadius, shadows } from '@/components/ui';
 import { useJob } from '../hooks/useJobs';
 import { useClient } from '@/features/clients';
@@ -17,6 +17,15 @@ import { ChatInput } from '@/features/diagnostic/components/ChatInput';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobCopilot'>;
+
+const copilotPalette = {
+  background: '#D4D7FB',
+  surface: '#EEF0FF',
+  accent: '#9B9EF6',
+  border: '#B8BDF4',
+  accentText: '#2F3180',
+  tabText: '#FFFFFF',
+} as const;
 
 export function JobCopilotScreen({ route }: Props) {
   const { jobId } = route.params;
@@ -64,28 +73,66 @@ export function JobCopilotScreen({ route }: Props) {
     );
   }
 
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      unassigned: 'Unassigned',
+      assigned: 'Assigned',
+      accepted: 'Accepted',
+      declined: 'Declined',
+      scheduled: 'Scheduled',
+      in_progress: 'In Progress',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      rescheduled: 'Rescheduled',
+    };
+    return map[status] ?? status.replace(/_/g, ' ');
+  };
+
+  const scheduleText = `${formatDate(job.scheduledStart)} • ${formatTime(
+    job.scheduledStart
+  )}–${formatTime(job.scheduledEnd)}`;
+  const shortJobId = job.id.length > 8 ? job.id.slice(0, 8).toUpperCase() : job.id;
+
   const bottomInset = Math.max(0, keyboardHeight - insets.bottom);
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.contextHeader}>
-        <Card style={styles.contextCard}>
+        <View style={styles.contextPill}>
           <View style={styles.contextRow}>
             <View style={styles.contextIcon}>
-              <Ionicons name="briefcase-outline" size={20} color={colors.primary} />
+              <Ionicons name="briefcase-outline" size={16} color="#FFFFFF" />
             </View>
-            <View style={styles.contextInfo}>
-              <Text style={styles.contextTitle}>{job.type.toUpperCase()}</Text>
-              <Text style={styles.contextSubtitle}>
-                {clientLoading ? 'Loading client...' : client?.name || 'Unknown Client'}
-              </Text>
+            <Text style={styles.contextTitle}>{job.type.toUpperCase()}</Text>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>{getStatusLabel(job.status)}</Text>
             </View>
           </View>
-          <View style={styles.contextMeta}>
-            <Text style={styles.contextMetaText}>Job ID</Text>
-            <Text style={styles.contextMetaValue}>{job.id}</Text>
+          <View style={styles.contextMetaRow}>
+            <Text style={styles.contextSubtitle}>
+              {clientLoading ? 'Loading client...' : client?.name || 'Unknown Client'}
+            </Text>
+            <Text style={styles.contextDot}>•</Text>
+            <Text style={styles.contextMetaValue}>{scheduleText}</Text>
+            <Text style={styles.contextDot}>•</Text>
+            <Text style={styles.contextMetaValue}>#{shortJobId}</Text>
           </View>
-        </Card>
+        </View>
       </View>
 
       <JobCopilotMessageList
@@ -125,13 +172,13 @@ export function JobCopilotScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
   errorText: {
     fontSize: typography.fontSize.lg,
@@ -141,12 +188,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[3],
     paddingBottom: spacing[2],
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
-  contextCard: {
-    padding: spacing[4],
-    borderRadius: borderRadius.xl,
-    ...shadows.md,
+  contextPill: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    backgroundColor: copilotPalette.surface,
+    borderWidth: 1,
+    borderColor: copilotPalette.border,
+    ...shadows.sm,
   },
   contextRow: {
     flexDirection: 'row',
@@ -154,39 +205,50 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   contextIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.full,
+    width: 28,
+    height: 28,
+    borderRadius: borderRadius.base,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryLight,
-  },
-  contextInfo: {
-    flex: 1,
+    backgroundColor: copilotPalette.accent,
   },
   contextTitle: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
+    color: copilotPalette.accentText,
   },
-  contextSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: 2,
+  statusBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    backgroundColor: copilotPalette.accent,
+    borderWidth: 1,
+    borderColor: copilotPalette.accent,
   },
-  contextMeta: {
-    marginTop: spacing[3],
-  },
-  contextMetaText: {
+  statusText: {
     fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
+    color: copilotPalette.tabText,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
+  contextSubtitle: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+  },
+  contextMetaRow: {
+    marginTop: spacing[2],
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing[1],
+  },
+  contextDot: {
+    color: colors.textTertiary,
+    fontSize: typography.fontSize.xs,
+  },
   contextMetaValue: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textPrimary,
-    marginTop: 2,
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
   },
   followUpRow: {
     flexDirection: 'row',
@@ -194,18 +256,18 @@ const styles = StyleSheet.create({
     gap: spacing[2],
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
   followUpChip: {
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: copilotPalette.accent,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: copilotPalette.accent,
   },
   followUpText: {
     fontSize: typography.fontSize.sm,
-    color: colors.textPrimary,
+    color: copilotPalette.tabText,
   },
 });

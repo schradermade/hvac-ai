@@ -11,6 +11,7 @@ interface MessageBubbleProps {
   message: Message;
   isCollaborative: boolean;
   currentUserId: string;
+  variant?: 'default' | 'copilot';
 }
 
 /**
@@ -22,6 +23,14 @@ const ROLE_COLORS = {
   ai: '#6366f1', // Indigo
   system: '#6b7280', // Gray
 };
+
+const COPILOT_PALETTE = {
+  background: '#D4D7FB',
+  surface: '#EEF0FF',
+  accent: '#9B9EF6',
+  border: '#B8BDF4',
+  accentText: '#2F3180',
+} as const;
 
 /**
  * MessageBubble component
@@ -36,11 +45,17 @@ const ROLE_COLORS = {
  * - Timestamp display
  * - Proper spacing and shadows
  */
-function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageBubbleProps) {
+function MessageBubbleBase({
+  message,
+  isCollaborative,
+  currentUserId,
+  variant = 'default',
+}: MessageBubbleProps) {
   const isOwnMessage = message.senderId === currentUserId;
   const isAI = message.senderId === 'ai' || message.role === 'assistant';
   const isSystem = message.senderId === 'system';
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
+  const isCopilot = variant === 'copilot';
 
   // System messages (join/leave events)
   if (isSystem) {
@@ -54,6 +69,7 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
 
   // Get color based on role
   const getSenderColor = (): string => {
+    if (isCopilot) return COPILOT_PALETTE.accent;
     if (isAI) return ROLE_COLORS.ai;
     if (message.senderRole === 'primary') return ROLE_COLORS.primary;
     if (message.senderRole === 'invited') return ROLE_COLORS.invited;
@@ -61,6 +77,7 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
   };
 
   const getBubbleColor = (): string => {
+    if (isCopilot) return COPILOT_PALETTE.surface;
     if (isAI) return ROLE_COLORS.ai + '10'; // Indigo 10%
     if (message.senderRole === 'primary') return ROLE_COLORS.primary + '10'; // Blue 10%
     if (message.senderRole === 'invited') return ROLE_COLORS.invited + '10'; // Purple 10%
@@ -95,30 +112,47 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
               styles.bubble,
               isOwnMessage && styles.userBubble,
               !isOwnMessage && { backgroundColor: getBubbleColor() },
+              isCopilot &&
+                (isOwnMessage ? styles.copilotUserBubble : styles.copilotAssistantBubble),
             ]}
           >
             {message.isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={senderColor} />
-                <Text style={styles.loadingText}>Thinking...</Text>
+                <Text style={[styles.loadingText, isCopilot && styles.copilotLoadingText]}>
+                  Thinking...
+                </Text>
               </View>
             ) : (
-              <Text style={[styles.text, isOwnMessage ? styles.userText : styles.assistantText]}>
+              <Text
+                style={[
+                  styles.text,
+                  isOwnMessage ? styles.userText : styles.assistantText,
+                  isCopilot &&
+                    (isOwnMessage ? styles.copilotUserText : styles.copilotAssistantText),
+                ]}
+              >
                 {message.content}
               </Text>
             )}
           </View>
           {isAI && !message.isLoading && message.sources?.length ? (
-            <View style={styles.sourcesCard}>
+            <View style={[styles.sourcesCard, isCopilot && styles.copilotSourcesCard]}>
               <TouchableOpacity
                 style={styles.sourcesHeader}
                 onPress={() => setSourcesExpanded((prev) => !prev)}
                 activeOpacity={0.7}
               >
                 <View style={styles.sourcesMeta}>
-                  <Text style={styles.sourcesTitle}>Sources</Text>
-                  <View style={styles.sourcesCountBadge}>
-                    <Text style={styles.sourcesCount}>{message.sources.length}</Text>
+                  <Text style={[styles.sourcesTitle, isCopilot && styles.copilotSourcesTitle]}>
+                    Sources
+                  </Text>
+                  <View
+                    style={[styles.sourcesCountBadge, isCopilot && styles.copilotSourcesCountBadge]}
+                  >
+                    <Text style={[styles.sourcesCount, isCopilot && styles.copilotSourcesCount]}>
+                      {message.sources.length}
+                    </Text>
                   </View>
                 </View>
                 <Ionicons
@@ -134,16 +168,25 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
                 ]}
               >
                 {message.sources.map((source, index) => (
-                  <View key={`${source.snippet}-${index}`} style={styles.sourceItem}>
-                    <Text style={styles.sourceLine}>{source.snippet}</Text>
-                    <View style={styles.sourceDivider} />
+                  <View
+                    key={`${source.snippet}-${index}`}
+                    style={[styles.sourceItem, isCopilot && styles.copilotSourceItem]}
+                  >
+                    <Text style={[styles.sourceLine, isCopilot && styles.copilotSourceLine]}>
+                      {source.snippet}
+                    </Text>
+                    <View
+                      style={[styles.sourceDivider, isCopilot && styles.copilotSourceDivider]}
+                    />
                     {(source.authorName || source.authorEmail) && (
-                      <Text style={styles.sourceAuthor}>
+                      <Text style={[styles.sourceAuthor, isCopilot && styles.copilotSourceMeta]}>
                         {source.authorName || source.authorEmail}
                       </Text>
                     )}
                     {source.date ? (
-                      <Text style={styles.sourceDate}>{formatSourceDate(source.date)}</Text>
+                      <Text style={[styles.sourceDate, isCopilot && styles.copilotSourceMeta]}>
+                        {formatSourceDate(source.date)}
+                      </Text>
                     ) : null}
                   </View>
                 ))}
@@ -161,7 +204,14 @@ function MessageBubbleBase({ message, isCollaborative, currentUserId }: MessageB
         </View>
 
         {isOwnMessage && (
-          <View style={[styles.avatarContainer, { backgroundColor: senderColor + '15' }]}>
+          <View
+            style={[
+              styles.avatarContainer,
+              {
+                backgroundColor: isCopilot ? senderColor : senderColor + '15',
+              },
+            ]}
+          >
             <Ionicons name="person" size={20} color={colors.surface} />
           </View>
         )}
@@ -242,6 +292,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366F1',
     borderBottomRightRadius: borderRadius.sm,
   },
+  copilotUserBubble: {
+    backgroundColor: COPILOT_PALETTE.accent,
+    borderBottomRightRadius: borderRadius.sm,
+  },
+  copilotAssistantBubble: {
+    backgroundColor: COPILOT_PALETTE.surface,
+    borderWidth: 1,
+    borderColor: COPILOT_PALETTE.border,
+  },
   text: {
     fontSize: typography.fontSize.base,
     lineHeight: typography.fontSize.base * typography.lineHeight.relaxed,
@@ -252,6 +311,12 @@ const styles = StyleSheet.create({
   assistantText: {
     color: colors.textPrimary,
   },
+  copilotUserText: {
+    color: colors.surface,
+  },
+  copilotAssistantText: {
+    color: COPILOT_PALETTE.accentText,
+  },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -261,6 +326,9 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.textSecondary,
     fontStyle: 'italic',
+  },
+  copilotLoadingText: {
+    color: COPILOT_PALETTE.accentText,
   },
   timestamp: {
     fontSize: typography.fontSize.xs,
@@ -281,6 +349,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  copilotSourcesCard: {
+    backgroundColor: COPILOT_PALETTE.surface,
+    borderColor: COPILOT_PALETTE.border,
+  },
   sourcesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -299,10 +371,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
+  copilotSourcesTitle: {
+    color: COPILOT_PALETTE.accentText,
+  },
   sourcesCount: {
     fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
     fontWeight: typography.fontWeight.semibold,
+  },
+  copilotSourcesCount: {
+    color: COPILOT_PALETTE.accentText,
   },
   sourcesCountBadge: {
     minWidth: 22,
@@ -314,6 +392,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surface,
+  },
+  copilotSourcesCountBadge: {
+    borderColor: COPILOT_PALETTE.border,
+    backgroundColor: COPILOT_PALETTE.surface,
   },
   sourcesBody: {
     overflow: 'hidden',
@@ -333,6 +415,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
   },
+  copilotSourceLine: {
+    color: COPILOT_PALETTE.accentText,
+  },
   sourceItem: {
     gap: spacing[1],
     padding: spacing[2],
@@ -342,14 +427,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     marginTop: spacing[2],
   },
+  copilotSourceItem: {
+    borderColor: COPILOT_PALETTE.border,
+    backgroundColor: COPILOT_PALETTE.background,
+  },
   sourceAuthor: {
     fontSize: typography.fontSize.xs,
     color: colors.textMuted,
+  },
+  copilotSourceMeta: {
+    color: COPILOT_PALETTE.accentText,
   },
   sourceDivider: {
     height: 1,
     width: 25,
     backgroundColor: colors.border,
+  },
+  copilotSourceDivider: {
+    backgroundColor: COPILOT_PALETTE.border,
   },
   sourceDate: {
     fontSize: typography.fontSize.xs,

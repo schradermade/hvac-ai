@@ -30,6 +30,13 @@ const SUGGESTIONS = [
   'Summarize recent service history.',
 ];
 
+const copilotPalette = {
+  background: '#D4D7FB',
+  surface: '#EEF0FF',
+  accent: '#9B9EF6',
+  border: '#B8BDF4',
+} as const;
+
 export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Props>(
   ({ messages, currentUserId, scrollKey, bottomInset = 0 }, ref) => {
     const flatListRef = useRef<FlatList>(null);
@@ -66,7 +73,12 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
 
     const renderItem = useCallback(
       ({ item }: { item: Message }) => (
-        <MessageBubble message={item} isCollaborative={false} currentUserId={currentUserId} />
+        <MessageBubble
+          message={item}
+          isCollaborative={false}
+          currentUserId={currentUserId}
+          variant="copilot"
+        />
       ),
       [currentUserId]
     );
@@ -75,7 +87,7 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
       return (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="sparkles" size={48} color={colors.primary} />
+            <Ionicons name="sparkles" size={48} color={copilotPalette.accent} />
           </View>
           <Text style={styles.emptyTitle}>Job Copilot</Text>
           <Text style={styles.emptySubtitle}>Ask about this job's history and notes.</Text>
@@ -134,7 +146,7 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
 const styles = StyleSheet.create({
   list: {
     flex: 1,
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
   listContent: {
     paddingTop: spacing[4],
@@ -145,7 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing[6],
-    backgroundColor: '#F4F6FE',
+    backgroundColor: copilotPalette.background,
   },
   emptyIconContainer: {
     marginBottom: spacing[4],
@@ -181,10 +193,10 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
-    backgroundColor: colors.surface,
+    backgroundColor: copilotPalette.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: copilotPalette.border,
   },
   suggestionText: {
     fontSize: typography.fontSize.base,
