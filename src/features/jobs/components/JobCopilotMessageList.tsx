@@ -91,7 +91,16 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
           <View style={styles.emptyIconContainer}>
             <Ionicons name="sparkles" size={48} color={copilotPalette.accent} />
           </View>
-          <Text style={styles.emptyTitle}>Job Copilot</Text>
+          <View style={styles.emptyTitleContainer}>
+            <Text style={styles.emptyTitlePrefix}>Job </Text>
+            <Text style={styles.emptyTitleCopilot}>COPILOT</Text>
+            <Ionicons
+              name="sparkles"
+              size={20}
+              color={copilotPalette.accent}
+              style={styles.emptyTitleIcon}
+            />
+          </View>
           <Text style={styles.emptySubtitle}>Ask about this job's history and notes.</Text>
 
           <View style={styles.suggestionsContainer}>
@@ -168,11 +177,24 @@ const styles = StyleSheet.create({
   emptyIconContainer: {
     marginBottom: spacing[4],
   },
-  emptyTitle: {
+  emptyTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing[2],
+  },
+  emptyTitlePrefix: {
     fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: typography.fontWeight.semibold,
     color: copilotPalette.text,
-    marginBottom: spacing[1],
+  },
+  emptyTitleCopilot: {
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: '800',
+    letterSpacing: -1,
+    color: copilotPalette.text,
+  },
+  emptyTitleIcon: {
+    marginLeft: spacing[2],
   },
   emptySubtitle: {
     fontSize: typography.fontSize.base,

@@ -25,11 +25,14 @@ const ROLE_COLORS = {
 };
 
 const COPILOT_PALETTE = {
-  background: '#D4D7FB',
-  surface: '#EEF0FF',
-  accent: '#9B9EF6',
-  border: '#B8BDF4',
-  accentText: '#2F3180',
+  background: '#9BA3F5', // Rich purple - matches main Copilot screen
+  surface: '#FFFFFF', // Pure white
+  accent: '#6B73E8', // Saturated purple
+  accentDark: '#4E56D9', // Rich deep purple - for user bubbles
+  border: '#7780DB', // Dark border
+  text: '#1A2470', // Very dark purple
+  textLight: '#3D4791', // Dark muted purple
+  white: '#FFFFFF',
 } as const;
 
 /**
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: borderRadius.sm,
   },
   copilotUserBubble: {
-    backgroundColor: COPILOT_PALETTE.accent,
+    backgroundColor: COPILOT_PALETTE.accentDark,
     borderBottomRightRadius: borderRadius.sm,
   },
   copilotAssistantBubble: {
@@ -312,10 +315,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   copilotUserText: {
-    color: colors.surface,
+    color: COPILOT_PALETTE.white,
   },
   copilotAssistantText: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.text,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -328,7 +331,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   copilotLoadingText: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.text,
   },
   timestamp: {
     fontSize: typography.fontSize.xs,
@@ -372,7 +375,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   copilotSourcesTitle: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.text,
   },
   sourcesCount: {
     fontSize: typography.fontSize.xs,
@@ -380,7 +383,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
   },
   copilotSourcesCount: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.text,
   },
   sourcesCountBadge: {
     minWidth: 22,
@@ -416,7 +419,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
   },
   copilotSourceLine: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.text,
   },
   sourceItem: {
     gap: spacing[1],
@@ -429,14 +432,14 @@ const styles = StyleSheet.create({
   },
   copilotSourceItem: {
     borderColor: COPILOT_PALETTE.border,
-    backgroundColor: COPILOT_PALETTE.background,
+    backgroundColor: COPILOT_PALETTE.surface,
   },
   sourceAuthor: {
     fontSize: typography.fontSize.xs,
     color: colors.textMuted,
   },
   copilotSourceMeta: {
-    color: COPILOT_PALETTE.accentText,
+    color: COPILOT_PALETTE.textLight,
   },
   sourceDivider: {
     height: 1,
