@@ -9,7 +9,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from '@/components/ui';
+import { spacing, typography, borderRadius } from '@/components/ui';
 import { MessageBubble } from '@/features/diagnostic/components/MessageBubble';
 import type { Message } from '@/features/diagnostic/types';
 
@@ -31,10 +31,12 @@ const SUGGESTIONS = [
 ];
 
 const copilotPalette = {
-  background: '#D4D7FB',
-  surface: '#EEF0FF',
-  accent: '#9B9EF6',
-  border: '#B8BDF4',
+  background: '#9BA3F5', // Rich purple - matches main Copilot screen
+  surface: '#FFFFFF', // Pure white
+  accent: '#6B73E8', // Saturated purple
+  border: '#7780DB', // Dark border
+  text: '#1A2470', // Very dark purple
+  textLight: '#3D4791', // Dark muted purple
 } as const;
 
 export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Props>(
@@ -96,7 +98,11 @@ export const JobCopilotMessageList = forwardRef<JobCopilotMessageListHandle, Pro
             <Text style={styles.suggestionsTitle}>Try asking:</Text>
             {SUGGESTIONS.map((item) => (
               <View key={item} style={styles.suggestionCard}>
-                <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={16}
+                  color={copilotPalette.accent}
+                />
                 <Text style={styles.suggestionText}>{item}</Text>
               </View>
             ))}
@@ -165,12 +171,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
+    color: copilotPalette.text,
     marginBottom: spacing[1],
   },
   emptySubtitle: {
     fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
+    color: copilotPalette.textLight,
     marginBottom: spacing[6],
     textAlign: 'center',
   },
@@ -182,7 +188,7 @@ const styles = StyleSheet.create({
   suggestionsTitle: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.textSecondary,
+    color: copilotPalette.text,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: spacing[2],
@@ -200,7 +206,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
+    color: copilotPalette.text,
     flex: 1,
   },
 });

@@ -19,12 +19,14 @@ import type { RootStackParamList } from '@/navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'JobCopilot'>;
 
 const copilotPalette = {
-  background: '#D4D7FB',
-  surface: '#EEF0FF',
-  accent: '#9B9EF6',
-  border: '#B8BDF4',
-  accentText: '#2F3180',
-  tabText: '#FFFFFF',
+  background: '#9BA3F5', // Rich purple - matches main Copilot screen
+  surface: '#FFFFFF', // Pure white - maximum contrast
+  accent: '#6B73E8', // Saturated purple
+  accentDark: '#4E56D9', // Rich deep purple
+  border: '#7780DB', // Dark border
+  text: '#1A2470', // Very dark purple
+  textLight: '#3D4791', // Dark muted purple
+  white: '#FFFFFF',
 } as const;
 
 export function JobCopilotScreen({ route }: Props) {
@@ -122,24 +124,24 @@ export function JobCopilotScreen({ route }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.contextHeader}>
-        <View style={styles.contextPill}>
-          <View style={styles.contextRow}>
-            <View style={styles.contextIcon}>
-              <Ionicons name="briefcase-outline" size={16} color="#FFFFFF" />
-            </View>
-            <Text style={styles.contextTitle}>{job.type.toUpperCase()}</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>{getStatusLabel(job.status)}</Text>
-            </View>
+        <View style={styles.contextBanner}>
+          <View style={styles.contextIcon}>
+            <Ionicons name="briefcase" size={16} color={copilotPalette.white} />
           </View>
-          <View style={styles.contextMetaRow}>
+          <View style={styles.contextContent}>
+            <View style={styles.contextRow}>
+              <Text style={styles.contextTitle}>
+                {job.type.toUpperCase()} •{' '}
+                {clientLoading ? 'Loading...' : client?.name || 'Unknown Client'}
+              </Text>
+            </View>
             <Text style={styles.contextSubtitle}>
-              {clientLoading ? 'Loading client...' : client?.name || 'Unknown Client'}
+              {scheduleText} • #{shortJobId}
             </Text>
-            <Text style={styles.contextDot}>•</Text>
-            <Text style={styles.contextMetaValue}>{scheduleText}</Text>
-            <Text style={styles.contextDot}>•</Text>
-            <Text style={styles.contextMetaValue}>#{shortJobId}</Text>
+          </View>
+          <View style={styles.statusBadge}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>{getStatusLabel(job.status)}</Text>
           </View>
         </View>
       </View>
@@ -161,6 +163,7 @@ export function JobCopilotScreen({ route }: Props) {
               onPress={() => sendMessage(followUp)}
               activeOpacity={0.8}
             >
+              <Ionicons name="sparkles" size={14} color={copilotPalette.accent} />
               <Text style={styles.followUpText}>{followUp}</Text>
             </TouchableOpacity>
           ))}
@@ -194,89 +197,89 @@ const styles = StyleSheet.create({
     color: colors.error,
   },
   contextHeader: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[2],
+    paddingHorizontal: spacing[5],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[3],
     backgroundColor: copilotPalette.background,
   },
-  contextPill: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
+  contextBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing[4],
+    gap: spacing[3],
     borderRadius: borderRadius.lg,
-    backgroundColor: copilotPalette.surface,
-    borderWidth: 1,
-    borderColor: copilotPalette.border,
-    ...shadows.sm,
+    backgroundColor: copilotPalette.accentDark,
+    ...shadows.md,
+  },
+  contextIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  contextContent: {
+    flex: 1,
   },
   contextRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
-  },
-  contextIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: borderRadius.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: copilotPalette.accent,
+    marginBottom: spacing[1],
   },
   contextTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: copilotPalette.accentText,
+    color: copilotPalette.white,
+  },
+  contextSubtitle: {
+    fontSize: typography.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
     paddingHorizontal: spacing[2],
-    paddingVertical: 2,
+    paddingVertical: spacing[1],
     borderRadius: borderRadius.full,
-    backgroundColor: copilotPalette.accent,
-    borderWidth: 1,
-    borderColor: copilotPalette.accent,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10b981',
   },
   statusText: {
     fontSize: typography.fontSize.xs,
-    color: copilotPalette.tabText,
+    fontWeight: typography.fontWeight.semibold,
+    color: copilotPalette.white,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  contextSubtitle: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
-  },
-  contextMetaRow: {
-    marginTop: spacing[2],
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: spacing[1],
-  },
-  contextDot: {
-    color: colors.textTertiary,
-    fontSize: typography.fontSize.xs,
-  },
-  contextMetaValue: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
+    letterSpacing: 0.5,
   },
   followUpRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[2],
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
     backgroundColor: copilotPalette.background,
   },
   followUpChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
-    backgroundColor: copilotPalette.accent,
+    backgroundColor: copilotPalette.surface,
     borderWidth: 1,
-    borderColor: copilotPalette.accent,
+    borderColor: copilotPalette.border,
   },
   followUpText: {
     fontSize: typography.fontSize.sm,
-    color: copilotPalette.tabText,
+    fontWeight: typography.fontWeight.medium,
+    color: copilotPalette.text,
   },
 });

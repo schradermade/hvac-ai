@@ -19,12 +19,7 @@ function CopilotTabLabel({ focused }: { focused: boolean }) {
     <View style={tabLabelStyles.wrapper}>
       <View style={tabLabelStyles.container}>
         <Text style={[tabLabelStyles.label, focused && tabLabelStyles.labelFocused]}>COPILOT</Text>
-        <Ionicons
-          name="sparkles"
-          size={12}
-          color={focused ? '#FFFFFF' : colors.textMuted}
-          style={{ marginLeft: 4 }}
-        />
+        <Ionicons name="sparkles" size={12} color="#FFFFFF" style={tabLabelStyles.icon} />
       </View>
     </View>
   );
@@ -48,10 +43,13 @@ const tabLabelStyles = StyleSheet.create({
     fontSize: 21,
     fontWeight: '800',
     letterSpacing: -1.05,
-    color: colors.textMuted,
+    color: '#FFFFFF',
   },
   labelFocused: {
     color: '#FFFFFF',
+  },
+  icon: {
+    marginLeft: 4,
   },
 });
 
@@ -134,8 +132,8 @@ export function TabNavigator() {
             borderRightWidth: 1,
             borderRightColor: colors.border,
             borderTopWidth: 1,
-            borderTopColor: '#D4D7FB',
-            backgroundColor: '#D4D7FB',
+            borderTopColor: '#9BA3F5',
+            backgroundColor: '#9BA3F5',
           },
           tabBarActiveBackgroundColor: '#4E56D9',
         }}
